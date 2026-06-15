@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import sk.momosilabs.truckTrack.account.persistence.repository.AccountRepository
+import sk.momosilabs.truckTrack.config.GlobalNotFoundException
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueEntity
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEntity
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
@@ -72,7 +73,7 @@ class IssuePersistenceProvider(
     @Transactional
     override fun updateStatus(id: Long, status: IssueStatus, updatedAt: OffsetDateTime): IssueModel {
         val entity = issueRepository.findById(id)
-            .orElseThrow { NoSuchElementException("issue id=$id not found") }
+            .orElseThrow { GlobalNotFoundException("issue id=$id not found") }
         entity.status = status
         entity.updatedAtUtc = updatedAt.toUtcLocalDateTime()
         return entity.toModel()

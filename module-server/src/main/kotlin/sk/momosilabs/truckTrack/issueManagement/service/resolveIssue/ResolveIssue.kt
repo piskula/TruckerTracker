@@ -3,6 +3,7 @@ package sk.momosilabs.truckTrack.issueManagement.service.resolveIssue
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import sk.momosilabs.truckTrack.account.model.AccountModel
+import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEventType
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
@@ -24,7 +25,9 @@ class ResolveIssue(
     @Transactional
     override fun resolve(issueId: Long): IssueModel {
         val issue = issuePersistence.findById(issueId)
-        check(issue.status == IssueStatus.IN_PROGRESS) { "Issue must be IN_PROGRESS to resolve, current status: ${issue.status}" }
+        if (issue.status != IssueStatus.IN_PROGRESS) {
+            throw GlobalUnprocessableException("Issue must be IN_PROGRESS to resolve, current status: ${issue.status}")
+        }
 
         val resolvedBy: AccountModel = currentUserService.currentUser()
 

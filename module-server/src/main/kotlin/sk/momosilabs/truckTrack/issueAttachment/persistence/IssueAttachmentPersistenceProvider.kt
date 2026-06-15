@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
+import sk.momosilabs.truckTrack.config.GlobalNotFoundException
 import sk.momosilabs.truckTrack.file.model.FileModel
 import sk.momosilabs.truckTrack.file.persistence.repository.FileRepository
 import sk.momosilabs.truckTrack.issueAttachment.entity.IssueAttachmentEntity
@@ -28,7 +29,7 @@ class IssueAttachmentPersistenceProvider(
     @Transactional(readOnly = true)
     override fun findFileById(attachmentId: Long): FileModel {
         val entity = issueAttachmentRepository.findById(attachmentId)
-            .orElseThrow { NoSuchElementException("attachment id=$attachmentId not found") }
+            .orElseThrow { GlobalNotFoundException("attachment id=$attachmentId not found") }
         return entity.file.toModel()
     }
 

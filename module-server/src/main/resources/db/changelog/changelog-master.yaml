@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/2026/06/06-12-initial-schema.yaml
+  - include:
+      file: db/changelog/2026/06/06-15-initial-vehicles.yaml

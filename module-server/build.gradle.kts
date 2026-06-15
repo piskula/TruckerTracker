@@ -13,6 +13,7 @@ dependencies {
     implementation(libs.spring.boot.starter.oauth2.resource.server)
     implementation(libs.springdoc.openapi.webmvc.ui)
     implementation(libs.kotlin.reflect)
+    implementation(libs.kotlin.logging)
 
     implementation(libs.spring.boot.starter.liquibase)
     implementation(libs.minio)

@@ -1,0 +1,293 @@
+databaseChangeLog:
+  - changeSet:
+      id: 06-15-initial-vehicles
+      author: ooravcok
+      changes:
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA151E0" }
+              - column: { name: make, value: "Volvo" }
+              - column: { name: model, value: "FH16" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA655YH" }
+              - column: { name: make, value: "Schmitz" }
+              - column: { name: model, value: "S.CS" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA152EO" }
+              - column: { name: make, value: "Scania" }
+              - column: { name: model, value: "R500" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA826YI" }
+              - column: { name: make, value: "Krone" }
+              - column: { name: model, value: "Profi Liner" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA980EF" }
+              - column: { name: make, value: "Mercedes-Benz" }
+              - column: { name: model, value: "Actros" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA672YH" }
+              - column: { name: make, value: "Schmitz" }
+              - column: { name: model, value: "S.KO" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA950EF" }
+              - column: { name: make, value: "MAN" }
+              - column: { name: model, value: "TGX" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA977YI" }
+              - column: { name: make, value: "Krone" }
+              - column: { name: model, value: "Cool Liner" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA309FD" }
+              - column: { name: make, value: "DAF" }
+              - column: { name: model, value: "XF 480" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA448YJ" }
+              - column: { name: make, value: "Schwarzmüller" }
+              - column: { name: model, value: "SPA" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA321ET" }
+              - column: { name: make, value: "Renault" }
+              - column: { name: model, value: "T High" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA893YI" }
+              - column: { name: make, value: "Kögel" }
+              - column: { name: model, value: "Cargo" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA345FD" }
+              - column: { name: make, value: "Iveco" }
+              - column: { name: model, value: "S-Way" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA490YJ" }
+              - column: { name: make, value: "Schmitz" }
+              - column: { name: model, value: "Mega" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA363FE" }
+              - column: { name: make, value: "Volvo" }
+              - column: { name: model, value: "FH500" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA551YJ" }
+              - column: { name: make, value: "Krone" }
+              - column: { name: model, value: "Box Liner" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA391FD" }
+              - column: { name: make, value: "Scania" }
+              - column: { name: model, value: "S560" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA496YK" }
+              - column: { name: make, value: "Wielton" }
+              - column: { name: model, value: "Curtain Master" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA409FE" }
+              - column: { name: make, value: "Mercedes-Benz" }
+              - column: { name: model, value: "Actros 1845" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA519YJ" }
+              - column: { name: make, value: "Schmitz" }
+              - column: { name: model, value: "Universal" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA150EO" }
+              - column: { name: make, value: "MAN" }
+              - column: { name: model, value: "TGX 18.510" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA313YH" }
+              - column: { name: make, value: "Kögel" }
+              - column: { name: model, value: "Mega" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA743ES" }
+              - column: { name: make, value: "DAF" }
+              - column: { name: model, value: "XG 530" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA931YH" }
+              - column: { name: make, value: "Schmitz" }
+              - column: { name: model, value: "Thermo" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA264EO" }
+              - column: { name: make, value: "Volvo" }
+              - column: { name: model, value: "FH460" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA270YH" }
+              - column: { name: make, value: "Krone" }
+              - column: { name: model, value: "Paper Liner" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA266EO" }
+              - column: { name: make, value: "Renault" }
+              - column: { name: model, value: "T480" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA658YH" }
+              - column: { name: make, value: "Schwarzmüller" }
+              - column: { name: model, value: "Low Bed" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA453ET" }
+              - column: { name: make, value: "Scania" }
+              - column: { name: model, value: "R450" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "MA318YH" }
+              - column: { name: make, value: "Kögel" }
+              - column: { name: model, value: "Light Plus" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "AA687KT" }
+              - column: { name: make, value: "Mercedes-Benz" }
+              - column: { name: model, value: "Actros L" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "AA659YS" }
+              - column: { name: make, value: "Schmitz" }
+              - column: { name: model, value: "Reefer" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "AA224NM" }
+              - column: { name: make, value: "Volvo" }
+              - column: { name: model, value: "FH Aero" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "AA697YS" }
+              - column: { name: make, value: "Krone" }
+              - column: { name: model, value: "Dry Liner" }
+              - column: { name: type, value: "TRAILER" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "AA800TN" }
+              - column: { name: make, value: "MAN" }
+              - column: { name: model, value: "TGX GX" }
+              - column: { name: type, value: "TRUCK" }
+
+        - insert:
+            tableName: vehicle
+            columns:
+              - column: { name: license_plate, value: "AA407YI" }
+              - column: { name: make, value: "Wielton" }
+              - column: { name: model, value: "NS3K" }
+              - column: { name: type, value: "TRAILER" }

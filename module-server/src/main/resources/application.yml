@@ -26,12 +26,14 @@ minio:
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
 
 server:
-  port: 8080
+  port: 8085
+  # to allow swagger-ui to perform requests against HTTPS
+  forward-headers-strategy: framework
 
 springdoc:
   oauth2:
-    authorization-url: ${KEYCLOAK_URL:https://sso.momosi.org}/realms/${KEYCLOAK_REALM:trucktrack}/protocol/openid-connect/auth
-    token-url: ${KEYCLOAK_URL:https://sso.momosi.org}/realms/${KEYCLOAK_REALM:trucktrack}/protocol/openid-connect/token
+    authorization-url: https://sso.momosi.org/realms/trucktrack/protocol/openid-connect/auth
+    token-url: https://sso.momosi.org/realms/trucktrack/protocol/openid-connect/token
   swagger-ui:
     oauth:
       client-id: trucktrack-app

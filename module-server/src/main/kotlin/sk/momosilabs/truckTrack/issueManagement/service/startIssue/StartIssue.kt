@@ -3,6 +3,7 @@ package sk.momosilabs.truckTrack.issueManagement.service.startIssue
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import sk.momosilabs.truckTrack.account.model.AccountModel
+import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEventType
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
@@ -24,7 +25,9 @@ class StartIssue(
     @Transactional
     override fun start(issueId: Long): IssueModel {
         val issue = issuePersistence.findById(issueId)
-        check(issue.status == IssueStatus.OPEN) { "Issue must be OPEN to start, current status: ${issue.status}" }
+        if (issue.status != IssueStatus.OPEN) {
+            throw GlobalUnprocessableException("Issue must be OPEN to start, current status: ${issue.status}")
+        }
 
         val mechanic: AccountModel = currentUserService.currentUser()
 

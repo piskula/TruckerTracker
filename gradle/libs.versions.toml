@@ -4,6 +4,7 @@ springBoot = "4.0.6"
 springDependencyManagement = "1.1.7"
 springdocOpenapi = "2.7.0"
 minio = "8.5.17"
+logging = "7.0.7"
 
 [libraries]
 spring-boot-starter-web                  = { module = "org.springframework.boot:spring-boot-starter-web" }
@@ -17,6 +18,7 @@ spring-boot-starter-liquibase = { module = "org.springframework.boot:spring-boot
 minio                        = { module = "io.minio:minio", version.ref = "minio" }
 springdoc-openapi-webmvc-api = { module = "org.springdoc:springdoc-openapi-starter-webmvc-api", version.ref = "springdocOpenapi" }
 springdoc-openapi-webmvc-ui  = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui",  version.ref = "springdocOpenapi" }
+kotlin-logging  = { module = "io.github.oshai:kotlin-logging-jvm",  version.ref = "logging" }
 
 [plugins]
 kotlin-jvm                   = { id = "org.jetbrains.kotlin.jvm",            version.ref = "kotlin" }
