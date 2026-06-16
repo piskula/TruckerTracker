@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transroute Tracker – Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #ECEFF1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .phone {
+      width: 390px;
+      min-height: 844px;
+      background: #fff;
+      border-radius: 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .status-bar {
+      background: #1565C0;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .hero {
+      background: linear-gradient(160deg, #1565C0 0%, #1976D2 100%);
+      padding: 56px 32px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero-icon {
+      width: 72px;
+      height: 72px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-icon .material-icons { font-size: 40px; color: #fff; }
+    .hero h1 {
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .hero p {
+      color: rgba(255,255,255,0.75);
+      font-size: 13px;
+      font-weight: 400;
+    }
+    .form-area {
+      padding: 32px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+    }
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    .field-group label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #1565C0;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .field-group input {
+      border: none;
+      border-bottom: 2px solid #BDBDBD;
+      padding: 10px 0 8px;
+      font-size: 16px;
+      font-family: 'Roboto', sans-serif;
+      color: #212121;
+      outline: none;
+      background: transparent;
+      transition: border-color 0.2s;
+    }
+    .field-group input:focus { border-bottom-color: #1565C0; }
+    .field-group input::placeholder { color: #9E9E9E; }
+    .btn-primary {
+      background: #1565C0;
+      color: #fff;
+      border: none;
+      border-radius: 28px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 500;
+      font-family: 'Roboto', sans-serif;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(21,101,192,0.35);
+      letter-spacing: 0.5px;
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #9E9E9E;
+      font-size: 13px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #E0E0E0;
+    }
+    .forgot {
+      text-align: center;
+      color: #1565C0;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>
+        <span class="material-icons" style="font-size:14px;">signal_cellular_4_bar</span>
+        <span class="material-icons" style="font-size:14px; margin-left:2px;">battery_full</span>
+      </span>
+    </div>
+
+    <div class="hero">
+      <div class="hero-icon">
+        <span class="material-icons">local_shipping</span>
+      </div>
+      <h1>Transroute Tracker</h1>
+      <p>Fleet service management</p>
+    </div>
+
+    <div class="form-area">
+      <div class="field-group">
+        <label>Username</label>
+        <input type="text" placeholder="Enter your username" value="michael.schumacher">
+      </div>
+      <div class="field-group">
+        <label>Password</label>
+        <input type="password" placeholder="••••••••" value="password">
+      </div>
+
+      <button class="btn-primary">Sign In</button>
+
+      <div class="divider">or</div>
+      <div class="forgot">Forgot password?</div>
+    </div>
+  </div>
+</body>
+</html>

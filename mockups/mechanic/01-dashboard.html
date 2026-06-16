@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transroute Tracker – Mechanic Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #ECEFF1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .phone {
+      width: 390px;
+      height: 844px;
+      background: #F5F5F5;
+      border-radius: 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .status-bar {
+      background: #1565C0;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .top-bar {
+      background: #1565C0;
+      padding: 14px 16px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .top-bar-left { display: flex; flex-direction: column; }
+    .top-bar h2 { color: #fff; font-size: 20px; font-weight: 700; }
+    .top-bar-sub { color: rgba(255,255,255,0.65); font-size: 13px; margin-top: 2px; }
+    .top-bar-actions { display: flex; gap: 4px; }
+    .icon-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn .material-icons { color: #fff; font-size: 24px; }
+
+    .filter-row {
+      background: #1565C0;
+      padding: 0 16px 12px;
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.75);
+    }
+    .filter-chip.active {
+      background: #fff;
+      color: #1565C0;
+      border-color: #fff;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #9E9E9E;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 4px 0;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      cursor: pointer;
+      border-left: 4px solid #BDBDBD;
+    }
+    .card.priority-high   { border-left-color: #C62828; }
+    .card.priority-medium { border-left-color: #F9A825; }
+    .card.priority-low    { border-left-color: #0288D1; }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #212121;
+      flex: 1;
+      line-height: 1.35;
+    }
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px 3px 7px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .status-chip .material-icons { font-size: 13px; }
+    .status-open     { background: #E3F2FD; color: #1565C0; }
+    .status-progress { background: #FFF3E0; color: #F57C00; }
+    .status-done     { background: #E8F5E9; color: #2E7D32; }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .priority-indicator {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+    }
+    .priority-indicator .material-icons { font-size: 15px; }
+    .priority-indicator.high   { color: #C62828; }
+    .priority-indicator.medium { color: #F9A825; }
+    .priority-indicator.low    { color: #0288D1; }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: #757575;
+      font-size: 12px;
+    }
+    .meta-item .material-icons { font-size: 15px; }
+
+    .card-time {
+      margin-left: auto;
+      font-size: 11px;
+      color: #9E9E9E;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .reporter {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: #9E9E9E;
+      font-size: 11px;
+      margin-left: 4px;
+    }
+    .reporter .material-icons { font-size: 13px; }
+
+    .bottom-nav {
+      background: #fff;
+      height: 64px;
+      display: flex;
+      border-top: 1px solid #E0E0E0;
+      flex-shrink: 0;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+    }
+    .nav-item .material-icons { font-size: 24px; color: #9E9E9E; }
+    .nav-item .nav-label { font-size: 11px; color: #9E9E9E; font-weight: 500; }
+    .nav-item.active .material-icons { color: #1565C0; }
+    .nav-item.active .nav-label { color: #1565C0; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>
+        <span class="material-icons" style="font-size:14px;">signal_cellular_4_bar</span>
+        <span class="material-icons" style="font-size:14px; margin-left:2px;">battery_full</span>
+      </span>
+    </div>
+
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <h2>Issues</h2>
+        <span class="top-bar-sub">Mattia Binotto · Mechanic</span>
+      </div>
+      <div class="top-bar-actions">
+        <div class="icon-btn"><span class="material-icons">search</span></div>
+        <div class="icon-btn"><span class="material-icons">account_circle</span></div>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-chip active">All</div>
+      <div class="filter-chip">Open</div>
+      <div class="filter-chip">In Progress</div>
+      <div class="filter-chip">Done</div>
+    </div>
+
+    <div class="content">
+
+      <div class="section-label">In Progress — Assigned to me (1)</div>
+
+      <!-- High / In Progress -->
+      <div class="card priority-high">
+        <div class="card-top">
+          <div class="card-title">Engine warning light — truck won't start</div>
+          <div class="status-chip status-progress">
+            <span class="material-icons">build</span>
+            In Progress
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="priority-indicator high">
+            <span class="material-icons">arrow_upward</span>
+            High
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">local_shipping</span>
+            <span>MA-204-TT</span>
+          </div>
+          <div class="reporter">
+            <span class="material-icons">person</span>
+            <span>M. Schumacher</span>
+          </div>
+          <span class="card-time">2h ago</span>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:4px;">Open — Available to pick up (3)</div>
+
+      <!-- High / Open -->
+      <div class="card priority-high">
+        <div class="card-top">
+          <div class="card-title">Brake fluid leak — front axle</div>
+          <div class="status-chip status-open">
+            <span class="material-icons">radio_button_unchecked</span>
+            Open
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="priority-indicator high">
+            <span class="material-icons">arrow_upward</span>
+            High
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">local_shipping</span>
+            <span>MA-501-KL</span>
+          </div>
+          <div class="reporter">
+            <span class="material-icons">person</span>
+            <span>J. Villeneuve</span>
+          </div>
+          <span class="card-time">3h ago</span>
+        </div>
+      </div>
+
+      <!-- Medium / Open -->
+      <div class="card priority-medium">
+        <div class="card-top">
+          <div class="card-title">Air suspension — right side not inflating</div>
+          <div class="status-chip status-open">
+            <span class="material-icons">radio_button_unchecked</span>
+            Open
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="priority-indicator medium">
+            <span class="material-icons">remove</span>
+            Medium
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">local_shipping</span>
+            <span>MA-089-MR</span>
+          </div>
+          <div class="reporter">
+            <span class="material-icons">person</span>
+            <span>N. Lauda</span>
+          </div>
+          <span class="card-time">Yesterday</span>
+        </div>
+      </div>
+
+      <!-- Medium / Open -->
+      <div class="card priority-medium">
+        <div class="card-top">
+          <div class="card-title">Windshield wiper blade broken</div>
+          <div class="status-chip status-open">
+            <span class="material-icons">radio_button_unchecked</span>
+            Open
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="priority-indicator medium">
+            <span class="material-icons">remove</span>
+            Medium
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">local_shipping</span>
+            <span>MA-337-PK</span>
+          </div>
+          <div class="reporter">
+            <span class="material-icons">person</span>
+            <span>M. Schumacher</span>
+          </div>
+          <span class="card-time">Yesterday</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <span class="material-icons">list_alt</span>
+        <span class="nav-label">Issues</span>
+      </div>
+      <div class="nav-item">
+        <span class="material-icons">person_outline</span>
+        <span class="nav-label">Profile</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

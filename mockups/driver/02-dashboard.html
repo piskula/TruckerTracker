@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transroute Tracker – Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #ECEFF1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .phone {
+      width: 390px;
+      height: 844px;
+      background: #F5F5F5;
+      border-radius: 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .status-bar {
+      background: #1565C0;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .top-bar {
+      background: #1565C0;
+      padding: 14px 16px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .top-bar-left { display: flex; flex-direction: column; }
+    .top-bar h2 { color: #fff; font-size: 20px; font-weight: 700; }
+    .top-bar-sub { color: rgba(255,255,255,0.75); font-size: 13px; margin-top: 2px; }
+    .top-bar-actions { display: flex; gap: 4px; }
+    .icon-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn .material-icons { color: #fff; font-size: 24px; }
+
+    .filter-row {
+      background: #1565C0;
+      padding: 0 16px 12px;
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.85);
+    }
+    .filter-chip.active {
+      background: #fff;
+      color: #1565C0;
+      border-color: #fff;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #9E9E9E;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 4px 0;
+    }
+
+    /* Card */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      cursor: pointer;
+      border-left: 4px solid #BDBDBD;
+    }
+    .card.priority-high   { border-left-color: #C62828; }
+    .card.priority-medium { border-left-color: #F9A825; }
+    .card.priority-low    { border-left-color: #0288D1; }
+
+    /* Row 1: title + status badge */
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #212121;
+      flex: 1;
+      line-height: 1.35;
+    }
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px 3px 7px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .status-chip .material-icons { font-size: 13px; }
+    .status-open     { background: #E3F2FD; color: #1565C0; }
+    .status-progress { background: #FFF3E0; color: #F57C00; }
+    .status-done     { background: #E8F5E9; color: #2E7D32; }
+
+    /* Row 2: priority + plate + photos + time */
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .priority-indicator {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+    }
+    .priority-indicator .material-icons { font-size: 15px; }
+    .priority-indicator.high   { color: #C62828; }
+    .priority-indicator.medium { color: #F9A825; }
+    .priority-indicator.low    { color: #0288D1; }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: #757575;
+      font-size: 12px;
+    }
+    .meta-item .material-icons { font-size: 15px; }
+
+    .card-time {
+      margin-left: auto;
+      font-size: 11px;
+      color: #9E9E9E;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .photo-count {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      color: #9E9E9E;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .photo-count .material-icons { font-size: 14px; }
+
+    /* FAB */
+    .fab {
+      position: absolute;
+      bottom: 80px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      background: #1565C0;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(21,101,192,0.45);
+      cursor: pointer;
+    }
+    .fab .material-icons { color: #fff; font-size: 28px; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      background: #fff;
+      height: 64px;
+      display: flex;
+      border-top: 1px solid #E0E0E0;
+      flex-shrink: 0;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+    }
+    .nav-item .material-icons { font-size: 24px; color: #9E9E9E; }
+    .nav-item .nav-label { font-size: 11px; color: #9E9E9E; font-weight: 500; }
+    .nav-item.active .material-icons { color: #1565C0; }
+    .nav-item.active .nav-label { color: #1565C0; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>
+        <span class="material-icons" style="font-size:14px;">signal_cellular_4_bar</span>
+        <span class="material-icons" style="font-size:14px; margin-left:2px;">battery_full</span>
+      </span>
+    </div>
+
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <h2>My Issues</h2>
+        <span class="top-bar-sub">Michael Schumacher · Driver</span>
+      </div>
+      <div class="top-bar-actions">
+        <div class="icon-btn"><span class="material-icons">search</span></div>
+        <div class="icon-btn"><span class="material-icons">account_circle</span></div>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-chip active">All</div>
+      <div class="filter-chip">Open</div>
+      <div class="filter-chip">In Progress</div>
+      <div class="filter-chip">Done</div>
+    </div>
+
+    <div class="content">
+      <div class="section-label">Reported by me (3)</div>
+
+      <!-- High / In Progress -->
+      <div class="card priority-high">
+        <div class="card-top">
+          <div class="card-title">Engine warning light — truck won't start</div>
+          <div class="status-chip status-progress">
+            <span class="material-icons">build</span>
+            In Progress
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="priority-indicator high">
+            <span class="material-icons">arrow_upward</span>
+            High
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">local_shipping</span>
+            <span>MA-204-TT</span>
+          </div>
+          <div class="photo-count">
+            <span class="material-icons">photo_camera</span>
+            <span>3</span>
+          </div>
+          <span class="card-time">2h ago</span>
+        </div>
+      </div>
+
+      <!-- High / Open -->
+      <div class="card priority-high">
+        <div class="card-top">
+          <div class="card-title">Left rear tire pressure critically low</div>
+          <div class="status-chip status-open">
+            <span class="material-icons">radio_button_unchecked</span>
+            Open
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="priority-indicator high">
+            <span class="material-icons">arrow_upward</span>
+            High
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">local_shipping</span>
+            <span>MA-118-AB</span>
+          </div>
+          <div class="photo-count">
+            <span class="material-icons">photo_camera</span>
+            <span>1</span>
+          </div>
+          <span class="card-time">5h ago</span>
+        </div>
+      </div>
+
+      <!-- Medium / Open -->
+      <div class="card priority-medium">
+        <div class="card-top">
+          <div class="card-title">Windshield wiper blade broken</div>
+          <div class="status-chip status-open">
+            <span class="material-icons">radio_button_unchecked</span>
+            Open
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="priority-indicator medium">
+            <span class="material-icons">remove</span>
+            Medium
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">local_shipping</span>
+            <span>MA-337-PK</span>
+          </div>
+          <span class="card-time">Yesterday</span>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:4px;">Completed (1)</div>
+
+      <!-- Low / Done -->
+      <div class="card priority-low">
+        <div class="card-top">
+          <div class="card-title">Routine oil change service</div>
+          <div class="status-chip status-done">
+            <span class="material-icons">check_circle</span>
+            Done
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="priority-indicator low">
+            <span class="material-icons">arrow_downward</span>
+            Low
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">local_shipping</span>
+            <span>MA-118-AB</span>
+          </div>
+          <span class="card-time">May 22</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="fab">
+      <span class="material-icons">add</span>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <span class="material-icons">list_alt</span>
+        <span class="nav-label">Issues</span>
+      </div>
+      <div class="nav-item">
+        <span class="material-icons">person_outline</span>
+        <span class="nav-label">Profile</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

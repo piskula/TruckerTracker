@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transroute Tracker – Issue Detail (Open)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #ECEFF1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .phone {
+      width: 390px;
+      height: 844px;
+      background: #F5F5F5;
+      border-radius: 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .status-bar {
+      background: #1565C0;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .top-bar {
+      background: #1565C0;
+      padding: 12px 8px 12px 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .back-btn {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .back-btn .material-icons { color: #fff; font-size: 24px; }
+    .top-bar-text { flex: 1; }
+    .top-bar-text h2 { color: #fff; font-size: 18px; font-weight: 700; }
+    .top-bar-text span { color: rgba(255,255,255,0.8); font-size: 12px; }
+    .icon-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn .material-icons { color: #fff; font-size: 24px; }
+
+    .people-strip {
+      background: #0D47A1;
+      padding: 10px 16px;
+      display: flex;
+      flex-shrink: 0;
+    }
+    .person-cell {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .person-cell + .person-cell {
+      border-left: 1px solid rgba(255,255,255,0.2);
+      padding-left: 14px;
+    }
+    .person-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .person-avatar .material-icons { color: #fff; font-size: 16px; }
+    .person-info { display: flex; flex-direction: column; }
+    .person-role { font-size: 10px; color: rgba(255,255,255,0.65); font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; }
+    .person-name { font-size: 13px; color: #fff; font-weight: 700; }
+    .person-name.unassigned { color: rgba(255,255,255,0.5); font-style: italic; font-weight: 400; }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .card-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #9E9E9E;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    /* Header card — same style as dashboard */
+    .header-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border-left: 4px solid #C62828;
+    }
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #212121;
+      flex: 1;
+      line-height: 1.35;
+    }
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px 3px 7px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .status-chip .material-icons { font-size: 13px; }
+    .status-open { background: #E3F2FD; color: #1565C0; }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .priority-indicator {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .priority-indicator .material-icons { font-size: 15px; }
+    .priority-indicator.high { color: #C62828; }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: #757575;
+      font-size: 12px;
+    }
+    .meta-item .material-icons { font-size: 15px; }
+    .card-time {
+      margin-left: auto;
+      font-size: 11px;
+      color: #9E9E9E;
+    }
+
+    /* Description */
+    .description-text {
+      font-size: 14px;
+      color: #424242;
+      line-height: 1.5;
+    }
+
+    /* Timeline */
+    .timeline { display: flex; flex-direction: column; }
+    .timeline-step { display: flex; gap: 12px; }
+    .timeline-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 32px;
+      flex-shrink: 0;
+    }
+    .step-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-dot.status-open { background: #1565C0; }
+    .step-dot .material-icons { font-size: 17px; color: #fff; }
+    .timeline-right { padding-bottom: 0; flex: 1; min-width: 0; }
+    .step-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .step-status { font-size: 14px; font-weight: 700; color: #212121; }
+    .step-person { font-size: 12px; color: #757575; white-space: nowrap; flex-shrink: 0; }
+    .step-time { font-size: 11px; color: #BDBDBD; margin-top: 1px; }
+
+    /* Photos */
+    .photo-row { display: flex; gap: 8px; }
+    .photo-thumb {
+      width: 80px; height: 80px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #CFD8DC, #B0BEC5);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .photo-caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.42);
+      border-radius: 0 0 8px 8px;
+      text-align: center;
+      font-size: 10px;
+      color: #fff;
+      padding: 2px 0;
+    }
+
+    /* Bottom action */
+    .bottom-action {
+      padding: 12px 16px 20px;
+      background: #fff;
+      border-top: 1px solid #E0E0E0;
+      flex-shrink: 0;
+    }
+    .btn-primary {
+      background: #37474F;
+      color: #fff;
+      border: none;
+      border-radius: 28px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 500;
+      font-family: 'Roboto', sans-serif;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(55,71,79,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary .material-icons { font-size: 20px; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>
+        <span class="material-icons" style="font-size:14px;">signal_cellular_4_bar</span>
+        <span class="material-icons" style="font-size:14px; margin-left:2px;">battery_full</span>
+      </span>
+    </div>
+
+    <div class="top-bar">
+      <div class="back-btn"><span class="material-icons">arrow_back</span></div>
+      <div class="top-bar-text">
+        <h2>Issue #1087</h2>
+        <span>MA-501-KL · Scania R450</span>
+      </div>
+      <div class="icon-btn"><span class="material-icons">more_vert</span></div>
+    </div>
+
+    <div class="people-strip">
+      <div class="person-cell">
+        <div class="person-avatar"><span class="material-icons">person</span></div>
+        <div class="person-info">
+          <span class="person-role">Reporter</span>
+          <span class="person-name">J. Villeneuve</span>
+        </div>
+      </div>
+      <div class="person-cell">
+        <div class="person-avatar"><span class="material-icons">build</span></div>
+        <div class="person-info">
+          <span class="person-role">Assigned</span>
+          <span class="person-name unassigned">Unassigned</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="header-card">
+        <div class="card-top">
+          <div class="card-title">Brake fluid leak — front axle</div>
+          <div class="status-chip status-open">
+            <span class="material-icons">radio_button_unchecked</span>
+            Open
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="priority-indicator high">
+            <span class="material-icons">arrow_upward</span>
+            High
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">local_shipping</span>
+            <span>MA-501-KL</span>
+          </div>
+          <span class="card-time">May 25, 07:15</span>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="card">
+        <div class="card-section-title">Description</div>
+        <div class="description-text">
+          Noticed a puddle under the front axle after parking overnight. Brake pedal feels slightly soft. Vehicle is currently at depot bay 2.
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="card">
+        <div class="card-section-title">History</div>
+        <div class="timeline">
+          <div class="timeline-step">
+            <div class="timeline-left">
+              <div class="step-dot status-open"><span class="material-icons">circle</span></div>
+            </div>
+            <div class="timeline-right">
+              <div class="step-header">
+                <span class="step-status">Open</span>
+                <span class="step-person">J. Villeneuve</span>
+              </div>
+              <div class="step-time">Today, 07:15</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photos -->
+      <div class="card">
+        <div class="card-section-title">Photos (2)</div>
+        <div class="photo-row">
+          <div class="photo-thumb">
+            <div class="photo-caption">Front axle</div>
+          </div>
+          <div class="photo-thumb">
+            <div class="photo-caption">Puddle</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="bottom-action">
+      <button class="btn-primary">
+        <span class="material-icons">build</span>
+        Start Working
+      </button>
+    </div>
+  </div>
+</body>
+</html>
