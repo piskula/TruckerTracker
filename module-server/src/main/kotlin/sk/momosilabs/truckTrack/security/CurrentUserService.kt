@@ -18,9 +18,9 @@ class CurrentUserService(
         val token = jwt()
         val account = AccountModel(
             id = UUID.fromString(token.subject),
-            username = token.getClaimAsString("preferred_username"),
-            firstName = token.getClaimAsString("given_name"),
-            lastName = token.getClaimAsString("family_name"),
+            username = token.getClaimAsString("preferred_username")!!,
+            firstName = token.getClaimAsString("given_name")!!,
+            lastName = token.getClaimAsString("family_name")!!,
         )
         accountPersistenceHelper.sync(account)
         return account

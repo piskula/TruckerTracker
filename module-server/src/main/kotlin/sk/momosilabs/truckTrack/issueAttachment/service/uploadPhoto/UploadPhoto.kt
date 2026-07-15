@@ -2,6 +2,7 @@ package sk.momosilabs.truckTrack.issueAttachment.service.uploadPhoto
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
 import sk.momosilabs.truckTrack.file.model.FileModel
 import sk.momosilabs.truckTrack.file.model.TruckTrackFile
 import sk.momosilabs.truckTrack.file.service.FilePersistence
@@ -28,6 +29,10 @@ class UploadPhoto(
     @IsUser
     @Transactional
     override fun upload(issueId: Long, file: TruckTrackFile): IssueAttachmentModel {
+        if (file.content.isEmpty()) {
+            throw GlobalUnprocessableException("File is empty")
+        }
+
         val currentUser = currentUserService.currentUser()
         val uuid = UUID.randomUUID()
         val storageLocation = getStorageLocation(issueId, uuid, file.filename)

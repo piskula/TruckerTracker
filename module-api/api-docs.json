@@ -1,39 +1,80 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI definition",
-    "version": "v0"
+    "title": "TruckTrack API",
+    "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://localhost:8080",
+      "url": "https://tt.momosi.org",
       "description": "Generated server url"
     }
   ],
-  "tags": [
+  "security": [
     {
-      "name": "Vehicles",
-      "description": "Vehicle management"
+      "oauth2": []
     }
   ],
   "paths": {
-    "/api/v1/vehicles": {
-      "get": {
+    "/api/v1/issue": {
+      "post": {
         "tags": [
-          "Vehicles"
+          "Issues"
         ],
-        "summary": "List all vehicles",
-        "operationId": "listVehicles",
+        "summary": "Get issue list",
+        "operationId": "getIssueList",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "description": "Page number"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Page size",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20,
+              "description": "Page size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort string (e.g. time,desc)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Sort string (e.g. time,desc)"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueFilterDTO"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VehicleDTO"
-                  }
+                  "$ref": "#/components/schemas/PageDTOIssueDTO"
                 }
               }
             }
@@ -41,13 +82,127 @@
         }
       }
     },
-    "/api/v1/vehicles/{id}": {
+    "/api/v1/issue/{issueId}/photo": {
       "get": {
         "tags": [
-          "Vehicles"
+          "Issue Attachments"
         ],
-        "summary": "Get vehicle by ID",
-        "operationId": "getVehicle",
+        "summary": "Get photo list",
+        "operationId": "getPhotoList",
+        "parameters": [
+          {
+            "name": "issueId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "description": "Page number"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Page size",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20,
+              "description": "Page size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort string (e.g. time,desc)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Sort string (e.g. time,desc)"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageDTOIssueAttachmentDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Issue Attachments"
+        ],
+        "summary": "Upload photo",
+        "operationId": "uploadPhoto",
+        "parameters": [
+          {
+            "name": "issueId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueAttachmentDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/issue/{id}/start": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Start issue",
+        "operationId": "startIssue",
         "parameters": [
           {
             "name": "id",
@@ -65,7 +220,308 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/VehicleDTO"
+                  "$ref": "#/components/schemas/IssueDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/issue/{id}/resolve": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Resolve issue",
+        "operationId": "resolveIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/issue/{id}/comment": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Add comment",
+        "operationId": "addComment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueHistoryDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/issue/{id}/assignTome": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Assign in-progress issue to me",
+        "operationId": "assignToMe",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/issue/create": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Create issue",
+        "operationId": "createIssue",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueCreateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicle": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Get vehicle list",
+        "operationId": "getVehicleList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/issue/{issueId}/photo/{attachmentId}": {
+      "get": {
+        "tags": [
+          "Issue Attachments"
+        ],
+        "summary": "Download photo",
+        "operationId": "downloadPhoto",
+        "parameters": [
+          {
+            "name": "issueId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/issue/{id}/history": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Get issue history",
+        "operationId": "getIssueHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "description": "Page number"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Page size",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20,
+              "description": "Page size"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort string (e.g. time,desc)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Sort string (e.g. time,desc)"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageDTOIssueHistoryDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/issue/byId/{id}": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Get issue by ID",
+        "operationId": "getIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueDTO"
                 }
               }
             }
@@ -76,28 +532,339 @@
   },
   "components": {
     "schemas": {
-      "VehicleDTO": {
-        "required": [
-          "id",
-          "lastSeen",
-          "model",
-          "registrationPlate"
-        ],
+      "IssueFilterDTO": {
+        "type": "object",
+        "properties": {
+          "statuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "IN_PROGRESS",
+                "DONE"
+              ]
+            }
+          },
+          "vehicleIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "accountIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "AccountDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          }
+        }
+      },
+      "IssueDTO": {
         "type": "object",
         "properties": {
           "id": {
             "type": "integer",
             "format": "int64"
           },
-          "registrationPlate": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "DONE"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "P1_HIGH",
+              "P3_MEDIUM",
+              "P5_LOW"
+            ]
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/VehicleDTO"
+          },
+          "reportedBy": {
+            "$ref": "#/components/schemas/AccountDTO"
+          },
+          "assignedTo": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AccountDTO"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PageDTOIssueDTO": {
+        "type": "object",
+        "properties": {
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssueDTO"
+            }
+          }
+        }
+      },
+      "VehicleDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "licensePlate": {
+            "type": "string"
+          },
+          "make": {
             "type": "string"
           },
           "model": {
             "type": "string"
           },
-          "lastSeen": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "TRUCK",
+              "TRAILER"
+            ]
+          }
+        }
+      },
+      "IssueAttachmentDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "uploadedBy": {
+            "$ref": "#/components/schemas/AccountDTO"
+          },
+          "uploadedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "IssueHistoryDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "STATUS_CHANGE",
+              "ASSIGNEE_CHANGE",
+              "COMMENT"
+            ]
+          },
+          "performedBy": {
+            "$ref": "#/components/schemas/AccountDTO"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statusFrom": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "DONE"
+            ]
+          },
+          "statusTo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "DONE"
+            ]
+          },
+          "commentText": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "IssueCreateDTO": {
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "P1_HIGH",
+              "P3_MEDIUM",
+              "P5_LOW"
+            ]
+          }
+        }
+      },
+      "PageDTOIssueAttachmentDTO": {
+        "type": "object",
+        "properties": {
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssueAttachmentDTO"
+            }
+          }
+        }
+      },
+      "PageDTOIssueHistoryDTO": {
+        "type": "object",
+        "properties": {
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssueHistoryDTO"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "oauth2": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://sso.momosi.org/realms/trucktrack/protocol/openid-connect/auth",
+            "tokenUrl": "https://sso.momosi.org/realms/trucktrack/protocol/openid-connect/token",
+            "scopes": {
+              "openid": "OpenID Connect"
+            }
           }
         }
       }
