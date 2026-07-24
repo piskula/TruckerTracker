@@ -2,6 +2,7 @@ package com.momosi.trucktrack.feature.signin.impl
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -84,7 +85,14 @@ private fun SignInContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(AppTheme.colors.primary.copy(alpha = 0.7f)),
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            AppTheme.colors.onPrimaryFixedVariant.copy(alpha = 0.5f),
+                            AppTheme.colors.onPrimaryFixedVariant.copy(alpha = 0.8f),
+                        ),
+                    ),
+                ),
         )
         Column(
             modifier = Modifier
@@ -101,7 +109,7 @@ private fun SignInContent(
                         modifier = Modifier
                             .size(72.dp)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Color.White.copy(alpha = 0.15f)),
+                            .background(Color.White.copy(alpha = 0.2f)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
@@ -133,7 +141,7 @@ private fun SignInContent(
                     text = stringResource(Res.string.sign_in_button),
                     onClick = { onAction(SignInAction.SignInClick) },
                     loading = state is SignInState.Loading,
-                    style = ButtonStyle.Tonal,
+                    style = ButtonStyle.OutlinedFixed,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 errorMessage?.let { error ->

@@ -44,9 +44,9 @@
     .hero {
       flex: 1;
       background:
-        linear-gradient(0deg,
-          hsl(from var(--tt-primary) h s l / 70%),
-          hsl(from var(--tt-primary) h s l / 70%)
+        linear-gradient(180deg,
+          hsl(from var(--tt-on-primary-fixed-variant) h s l / 50%),
+          hsl(from var(--tt-on-primary-fixed-variant) h s l / 80%)
         ),
         url(../../app/feature/sign-in/impl/src/commonMain/composeResources/drawable/sign_in_hero.webp);
       background-size: cover;
@@ -67,7 +67,7 @@
     .hero-icon {
       width: 72px;
       height: 72px;
-      background: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.2);
       border-radius: 20px;
       display: flex;
       align-items: center;
@@ -93,10 +93,10 @@
       align-items: center;
       gap: 16px;
     }
-    .btn-tonal {
-      background: var(--tt-primary-container);
-      color: var(--tt-on-primary-container);
-      border: none;
+    .btn-outlined {
+      background: transparent;
+      color: #FFFFFF;
+      border: 1.5px solid #FFFFFF;
       border-radius: 28px;
       padding: 16px;
       font-size: 16px;
@@ -135,7 +135,7 @@
       </div>
       <!-- Button sits at the bottom of the image, no separate panel -->
       <div class="hero-bottom">
-        <button class="btn-tonal">Sign In</button>
+        <button class="btn-outlined">Sign In</button>
         <!-- Error state (shown instead of nothing when SignInState.Error.*) -->
         <div class="error-text">No internet connection. Check your network and try again.</div>
       </div>

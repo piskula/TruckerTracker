@@ -1,5 +1,6 @@
 package com.momosi.trucktrack.core.uilibrary.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +16,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
@@ -24,7 +26,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.Button as MaterialButton
 import androidx.compose.material3.TextButton as MaterialTextButton
 
-enum class ButtonStyle { Filled, Tonal }
+enum class ButtonStyle { Filled, Tonal, Outlined, OutlinedFixed }
 
 enum class ButtonRole { Primary, Warning, Positive, Open }
 
@@ -54,6 +56,13 @@ fun Button(
             ButtonRole.Positive -> AppTheme.colors.positiveContainer to AppTheme.colors.onPositiveContainer
             ButtonRole.Open -> AppTheme.colors.openContainer to AppTheme.colors.onOpenContainer
         }
+        ButtonStyle.Outlined -> Color.Transparent to AppTheme.colors.onSurface
+        ButtonStyle.OutlinedFixed -> Color.Transparent to Color.White
+    }
+    val border = when (style) {
+        ButtonStyle.Outlined -> BorderStroke(1.5.dp, AppTheme.colors.onSurface)
+        ButtonStyle.OutlinedFixed -> BorderStroke(1.5.dp, Color.White)
+        else -> null
     }
 
     MaterialButton(
@@ -67,6 +76,7 @@ fun Button(
             disabledContainerColor = containerColor,
             disabledContentColor = contentColor,
         ),
+        border = border,
         contentPadding = contentPadding,
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 0.dp,

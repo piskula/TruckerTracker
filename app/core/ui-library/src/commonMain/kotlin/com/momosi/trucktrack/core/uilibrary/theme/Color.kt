@@ -27,6 +27,7 @@ data class TruckTrackColorPalette(
     val onPrimary: Color,
     val primaryContainer: Color,
     val onPrimaryContainer: Color,
+    val onPrimaryFixedVariant: Color,
 
     val open: Color,
     val onOpen: Color,
@@ -53,6 +54,7 @@ private val LightPrimary = Color(0xFF006687)
 private val LightOnPrimary = Color(0xFFFFFFFF)
 private val LightPrimaryContainer = Color(0xFFBDE9FF)
 private val LightOnPrimaryContainer = Color(0xFF004D68)
+private val OnPrimaryFixedVariant = Color(0xFF00526D)
 
 private val DarkPrimary = Color(0xFF73D1F5)
 private val DarkOnPrimary = Color(0xFF003547)
@@ -77,6 +79,7 @@ internal val LightTruckTrackColors = TruckTrackColorPalette(
     onPrimary = LightOnPrimary,
     primaryContainer = LightPrimaryContainer,
     onPrimaryContainer = LightOnPrimaryContainer,
+    onPrimaryFixedVariant = OnPrimaryFixedVariant,
     open = LightPrimary,
     onOpen = LightOnPrimary,
     openContainer = LightPrimaryContainer,
@@ -114,6 +117,7 @@ internal val DarkTruckTrackColors = TruckTrackColorPalette(
     onPrimary = DarkOnPrimary,
     primaryContainer = DarkPrimaryContainer,
     onPrimaryContainer = DarkOnPrimaryContainer,
+    onPrimaryFixedVariant = OnPrimaryFixedVariant,
     open = DarkPrimary,
     onOpen = DarkOnPrimary,
     openContainer = DarkPrimaryContainer,
