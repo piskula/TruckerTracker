@@ -376,6 +376,8 @@ private fun PriorityOption(
 ) {
     val borderColor = if (isSelected) priority.accentColor() else AppTheme.colors.surfaceVariant
     val backgroundColor = if (isSelected) priority.containerColor() else AppTheme.colors.surfaceContainerLowest
+    val textColor = if (isSelected) priority.onContainerColor() else AppTheme.colors.onSurface
+    val subtitleColor = if (isSelected) priority.onContainerColor() else AppTheme.colors.onSurfaceVariant
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -388,13 +390,13 @@ private fun PriorityOption(
     ) {
         Icon(
             imageVector = priority.icon(),
-            tint = priority.accentColor(),
+            tint = if (isSelected) textColor else priority.accentColor(),
             modifier = Modifier.size(20.dp),
         )
         Spacer(modifier = Modifier.width(10.dp))
         Column {
-            Text(text = label, style = AppTheme.typography.titleSmall, color = AppTheme.colors.onSurface)
-            Text(text = subtitle, style = AppTheme.typography.labelSmall, color = AppTheme.colors.onSurfaceVariant)
+            Text(text = label, style = AppTheme.typography.titleSmall, color = textColor)
+            Text(text = subtitle, style = AppTheme.typography.labelSmall, color = subtitleColor)
         }
     }
 }
@@ -411,6 +413,13 @@ private fun IssuePriority.containerColor() = when (this) {
     IssuePriority.High -> AppTheme.colors.errorContainer
     IssuePriority.Medium -> AppTheme.colors.warningContainer
     IssuePriority.Low -> AppTheme.colors.primaryContainer
+}
+
+@Composable
+private fun IssuePriority.onContainerColor() = when (this) {
+    IssuePriority.High -> AppTheme.colors.onErrorContainer
+    IssuePriority.Medium -> AppTheme.colors.onWarningContainer
+    IssuePriority.Low -> AppTheme.colors.onPrimaryContainer
 }
 
 private fun IssuePriority.icon() = when (this) {
