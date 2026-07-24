@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TruckTrack – Issue Detail (Open, Mechanic)</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
   <link rel="stylesheet" href="../theme.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,7 +51,7 @@
       width: 40px; height: 40px;
       display: flex; align-items: center; justify-content: center;
     }
-    .back-btn .material-icons { color: var(--tt-on-surface); font-size: 24px; }
+    .back-btn .material-symbols-rounded { color: var(--tt-on-surface); font-size: 24px; }
     .top-bar h2 { color: var(--tt-on-surface); font-size: 20px; font-weight: 700; flex: 1; }
 
     .people-strip {
@@ -127,7 +127,7 @@
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .status-chip .material-icons { font-size: 13px; }
+    .status-chip .material-symbols-rounded { font-size: 13px; }
     .status-open { background: var(--tt-open); color: var(--tt-on-open); }
 
     .card-meta {
@@ -144,7 +144,7 @@
       text-transform: uppercase;
       letter-spacing: 0.3px;
     }
-    .priority-indicator .material-icons { font-size: 15px; }
+    .priority-indicator .material-symbols-rounded { font-size: 15px; }
     .priority-indicator.high { color: var(--tt-error); }
     .meta-item {
       display: flex;
@@ -153,7 +153,7 @@
       color: var(--tt-on-surface-variant);
       font-size: 12px;
     }
-    .meta-item .material-icons { font-size: 15px; }
+    .meta-item .material-symbols-rounded { font-size: 15px; }
     .card-time {
       margin-left: auto;
       font-size: 11px;
@@ -182,8 +182,8 @@
       flex-shrink: 0;
     }
     .step-dot.status-open { background: var(--tt-open); }
-    .step-dot.status-open .material-icons { color: var(--tt-on-open); }
-    .step-dot .material-icons { font-size: 17px; color: var(--tt-on-primary); }
+    .step-dot.status-open .material-symbols-rounded { color: var(--tt-on-open); }
+    .step-dot .material-symbols-rounded { font-size: 17px; color: var(--tt-on-primary); }
     .timeline-right { flex: 1; min-width: 0; }
     .step-header {
       display: flex;
@@ -209,7 +209,7 @@
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .photo-add-tile .material-icons { color: var(--tt-on-surface-variant); font-size: 28px; }
+    .photo-add-tile .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 28px; }
 
     .comment-input-area { display: flex; align-items: flex-end; gap: 10px; }
     .comment-input-area textarea {
@@ -233,7 +233,7 @@
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .send-btn .material-icons { color: var(--tt-on-surface-variant); font-size: 20px; }
+    .send-btn .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 20px; }
 
     /* mechanicAction = StartWorking (issue Open, not assigned to viewer) */
     .bottom-action {
@@ -258,7 +258,7 @@
       justify-content: center;
       gap: 8px;
     }
-    .btn-warning .material-icons { font-size: 20px; }
+    .btn-warning .material-symbols-rounded { font-size: 20px; }
   </style>
 </head>
 <body>
@@ -266,26 +266,26 @@
     <div class="status-bar">
       <span>9:41</span>
       <span>
-        <span class="material-icons" style="font-size:14px;">signal_cellular_4_bar</span>
-        <span class="material-icons" style="font-size:14px; margin-left:2px;">battery_full</span>
+        <span class="material-symbols-rounded" style="font-size:14px;">signal_cellular_4_bar</span>
+        <span class="material-symbols-rounded" style="font-size:14px; margin-left:2px;">battery_full</span>
       </span>
     </div>
 
     <div class="top-bar">
-      <div class="back-btn"><span class="material-icons">arrow_back</span></div>
+      <div class="back-btn"><span class="material-symbols-rounded">arrow_back</span></div>
       <h2>Issue #1087</h2>
     </div>
 
     <div class="people-strip">
       <div class="person-cell">
-        <span class="material-icons person-icon">edit</span>
+        <span class="material-symbols-rounded person-icon">edit</span>
         <div class="person-info">
           <span class="person-role">Reporter</span>
           <span class="person-name">J. Villeneuve</span>
         </div>
       </div>
       <div class="person-cell">
-        <span class="material-icons person-icon">assignment_ind</span>
+        <span class="material-symbols-rounded person-icon filled">assignment_ind</span>
         <div class="person-info">
           <span class="person-role">Assigned</span>
           <span class="person-name empty">—</span>
@@ -299,17 +299,17 @@
         <div class="card-top">
           <div class="card-title">Brake fluid leak — front axle</div>
           <div class="status-chip status-open">
-            <span class="material-icons">radio_button_unchecked</span>
+            <span class="material-symbols-rounded">radio_button_unchecked</span>
             Open
           </div>
         </div>
         <div class="card-meta">
           <div class="priority-indicator high">
-            <span class="material-icons">arrow_upward</span>
+            <span class="material-symbols-rounded">keyboard_double_arrow_up</span>
             High
           </div>
           <div class="meta-item">
-            <span class="material-icons">local_shipping</span>
+            <span class="material-symbols-rounded filled">local_shipping</span>
             <span>MA-501-KL · Scania R450</span>
           </div>
           <span class="card-time">May 25, 07:15</span>
@@ -328,7 +328,7 @@
         <div class="timeline">
           <div class="timeline-step">
             <div class="timeline-left">
-              <div class="step-dot status-open"><span class="material-icons">radio_button_unchecked</span></div>
+              <div class="step-dot status-open"><span class="material-symbols-rounded">radio_button_unchecked</span></div>
             </div>
             <div class="timeline-right">
               <div class="step-header">
@@ -345,7 +345,7 @@
         <div class="card-section-title">Add Comment</div>
         <div class="comment-input-area">
           <textarea placeholder="Write a comment…" rows="2"></textarea>
-          <button class="send-btn"><span class="material-icons">send</span></button>
+          <button class="send-btn"><span class="material-symbols-rounded">send</span></button>
         </div>
       </div>
 
@@ -354,7 +354,7 @@
         <div class="photo-row">
           <div class="photo-thumb"></div>
           <div class="photo-thumb"></div>
-          <div class="photo-add-tile"><span class="material-icons">add</span></div>
+          <div class="photo-add-tile"><span class="material-symbols-rounded">add</span></div>
         </div>
       </div>
 
@@ -362,7 +362,7 @@
 
     <div class="bottom-action">
       <button class="btn-warning">
-        <span class="material-icons">build</span>
+        <span class="material-symbols-rounded filled">build</span>
         Start Working
       </button>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TruckTrack – My Issues (Driver)</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <link rel="stylesheet" href="../theme.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,7 +57,7 @@
           border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
         }
-        .icon-btn .material-icons { color: var(--tt-on-surface); font-size: 24px; }
+        .icon-btn .material-symbols-rounded { color: var(--tt-on-surface); font-size: 24px; }
 
         /* FilterChipRow: Driver = My Open / My Closed / All */
         .filter-row {
@@ -127,7 +127,7 @@
           white-space: nowrap;
           flex-shrink: 0;
         }
-        .status-chip .material-icons { font-size: 13px; }
+        .status-chip .material-symbols-rounded { font-size: 13px; }
         .status-open     { background: var(--tt-open);     color: var(--tt-on-open); }
         .status-progress { background: var(--tt-warning);  color: var(--tt-on-warning); }
         .status-done     { background: var(--tt-positive); color: var(--tt-on-positive); }
@@ -148,7 +148,7 @@
           letter-spacing: 0.3px;
           flex-shrink: 0;
         }
-        .priority-indicator .material-icons { font-size: 15px; }
+        .priority-indicator .material-symbols-rounded { font-size: 15px; }
         .priority-indicator.high   { color: var(--tt-error); }
         .priority-indicator.medium { color: var(--tt-warning); }
         .priority-indicator.low    { color: var(--tt-primary); }
@@ -160,7 +160,7 @@
           color: var(--tt-on-surface-variant);
           font-size: 12px;
         }
-        .meta-item .material-icons { font-size: 15px; }
+        .meta-item .material-symbols-rounded { font-size: 15px; }
 
         /* Bottom row: driver sees the assigned mechanic (Build icon) + time-ago, right-aligned */
         .card-bottom-row {
@@ -188,7 +188,7 @@
           justify-content: center;
           cursor: pointer;
         }
-        .fab .material-icons { color: var(--tt-on-primary); font-size: 28px; }
+        .fab .material-symbols-rounded { color: var(--tt-on-primary); font-size: 28px; }
 
         /* NOTE: the real app has no bottom navigation bar — Profile is reached
            via the account-circle icon in the top bar, not a tab. */
@@ -200,8 +200,8 @@
     <div class="status-bar">
         <span>9:41</span>
         <span>
-        <span class="material-icons" style="font-size:14px;">signal_cellular_4_bar</span>
-        <span class="material-icons" style="font-size:14px; margin-left:2px;">battery_full</span>
+        <span class="material-symbols-rounded" style="font-size:14px;">signal_cellular_4_bar</span>
+        <span class="material-symbols-rounded" style="font-size:14px; margin-left:2px;">battery_full</span>
       </span>
     </div>
 
@@ -210,7 +210,7 @@
             <h2>My Issues</h2>
             <span class="top-bar-sub">Michael Schumacher · Driver</span>
         </div>
-        <div class="icon-btn"><span class="material-icons">account_circle</span></div>
+        <div class="icon-btn"><span class="material-symbols-rounded">account_circle</span></div>
     </div>
 
     <div class="filter-row">
@@ -226,23 +226,23 @@
             <div class="card-top">
                 <div class="card-title">Engine warning light — truck won't start</div>
                 <div class="status-chip status-progress">
-                    <span class="material-icons">build</span>
+                    <span class="material-symbols-rounded filled">build</span>
                     In Progress
                 </div>
             </div>
             <div class="card-meta">
                 <div class="priority-indicator high">
-                    <span class="material-icons">arrow_upward</span>
+                    <span class="material-symbols-rounded">keyboard_double_arrow_up</span>
                     High
                 </div>
                 <div class="meta-item">
-                    <span class="material-icons">local_shipping</span>
+                    <span class="material-symbols-rounded filled">local_shipping</span>
                     <span>MA-204-TT</span>
                 </div>
             </div>
             <div class="card-bottom-row">
                 <div class="meta-item">
-                    <span class="material-icons">assignment_ind</span>
+                    <span class="material-symbols-rounded filled">assignment_ind</span>
                     <span>Mattia Binotto</span>
                 </div>
                 <span class="card-time">2 hr ago</span>
@@ -254,23 +254,23 @@
             <div class="card-top">
                 <div class="card-title">Left rear tire pressure critically low</div>
                 <div class="status-chip status-open">
-                    <span class="material-icons">radio_button_unchecked</span>
+                    <span class="material-symbols-rounded">radio_button_unchecked</span>
                     Open
                 </div>
             </div>
             <div class="card-meta">
                 <div class="priority-indicator high">
-                    <span class="material-icons">arrow_upward</span>
+                    <span class="material-symbols-rounded">keyboard_double_arrow_up</span>
                     High
                 </div>
                 <div class="meta-item">
-                    <span class="material-icons">local_shipping</span>
+                    <span class="material-symbols-rounded filled">local_shipping</span>
                     <span>MA-118-AB</span>
                 </div>
             </div>
             <div class="card-bottom-row">
                 <div class="meta-item">
-                    <span class="material-icons">assignment_ind</span>
+                    <span class="material-symbols-rounded filled">assignment_ind</span>
                     <span>Unassigned</span>
                 </div>
                 <span class="card-time">5 hr ago</span>
@@ -282,23 +282,23 @@
             <div class="card-top">
                 <div class="card-title">Windshield wiper blade broken</div>
                 <div class="status-chip status-open">
-                    <span class="material-icons">radio_button_unchecked</span>
+                    <span class="material-symbols-rounded">radio_button_unchecked</span>
                     Open
                 </div>
             </div>
             <div class="card-meta">
                 <div class="priority-indicator medium">
-                    <span class="material-icons">remove</span>
+                    <span class="material-symbols-rounded">remove</span>
                     Medium
                 </div>
                 <div class="meta-item">
-                    <span class="material-icons">local_shipping</span>
+                    <span class="material-symbols-rounded filled">local_shipping</span>
                     <span>MA-337-PK</span>
                 </div>
             </div>
             <div class="card-bottom-row">
                 <div class="meta-item">
-                    <span class="material-icons">assignment_ind</span>
+                    <span class="material-symbols-rounded filled">assignment_ind</span>
                     <span>Unassigned</span>
                 </div>
                 <span class="card-time">Yesterday</span>
@@ -310,23 +310,23 @@
             <div class="card-top">
                 <div class="card-title">Routine oil change service</div>
                 <div class="status-chip status-done">
-                    <span class="material-icons">check</span>
+                    <span class="material-symbols-rounded">check</span>
                     Done
                 </div>
             </div>
             <div class="card-meta">
                 <div class="priority-indicator low">
-                    <span class="material-icons">arrow_downward</span>
+                    <span class="material-symbols-rounded">arrow_downward</span>
                     Low
                 </div>
                 <div class="meta-item">
-                    <span class="material-icons">local_shipping</span>
+                    <span class="material-symbols-rounded filled">local_shipping</span>
                     <span>MA-118-AB</span>
                 </div>
             </div>
             <div class="card-bottom-row">
                 <div class="meta-item">
-                    <span class="material-icons">assignment_ind</span>
+                    <span class="material-symbols-rounded filled">assignment_ind</span>
                     <span>Mattia Binotto</span>
                 </div>
                 <span class="card-time">22 days ago</span>
@@ -336,7 +336,7 @@
     </div>
 
     <div class="fab">
-        <span class="material-icons">add</span>
+        <span class="material-symbols-rounded">add</span>
     </div>
 </div>
 </body>

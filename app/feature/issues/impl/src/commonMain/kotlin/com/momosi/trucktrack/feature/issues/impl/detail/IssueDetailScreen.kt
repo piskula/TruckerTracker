@@ -818,8 +818,8 @@ private fun IssuePriority.displayName(): String = stringResource(
 )
 
 private fun IssuePriority.indicatorIcon() = when (this) {
-    IssuePriority.High -> TruckTrackIcons.ArrowUpward
-    IssuePriority.Medium -> TruckTrackIcons.Remove
+    IssuePriority.High -> TruckTrackIcons.Stat2
+    IssuePriority.Medium -> TruckTrackIcons.Equal
     IssuePriority.Low -> TruckTrackIcons.ArrowDownward
 }
 

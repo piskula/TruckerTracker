@@ -423,8 +423,8 @@ private fun IssuePriority.onContainerColor() = when (this) {
 }
 
 private fun IssuePriority.icon() = when (this) {
-    IssuePriority.High -> TruckTrackIcons.ArrowUpward
-    IssuePriority.Medium -> TruckTrackIcons.Remove
+    IssuePriority.High -> TruckTrackIcons.Stat2
+    IssuePriority.Medium -> TruckTrackIcons.Equal
     IssuePriority.Low -> TruckTrackIcons.ArrowDownward
 }
 

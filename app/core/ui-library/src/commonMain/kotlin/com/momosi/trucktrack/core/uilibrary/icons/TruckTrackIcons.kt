@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.Search
+import com.momosi.trucktrack.core.uilibrary.icons.vectors.Stat2VectorIcon
 import com.momosi.trucktrack.core.uilibrary.icons.vectors.TrailerVectorIcon
 import com.momosi.trucktrack.core.uilibrary.icons.vectors.TruckVectorIcon
 
@@ -58,7 +59,9 @@ data object TruckTrackIcons {
     val CheckCircle = Icons.Rounded.CheckCircle
     val RadioButtonUnchecked = Icons.Rounded.RadioButtonUnchecked
     val Check = Icons.Rounded.Check
+    val Equal = Icons.Rounded.Remove
     val Remove = Icons.Rounded.Remove
+    val Stat2 = Stat2VectorIcon
     val ArrowUpward = Icons.Rounded.ArrowUpward
     val ArrowDownward = Icons.Rounded.ArrowDownward
     val ListAlt = Icons.AutoMirrored.Rounded.ListAlt
