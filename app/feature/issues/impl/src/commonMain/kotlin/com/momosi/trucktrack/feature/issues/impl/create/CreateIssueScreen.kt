@@ -6,9 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -340,64 +342,95 @@ private fun PrioritySelector(
     onSelect: (IssuePriority) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        PriorityOption(
-            priority = IssuePriority.High,
-            label = stringResource(Res.string.issue_priority_high),
-            subtitle = stringResource(Res.string.create_issue_priority_high_hint),
-            isSelected = selected == IssuePriority.High,
-            onClick = { onSelect(IssuePriority.High) },
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+                .border(1.5.dp, AppTheme.colors.outlineVariant, CircleShape)
+                .clip(CircleShape),
+        ) {
+            PrioritySegment(
+                priority = IssuePriority.Low,
+                isSelected = selected == IssuePriority.Low,
+                onClick = { onSelect(IssuePriority.Low) },
+                modifier = Modifier.weight(1f),
+            )
+            Box(modifier = Modifier.width(1.5.dp).fillMaxHeight().background(AppTheme.colors.outlineVariant))
+            PrioritySegment(
+                priority = IssuePriority.Medium,
+                isSelected = selected == IssuePriority.Medium,
+                onClick = { onSelect(IssuePriority.Medium) },
+                modifier = Modifier.weight(1f),
+            )
+            Box(modifier = Modifier.width(1.5.dp).fillMaxHeight().background(AppTheme.colors.outlineVariant))
+            PrioritySegment(
+                priority = IssuePriority.High,
+                isSelected = selected == IssuePriority.High,
+                onClick = { onSelect(IssuePriority.High) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        PriorityDescription(priority = selected)
+    }
+}
+
+@Composable
+private fun PrioritySegment(
+    priority: IssuePriority,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val backgroundColor = if (isSelected) priority.containerColor() else AppTheme.colors.surfaceContainerLowest
+    val contentColor = if (isSelected) priority.onContainerColor() else AppTheme.colors.onSurface
+    val iconColor = if (isSelected) priority.onContainerColor() else priority.accentColor()
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = modifier
+            .background(backgroundColor)
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp, horizontal = 8.dp),
+    ) {
+        Icon(
+            imageVector = priority.icon(),
+            tint = iconColor,
+            modifier = Modifier.size(18.dp),
         )
-        PriorityOption(
-            priority = IssuePriority.Medium,
-            label = stringResource(Res.string.issue_priority_medium),
-            subtitle = stringResource(Res.string.create_issue_priority_medium_hint),
-            isSelected = selected == IssuePriority.Medium,
-            onClick = { onSelect(IssuePriority.Medium) },
-        )
-        PriorityOption(
-            priority = IssuePriority.Low,
-            label = stringResource(Res.string.issue_priority_low),
-            subtitle = stringResource(Res.string.create_issue_priority_low_hint),
-            isSelected = selected == IssuePriority.Low,
-            onClick = { onSelect(IssuePriority.Low) },
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = stringResource(priority.labelRes()),
+            style = AppTheme.typography.labelLarge,
+            color = contentColor,
         )
     }
 }
 
 @Composable
-private fun PriorityOption(
+private fun PriorityDescription(
     priority: IssuePriority,
-    label: String,
-    subtitle: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val borderColor = if (isSelected) priority.accentColor() else AppTheme.colors.surfaceVariant
-    val backgroundColor = if (isSelected) priority.containerColor() else AppTheme.colors.surfaceContainerLowest
-    val textColor = if (isSelected) priority.onContainerColor() else AppTheme.colors.onSurface
-    val subtitleColor = if (isSelected) priority.onContainerColor() else AppTheme.colors.onSurfaceVariant
-
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = modifier
             .fillMaxWidth()
-            .border(2.dp, borderColor, RoundedCornerShape(10.dp))
-            .background(backgroundColor, RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick)
+            .background(priority.containerColor(), RoundedCornerShape(10.dp))
             .padding(12.dp),
     ) {
         Icon(
             imageVector = priority.icon(),
-            tint = if (isSelected) textColor else priority.accentColor(),
+            tint = priority.onContainerColor(),
             modifier = Modifier.size(20.dp),
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        Column {
-            Text(text = label, style = AppTheme.typography.titleSmall, color = textColor)
-            Text(text = subtitle, style = AppTheme.typography.labelSmall, color = subtitleColor)
-        }
+        Text(
+            text = stringResource(priority.hintRes()),
+            style = AppTheme.typography.bodySmall,
+            color = priority.onContainerColor(),
+        )
     }
 }
 
@@ -426,6 +459,18 @@ private fun IssuePriority.icon() = when (this) {
     IssuePriority.High -> TruckTrackIcons.Stat2
     IssuePriority.Medium -> TruckTrackIcons.Equal
     IssuePriority.Low -> TruckTrackIcons.ArrowDownward
+}
+
+private fun IssuePriority.labelRes() = when (this) {
+    IssuePriority.High -> Res.string.issue_priority_high
+    IssuePriority.Medium -> Res.string.issue_priority_medium
+    IssuePriority.Low -> Res.string.issue_priority_low
+}
+
+private fun IssuePriority.hintRes() = when (this) {
+    IssuePriority.High -> Res.string.create_issue_priority_high_hint
+    IssuePriority.Medium -> Res.string.create_issue_priority_medium_hint
+    IssuePriority.Low -> Res.string.create_issue_priority_low_hint
 }
 
 @Composable
