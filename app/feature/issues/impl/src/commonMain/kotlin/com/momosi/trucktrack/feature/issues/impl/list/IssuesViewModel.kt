@@ -44,7 +44,7 @@ class IssuesViewModel(private val userRepository: UserRepository, private val is
         }.flatMapLatest { (filter, userId) ->
             Pager(
                 config = PagingConfig(
-                    pageSize = 50,
+                    pageSize = 14,
                     enablePlaceholders = false,
                 ),
                 pagingSourceFactory = {

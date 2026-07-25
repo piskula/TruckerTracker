@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TruckTrack — Fleet Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--tt-surface-container);
+      color: var(--tt-on-surface);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ── Top app bar ─────────────────────────────────────── */
+    .topbar {
+      background: var(--tt-surface-dim);
+      border-bottom: 1px solid var(--tt-outline-variant);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand .material-symbols-rounded { font-size: 26px; color: var(--tt-primary); }
+    .brand-name { font-size: 20px; font-weight: 700; color: var(--tt-on-surface); }
+    .brand-sep { color: var(--tt-outline-variant); font-weight: 300; }
+    .brand-section { font-size: 16px; font-weight: 400; color: var(--tt-on-surface-variant); }
+    .topbar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+    .topbar-date { font-size: 13px; font-weight: 500; color: var(--tt-on-surface); }
+    .topbar-fleet { font-size: 12px; color: var(--tt-on-surface-variant); }
+
+    /* ── Page content ────────────────────────────────────── */
+    .content { padding: 24px 32px 48px; max-width: 1400px; margin: 0 auto; }
+
+    /* ── Card ────────────────────────────────────────────── */
+    .card {
+      background: var(--tt-surface-container-lowest);
+      border-radius: 12px;
+      padding: 20px 24px 24px;
+      border: 1px solid var(--tt-outline-variant);
+      box-shadow: 0 2px 6px var(--tt-shadow);
+    }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .card-title-row { display: flex; align-items: center; gap: 8px; }
+    .card-title-row .material-symbols-rounded { font-size: 20px; color: var(--tt-primary); }
+    .card-title { font-size: 13px; font-weight: 600; color: var(--tt-on-surface); text-transform: uppercase; letter-spacing: 0.07em; }
+    .card-note { font-size: 11px; font-weight: 500; color: var(--tt-on-surface-variant); letter-spacing: 0.05em; text-transform: uppercase; }
+
+    /* ── KPI cluster ─────────────────────────────────────── */
+    .kpi-cluster { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .kpi-card {
+      background: var(--tt-surface-container-lowest);
+      border-radius: 12px;
+      padding: 20px 20px 18px;
+      display: flex; flex-direction: column;
+      border: 1px solid var(--tt-outline-variant);
+      box-shadow: 0 2px 6px var(--tt-shadow);
+    }
+    .kpi-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.09em; color: var(--tt-on-surface-variant); text-transform: uppercase; margin-bottom: 10px; }
+    .kpi-label .material-symbols-rounded { font-size: 16px; color: var(--tt-primary); }
+
+    /* Gauge */
+    .gauge-wrap { position: relative; display: flex; justify-content: center; }
+    .gauge-readout { position: absolute; top: 58%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+    .gauge-val { font-size: 30px; font-weight: 700; color: var(--tt-on-surface); }
+    .gauge-unit { font-size: 10px; font-weight: 500; color: var(--tt-on-surface-variant); letter-spacing: 0.06em; text-transform: uppercase; }
+    .gauge-sub { font-size: 12px; font-weight: 500; margin-top: 8px; text-align: center; }
+    .gauge-sub.up   { color: var(--tt-positive); }
+    .gauge-sub.down { color: var(--tt-error); }
+
+    /* Big stat number */
+    .kpi-big { font-size: 52px; font-weight: 700; line-height: 1; color: var(--tt-on-surface); margin-top: auto; padding-top: 12px; }
+    .kpi-big.critical { color: var(--tt-error); }
+    .kpi-foot { font-size: 12px; color: var(--tt-on-surface-variant); margin-top: 8px; }
+
+    /* Pulse dot */
+    .pulse-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--tt-error); margin-right: 6px; vertical-align: middle; animation: pulse 1.8s infinite; }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(186,26,26,.55); }
+      70%  { box-shadow: 0 0 0 8px rgba(186,26,26,0); }
+      100% { box-shadow: 0 0 0 0 rgba(186,26,26,0); }
+    }
+
+    /* ── 2-column grids ──────────────────────────────────── */
+    .grid-2 { display: grid; gap: 16px; margin-bottom: 20px; }
+    .col-6-4 { grid-template-columns: 1.6fr 1fr; }
+    .col-4-6 { grid-template-columns: 1fr 1.6fr; }
+
+    /* ── Table ───────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--tt-on-surface-variant); text-transform: uppercase; padding: 0 12px 10px 0; border-bottom: 1px solid var(--tt-outline-variant); }
+    td { padding: 12px 12px 12px 0; border-bottom: 1px solid var(--tt-surface-variant); font-size: 13.5px; vertical-align: middle; color: var(--tt-on-surface); }
+    tr:last-child td { border-bottom: none; }
+    .veh-id   { font-weight: 600; font-size: 14px; color: var(--tt-on-surface); }
+    .veh-type { font-size: 12px; color: var(--tt-on-surface-variant); margin-top: 2px; }
+
+    .bar-track { background: var(--tt-surface-container-high); border-radius: 3px; height: 6px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--tt-warning), var(--tt-error)); }
+
+    /* M3 status chips */
+    .chip { display: inline-flex; align-items: center; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; white-space: nowrap; }
+    .chip.down    { background: var(--tt-error-container);    color: var(--tt-on-error-container); }
+    .chip.service { background: var(--tt-positive-container); color: var(--tt-on-positive-container); }
+
+    /* ── Category horizontal bars ────────────────────────── */
+    .cat-chart { display: flex; flex-direction: column; gap: 10px; }
+    .cat-row { display: flex; align-items: center; gap: 8px; }
+    .cat-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .cat-name { font-size: 12.5px; color: var(--tt-on-surface); width: 80px; flex-shrink: 0; }
+    .cat-bar-wrap { flex: 1; height: 6px; background: var(--tt-surface-container-high); border-radius: 3px; overflow: hidden; }
+    .cat-bar { height: 100%; border-radius: 3px; }
+    .cat-count { font-size: 12px; font-weight: 600; color: var(--tt-on-surface); width: 18px; text-align: right; }
+
+    /* ── Mechanic workload ───────────────────────────────── */
+    .mech-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--tt-surface-variant); }
+    .mech-row:last-child { border-bottom: none; }
+    .mech-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--tt-primary-container); color: var(--tt-on-primary-container); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; letter-spacing: 0.02em; }
+    .mech-info { flex: 1; min-width: 0; }
+    .mech-name { font-size: 14px; font-weight: 500; color: var(--tt-on-surface); }
+    .mech-track { background: var(--tt-surface-container-high); border-radius: 3px; height: 5px; margin-top: 6px; overflow: hidden; }
+    .mech-fill { height: 100%; background: var(--tt-primary); border-radius: 3px; }
+    .mech-stat { font-size: 12px; color: var(--tt-on-surface-variant); text-align: right; width: 72px; flex-shrink: 0; line-height: 1.5; }
+    .mech-stat strong { display: block; font-size: 13px; color: var(--tt-on-surface); font-weight: 600; }
+
+    /* ── Critical feed ───────────────────────────────────── */
+    .feed-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--tt-surface-variant); }
+    .feed-item:last-child { border-bottom: none; }
+    .sev-chip { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; height: fit-content; white-space: nowrap; margin-top: 1px; }
+    .sev-chip.critical { background: var(--tt-error-container);   color: var(--tt-on-error-container); }
+    .sev-chip.high     { background: var(--tt-warning-container); color: var(--tt-on-warning-container); }
+    .feed-body { flex: 1; min-width: 0; }
+    .feed-title { font-size: 14px; font-weight: 500; color: var(--tt-on-surface); margin-bottom: 3px; }
+    .feed-meta  { font-size: 12px; color: var(--tt-on-surface-variant); }
+    .feed-meta .breach { color: var(--tt-error); font-weight: 500; }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--tt-outline-variant); font-size: 11px; color: var(--tt-on-surface-variant); display: flex; justify-content: space-between; }
+
+    @media (max-width: 980px) {
+      .kpi-cluster       { grid-template-columns: 1fr 1fr; }
+      .col-6-4, .col-4-6 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top app bar -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="material-symbols-rounded filled">local_shipping</span>
+      <span class="brand-name">TruckTrack</span>
+      <span class="brand-sep">&nbsp;/&nbsp;</span>
+      <span class="brand-section">Fleet Dashboard</span>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-date">Tuesday, July 22, 2026 — 08:14</div>
+      <div class="topbar-fleet">42 units tracked · 28 trucks · 14 trailers</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- KPI cluster -->
+    <div class="kpi-cluster">
+
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span class="material-symbols-rounded">monitor_heart</span>
+          Fleet Uptime
+        </div>
+        <div class="gauge-wrap">
+          <svg width="200" height="120" viewBox="0 0 200 120">
+            <!-- background arc -->
+            <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#E9E7EB" stroke-width="12" stroke-linecap="round"/>
+            <!-- 93% fill: dasharray=251.2, offset=17.6 (7% of arc) -->
+            <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#006D3C" stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="251.2" stroke-dashoffset="17.6"/>
+            <g stroke="#C4C6D0" stroke-width="1.5">
+              <line x1="20" y1="100" x2="28" y2="93"/>
+              <line x1="100" y1="20" x2="100" y2="30"/>
+              <line x1="180" y1="100" x2="172" y2="93"/>
+            </g>
+          </svg>
+          <div class="gauge-readout">
+            <div class="gauge-val">93%</div>
+            <div class="gauge-unit">39 / 42 active</div>
+          </div>
+        </div>
+        <div class="gauge-sub up">▲ 4 pt vs last week</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span class="material-symbols-rounded">assignment</span>
+          Open Issues
+        </div>
+        <div class="kpi-big">27</div>
+        <div class="kpi-foot">6 opened today · 4 resolved today</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span class="material-symbols-rounded">emergency</span>
+          Critical Unresolved
+        </div>
+        <div class="kpi-big critical">
+          <span class="pulse-dot"></span>4
+        </div>
+        <div class="kpi-foot">2 breaching 4 hr SLA</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span class="material-symbols-rounded">timer</span>
+          Avg Resolution Time
+        </div>
+        <div class="kpi-big">14.2<span style="font-size:20px;font-weight:400;color:var(--tt-on-surface-variant);">h</span></div>
+        <div class="kpi-foot">▼ 2.1 h improvement · 30-day avg</div>
+      </div>
+    </div>
+
+    <!-- Trend chart + category breakdown -->
+    <div class="grid-2 col-6-4">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title-row">
+            <span class="material-symbols-rounded">show_chart</span>
+            <span class="card-title">Opened vs. Resolved — Last 14 Days</span>
+          </div>
+          <span class="card-note">Daily count</span>
+        </div>
+        <!--
+          Data: opened=[5,3,6,4,7,2,3,5,8,4,6,5,4,6]  resolved=[4,4,5,6,5,3,2,4,6,7,5,6,5,4]
+          viewBox 0 0 600 222  |  chart area x:38–584  y:20–168  step:42
+          y(v) = 168 − v×18.5   →  2→131  4→94  6→57  8→20
+        -->
+        <svg viewBox="0 0 600 222" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+          <!-- grid -->
+          <line x1="38" y1="20"  x2="584" y2="20"  stroke="#E0E2EC" stroke-width="1"/>
+          <line x1="38" y1="57"  x2="584" y2="57"  stroke="#E0E2EC" stroke-width="1"/>
+          <line x1="38" y1="94"  x2="584" y2="94"  stroke="#E0E2EC" stroke-width="1"/>
+          <line x1="38" y1="131" x2="584" y2="131" stroke="#E0E2EC" stroke-width="1"/>
+          <line x1="38" y1="168" x2="584" y2="168" stroke="#C4C6D0" stroke-width="1"/>
+          <!-- y labels -->
+          <text x="30" y="24"  text-anchor="end" font-size="10" fill="#44474E">8</text>
+          <text x="30" y="61"  text-anchor="end" font-size="10" fill="#44474E">6</text>
+          <text x="30" y="98"  text-anchor="end" font-size="10" fill="#44474E">4</text>
+          <text x="30" y="135" text-anchor="end" font-size="10" fill="#44474E">2</text>
+          <text x="30" y="172" text-anchor="end" font-size="10" fill="#44474E">0</text>
+          <!-- x labels every 2nd day -->
+          <text x="38"  y="184" text-anchor="middle" font-size="10" fill="#44474E">Jul 8</text>
+          <text x="122" y="184" text-anchor="middle" font-size="10" fill="#44474E">Jul 10</text>
+          <text x="206" y="184" text-anchor="middle" font-size="10" fill="#44474E">Jul 12</text>
+          <text x="290" y="184" text-anchor="middle" font-size="10" fill="#44474E">Jul 14</text>
+          <text x="374" y="184" text-anchor="middle" font-size="10" fill="#44474E">Jul 16</text>
+          <text x="458" y="184" text-anchor="middle" font-size="10" fill="#44474E">Jul 18</text>
+          <text x="542" y="184" text-anchor="middle" font-size="10" fill="#44474E">Jul 20</text>
+          <!-- area fills -->
+          <polygon points="38,76 80,113 122,57 164,94 206,39 248,131 290,113 332,76 374,20 416,94 458,57 500,76 542,94 584,57 584,168 38,168"
+                   fill="rgba(166,79,0,0.09)"/>
+          <polygon points="38,94 80,94 122,76 164,57 206,76 248,113 290,131 332,94 374,57 416,39 458,76 500,57 542,76 584,94 584,168 38,168"
+                   fill="rgba(0,109,60,0.08)"/>
+          <!-- lines -->
+          <polyline points="38,76 80,113 122,57 164,94 206,39 248,131 290,113 332,76 374,20 416,94 458,57 500,76 542,94 584,57"
+                    fill="none" stroke="#A64F00" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          <polyline points="38,94 80,94 122,76 164,57 206,76 248,113 290,131 332,94 374,57 416,39 458,76 500,57 542,76 584,94"
+                    fill="none" stroke="#006D3C" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          <!-- legend -->
+          <rect x="155" y="205" width="10" height="10" rx="2" fill="#A64F00"/>
+          <text x="170" y="214" font-size="11" fill="#44474E">Opened</text>
+          <rect x="240" y="205" width="10" height="10" rx="2" fill="#006D3C"/>
+          <text x="255" y="214" font-size="11" fill="#44474E">Resolved</text>
+        </svg>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title-row">
+            <span class="material-symbols-rounded">donut_large</span>
+            <span class="card-title">Issues by Category</span>
+          </div>
+          <span class="card-note">Last 30 days</span>
+        </div>
+        <div class="cat-chart">
+          <div class="cat-row">
+            <span class="cat-dot" style="background:#BA1A1A;"></span>
+            <span class="cat-name">Brakes</span>
+            <div class="cat-bar-wrap"><div class="cat-bar" style="width:100%;background:#BA1A1A;"></div></div>
+            <span class="cat-count">7</span>
+          </div>
+          <div class="cat-row">
+            <span class="cat-dot" style="background:#A64F00;"></span>
+            <span class="cat-name">Engine</span>
+            <div class="cat-bar-wrap"><div class="cat-bar" style="width:71%;background:#A64F00;"></div></div>
+            <span class="cat-count">5</span>
+          </div>
+          <div class="cat-row">
+            <span class="cat-dot" style="background:#006687;"></span>
+            <span class="cat-name">Electrical</span>
+            <div class="cat-bar-wrap"><div class="cat-bar" style="width:57%;background:#006687;"></div></div>
+            <span class="cat-count">4</span>
+          </div>
+          <div class="cat-row">
+            <span class="cat-dot" style="background:#006D3C;"></span>
+            <span class="cat-name">Tires</span>
+            <div class="cat-bar-wrap"><div class="cat-bar" style="width:57%;background:#006D3C;"></div></div>
+            <span class="cat-count">4</span>
+          </div>
+          <div class="cat-row">
+            <span class="cat-dot" style="background:#7965AF;"></span>
+            <span class="cat-name">Hydraulics</span>
+            <div class="cat-bar-wrap"><div class="cat-bar" style="width:43%;background:#7965AF;"></div></div>
+            <span class="cat-count">3</span>
+          </div>
+          <div class="cat-row">
+            <span class="cat-dot" style="background:#B5548C;"></span>
+            <span class="cat-name">Lights</span>
+            <div class="cat-bar-wrap"><div class="cat-bar" style="width:29%;background:#B5548C;"></div></div>
+            <span class="cat-count">2</span>
+          </div>
+          <div class="cat-row">
+            <span class="cat-dot" style="background:#74777F;"></span>
+            <span class="cat-name">Other</span>
+            <div class="cat-bar-wrap"><div class="cat-bar" style="width:29%;background:#74777F;"></div></div>
+            <span class="cat-count">2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicle reliability table -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-head">
+        <div class="card-title-row">
+          <span class="material-symbols-rounded filled">local_shipping</span>
+          <span class="card-title">Vehicle Reliability — Most Reported</span>
+        </div>
+        <span class="card-note">Trailing 90 days</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Issues (90 d)</th>
+            <th style="width:26%;">Frequency</th>
+            <th>Top Category</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="veh-id">Truck #114</div><div class="veh-type">Freightliner Cascadia</div></td>
+            <td style="font-size:15px;font-weight:600;">9</td>
+            <td><div class="bar-track"><div class="bar-fill" style="width:100%;"></div></div></td>
+            <td>Brakes</td>
+            <td><span class="chip down">Out of service</span></td>
+          </tr>
+          <tr>
+            <td><div class="veh-id">Trailer #T-08</div><div class="veh-type">Dry Van 53 ft</div></td>
+            <td style="font-size:15px;font-weight:600;">7</td>
+            <td><div class="bar-track"><div class="bar-fill" style="width:78%;"></div></div></td>
+            <td>Electrical</td>
+            <td><span class="chip service">In service</span></td>
+          </tr>
+          <tr>
+            <td><div class="veh-id">Truck #221</div><div class="veh-type">Volvo VNL</div></td>
+            <td style="font-size:15px;font-weight:600;">6</td>
+            <td><div class="bar-track"><div class="bar-fill" style="width:67%;"></div></div></td>
+            <td>Engine</td>
+            <td><span class="chip service">In service</span></td>
+          </tr>
+          <tr>
+            <td><div class="veh-id">Truck #077</div><div class="veh-type">Freightliner Cascadia</div></td>
+            <td style="font-size:15px;font-weight:600;">6</td>
+            <td><div class="bar-track"><div class="bar-fill" style="width:67%;"></div></div></td>
+            <td>Tires</td>
+            <td><span class="chip down">Out of service</span></td>
+          </tr>
+          <tr>
+            <td><div class="veh-id">Trailer #T-22</div><div class="veh-type">Reefer 48 ft</div></td>
+            <td style="font-size:15px;font-weight:600;">5</td>
+            <td><div class="bar-track"><div class="bar-fill" style="width:56%;"></div></div></td>
+            <td>Hydraulics</td>
+            <td><span class="chip service">In service</span></td>
+          </tr>
+          <tr>
+            <td><div class="veh-id">Truck #305</div><div class="veh-type">Kenworth T680</div></td>
+            <td style="font-size:15px;font-weight:600;">4</td>
+            <td><div class="bar-track"><div class="bar-fill" style="width:44%;"></div></div></td>
+            <td>Lights</td>
+            <td><span class="chip service">In service</span></td>
+          </tr>
+          <tr>
+            <td><div class="veh-id">Truck #146</div><div class="veh-type">Volvo VNL</div></td>
+            <td style="font-size:15px;font-weight:600;">4</td>
+            <td><div class="bar-track"><div class="bar-fill" style="width:44%;"></div></div></td>
+            <td>Electrical</td>
+            <td><span class="chip down">Out of service</span></td>
+          </tr>
+          <tr>
+            <td><div class="veh-id">Trailer #T-11</div><div class="veh-type">Dry Van 53 ft</div></td>
+            <td style="font-size:15px;font-weight:600;">3</td>
+            <td><div class="bar-track"><div class="bar-fill" style="width:33%;"></div></div></td>
+            <td>Brakes</td>
+            <td><span class="chip service">In service</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mechanic workload + critical feed -->
+    <div class="grid-2 col-4-6">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title-row">
+            <span class="material-symbols-rounded filled">build</span>
+            <span class="card-title">Mechanic Workload</span>
+          </div>
+          <span class="card-note">This week</span>
+        </div>
+        <div class="mech-row">
+          <div class="mech-avatar">DR</div>
+          <div class="mech-info">
+            <div class="mech-name">Dave R.</div>
+            <div class="mech-track"><div class="mech-fill" style="width:92%;"></div></div>
+          </div>
+          <div class="mech-stat"><strong>11 closed</strong>9.4 h avg</div>
+        </div>
+        <div class="mech-row">
+          <div class="mech-avatar">MS</div>
+          <div class="mech-info">
+            <div class="mech-name">Maria S.</div>
+            <div class="mech-track"><div class="mech-fill" style="width:75%;"></div></div>
+          </div>
+          <div class="mech-stat"><strong>9 closed</strong>12.1 h avg</div>
+        </div>
+        <div class="mech-row">
+          <div class="mech-avatar">TK</div>
+          <div class="mech-info">
+            <div class="mech-name">Tom K.</div>
+            <div class="mech-track"><div class="mech-fill" style="width:58%;"></div></div>
+          </div>
+          <div class="mech-stat"><strong>7 closed</strong>16.8 h avg</div>
+        </div>
+        <div class="mech-row">
+          <div class="mech-avatar">PN</div>
+          <div class="mech-info">
+            <div class="mech-name">Priya N.</div>
+            <div class="mech-track"><div class="mech-fill" style="width:50%;"></div></div>
+          </div>
+          <div class="mech-stat"><strong>6 closed</strong>11.5 h avg</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title-row">
+            <span class="material-symbols-rounded">warning</span>
+            <span class="card-title">Critical &amp; SLA-Risk Feed</span>
+          </div>
+          <span class="card-note">Needs attention</span>
+        </div>
+        <div class="feed-item">
+          <span class="sev-chip critical">critical</span>
+          <div class="feed-body">
+            <div class="feed-title">Air brake pressure fault — Truck #114</div>
+            <div class="feed-meta"><span class="breach">⚠ Reported 6 h 40 m ago · breaching SLA · driver: J. Alvarez</span></div>
+          </div>
+        </div>
+        <div class="feed-item">
+          <span class="sev-chip critical">critical</span>
+          <div class="feed-body">
+            <div class="feed-title">Steering fluid leak — Truck #146</div>
+            <div class="feed-meta"><span class="breach">⚠ Reported 5 h 05 m ago · breaching SLA · driver: K. Novak</span></div>
+          </div>
+        </div>
+        <div class="feed-item">
+          <span class="sev-chip critical">critical</span>
+          <div class="feed-body">
+            <div class="feed-title">Trailer ABS light — Trailer #T-08</div>
+            <div class="feed-meta">Reported 2 h 10 m ago · driver: R. Petrov</div>
+          </div>
+        </div>
+        <div class="feed-item">
+          <span class="sev-chip high">high</span>
+          <div class="feed-body">
+            <div class="feed-title">Coolant temp warning — Truck #221</div>
+            <div class="feed-meta">Reported 3 h 55 m ago · driver: M. Haas</div>
+          </div>
+        </div>
+        <div class="feed-item">
+          <span class="sev-chip high">high</span>
+          <div class="feed-body">
+            <div class="feed-title">Tire tread below limit — Truck #077</div>
+            <div class="feed-meta">Reported 1 h 20 m ago · driver: S. Lindqvist</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <span>TruckTrack — Fleet Dashboard mockup · internal use only</span>
+      <span>Data refreshes every 5 min · sample data shown</span>
+    </footer>
+  </div>
+
+</body>
+</html>
