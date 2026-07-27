@@ -44,7 +44,10 @@ jobs:
                     FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
 
             -   name: Build Debug APK
-                run: ./gradlew :app:app:android:assembleDebug
+                run: |
+                    ./gradlew :app:app:android:assembleDebug \
+                        -PappVersionName=dev.${{ github.run_number }} \
+                        -PappVersionCode=1
 
             -   name: Rename APK
                 run: mv app/app/android/build/outputs/apk/debug/android-debug.apk app/app/android/build/outputs/apk/debug/truck-track.apk
