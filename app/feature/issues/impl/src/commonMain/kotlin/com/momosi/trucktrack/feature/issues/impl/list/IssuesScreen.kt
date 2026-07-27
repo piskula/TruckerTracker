@@ -5,8 +5,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
@@ -176,6 +180,7 @@ private fun IssuesScreenContent(
                 onClick = onNavigateToCreateIssue,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
                     .padding(end = 20.dp, bottom = 20.dp),
             )
         }
@@ -192,6 +197,7 @@ private fun IssueList(
     modifier: Modifier = Modifier,
 ) {
     val isRefreshing = pagingItems.loadState.refresh is LoadState.Loading
+    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     PullToRefresh(
         isRefreshing = isRefreshing,
@@ -226,7 +232,7 @@ private fun IssueList(
                     }
                 }
             }
-            item { Spacer(modifier = Modifier.height(72.dp)) }
+            item { Spacer(modifier = Modifier.height(72.dp + navBarBottom)) }
         }
     }
 }

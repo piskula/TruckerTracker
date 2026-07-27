@@ -1,9 +1,9 @@
 package com.momosi.trucktrack.app
 
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -55,11 +55,12 @@ fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel 
             modifier = modifier,
         ) {
             CompositionLocalProvider(LocalSharedTransitionScope provides this) {
-                Scaffold(modifier = Modifier.fillMaxSize().imePadding()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize().imePadding(),
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                ) { _ ->
                     NavDisplay(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = innerPadding.calculateBottomPadding()),
+                        modifier = Modifier.fillMaxSize(),
                         entries = navigationState.toEntries(
                             entryProvider {
                                 signInEntries(navigator)
