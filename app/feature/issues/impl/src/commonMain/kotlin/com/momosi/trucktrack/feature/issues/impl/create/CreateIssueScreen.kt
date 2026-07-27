@@ -208,8 +208,8 @@ private fun Card(
             .padding(16.dp),
     ) {
         Text(
-            text = title.uppercase(),
-            style = AppTheme.typography.labelSmall,
+            text = title,
+            style = AppTheme.typography.labelLarge,
             color = AppTheme.colors.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 12.dp),
         )

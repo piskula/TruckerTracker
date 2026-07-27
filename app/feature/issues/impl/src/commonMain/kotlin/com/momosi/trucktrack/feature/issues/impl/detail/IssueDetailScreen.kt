@@ -44,6 +44,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -65,7 +67,6 @@ import com.momosi.trucktrack.core.uilibrary.theme.Shapes
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import com.momosi.trucktrack.feature.issues.impl.resources.Res
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_add_comment
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_assigned
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_comment_placeholder
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_description
@@ -265,9 +266,9 @@ private fun LoadedContent(
                     )
                 }
             }
-            item { HistoryCard(history = history) }
             item {
-                CommentCard(
+                HistoryCard(
+                    history = history,
                     commentText = commentText,
                     isSending = isSendingComment,
                     onUpdateComment = onUpdateComment,
@@ -445,10 +446,25 @@ private fun DescriptionCard(description: String, modifier: Modifier = Modifier) 
 }
 
 @Composable
-private fun HistoryCard(history: ImmutableList<IssueHistoryUi>, modifier: Modifier = Modifier) {
+private fun HistoryCard(
+    history: ImmutableList<IssueHistoryUi>,
+    commentText: String,
+    isSending: Boolean,
+    onUpdateComment: (String) -> Unit,
+    onSend: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    LaunchedEffect(isImeVisible, commentText) {
+        if (isImeVisible) {
+            delay(100)
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
     CardContainer(
         title = stringResource(Res.string.issue_detail_history),
-        modifier = modifier.animateContentSize(),
+        modifier = modifier.animateContentSize().bringIntoViewRequester(bringIntoViewRequester),
     ) {
         if (history.isEmpty()) {
             Text(
@@ -460,6 +476,58 @@ private fun HistoryCard(history: ImmutableList<IssueHistoryUi>, modifier: Modifi
             Column {
                 history.forEachIndexed { index, entry ->
                     TimelineStep(entry = entry, isLast = index == history.lastIndex)
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(14.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(AppTheme.colors.surfaceVariant),
+        )
+        Spacer(modifier = Modifier.height(14.dp))
+        val sendEnabled = !isSending && commentText.isNotBlank()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(AppTheme.colors.surfaceContainer, RoundedCornerShape(10.dp))
+                .padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
+        ) {
+            BasicTextField(
+                value = commentText,
+                onValueChange = onUpdateComment,
+                textStyle = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.onSurface),
+                minLines = 2,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp),
+                decorationBox = { inner ->
+                    if (commentText.isEmpty()) {
+                        Text(
+                            text = stringResource(Res.string.issue_detail_comment_placeholder),
+                            style = AppTheme.typography.bodyMedium,
+                            color = AppTheme.colors.onSurfaceVariant,
+                        )
+                    }
+                    inner()
+                },
+            )
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.BottomEnd)
+                    .clickable(enabled = sendEnabled && !isSending, onClick = onSend),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isSending) {
+                    LoadingSpinner(size = 18.dp, strokeWidth = 2.dp)
+                } else {
+                    Icon(
+                        imageVector = TruckTrackIcons.Send,
+                        tint = if (sendEnabled) AppTheme.colors.primary else AppTheme.colors.onSurfaceVariant,
+                        modifier = Modifier.size(22.dp),
+                    )
                 }
             }
         }
@@ -534,122 +602,39 @@ private fun TimelineStep(
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.padding(bottom = if (isLast) 0.dp else 18.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                when (entry.type) {
-                    IssueHistoryType.StatusChange -> {
-                        Text(
-                            text = entry.statusTo.displayName(),
-                            style = AppTheme.typography.titleSmall,
-                            color = AppTheme.colors.onSurface,
-                        )
-                    }
-
-                    IssueHistoryType.Comment -> {
-                        Text(
-                            text = entry.commentText ?: "",
-                            style = AppTheme.typography.bodySmall,
-                            color = AppTheme.colors.onSurface,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-
-                    IssueHistoryType.AssigneeChange -> {
-                        Text(
-                            text = stringResource(Res.string.issue_detail_history_reassigned),
-                            style = AppTheme.typography.titleSmall,
-                            color = AppTheme.colors.onSurface,
-                        )
-                    }
-                }
-                entry.performedByName?.let {
+            when (entry.type) {
+                IssueHistoryType.StatusChange -> {
                     Text(
-                        text = it,
-                        style = AppTheme.typography.bodySmall,
-                        color = AppTheme.colors.onSurfaceVariant,
+                        text = entry.statusTo.displayName(),
+                        style = AppTheme.typography.titleSmall,
+                        color = AppTheme.colors.onSurface,
+                    )
+                }
+
+                IssueHistoryType.Comment -> {
+                    Text(
+                        text = entry.commentText ?: "",
+                        style = AppTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                        color = AppTheme.colors.onSurface,
+                    )
+                }
+
+                IssueHistoryType.AssigneeChange -> {
+                    Text(
+                        text = stringResource(Res.string.issue_detail_history_reassigned),
+                        style = AppTheme.typography.titleSmall,
+                        color = AppTheme.colors.onSurface,
                     )
                 }
             }
+            val footer = listOfNotNull(entry.createdAtFormatted, entry.performedByName).joinToString(" - ")
             Text(
-                text = entry.createdAtFormatted,
+                text = footer,
                 style = AppTheme.typography.labelSmall,
                 color = AppTheme.colors.onSurfaceVariant,
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth(),
             )
-        }
-    }
-}
-
-@Composable
-private fun CommentCard(
-    commentText: String,
-    isSending: Boolean,
-    onUpdateComment: (String) -> Unit,
-    onSend: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val bringIntoViewRequester = remember { BringIntoViewRequester() }
-    val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-    LaunchedEffect(isImeVisible, commentText) {
-        if (isImeVisible) {
-            delay(100)
-            bringIntoViewRequester.bringIntoView()
-        }
-    }
-
-    CardContainer(
-        title = stringResource(Res.string.issue_detail_add_comment),
-        modifier = modifier.bringIntoViewRequester(bringIntoViewRequester),
-    ) {
-        val sendEnabled = !isSending && commentText.isNotBlank()
-        Row(
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(AppTheme.colors.surfaceContainer, RoundedCornerShape(10.dp))
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-            ) {
-                BasicTextField(
-                    value = commentText,
-                    onValueChange = onUpdateComment,
-                    textStyle = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.onSurface),
-                    minLines = 2,
-                    modifier = Modifier.fillMaxWidth(),
-                    decorationBox = { inner ->
-                        if (commentText.isEmpty()) {
-                            Text(
-                                text = stringResource(Res.string.issue_detail_comment_placeholder),
-                                style = AppTheme.typography.bodyMedium,
-                                color = AppTheme.colors.onSurfaceVariant,
-                            )
-                        }
-                        inner()
-                    },
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(if (sendEnabled) AppTheme.colors.primary else AppTheme.colors.surfaceVariant)
-                    .clickable(enabled = sendEnabled, onClick = onSend),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (isSending) {
-                    LoadingSpinner(size = 20.dp, strokeWidth = 2.dp)
-                } else {
-                    Icon(
-                        imageVector = TruckTrackIcons.Send,
-                        tint = if (sendEnabled) AppTheme.colors.onPrimary else AppTheme.colors.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-            }
         }
     }
 }
@@ -797,8 +782,8 @@ private fun CardContainer(
             .padding(16.dp),
     ) {
         Text(
-            text = title.uppercase(),
-            style = AppTheme.typography.labelSmall,
+            text = title,
+            style = AppTheme.typography.labelLarge,
             color = AppTheme.colors.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 12.dp),
         )

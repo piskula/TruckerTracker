@@ -11,8 +11,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(
-        text = text.uppercase(),
-        style = AppTheme.typography.labelSmall,
+        text = text,
+        style = AppTheme.typography.labelLarge,
         color = AppTheme.colors.onSurfaceVariant,
         modifier = modifier.padding(horizontal = 4.dp, vertical = 4.dp),
     )

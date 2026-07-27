@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
 import com.momosi.trucktrack.core.common.formatter.TimeAgo
 import com.momosi.trucktrack.core.issue.model.Account
@@ -69,7 +70,7 @@ internal fun IssueCard(
             .clip(Shapes.CardShape)
             .background(AppTheme.colors.surfaceContainerLowest)
             .clickable(onClick = onClick)
-            .padding(start = 12.dp, end = 14.dp, top = 12.dp, bottom = 12.dp),
+            .padding(start = 14.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
@@ -125,7 +126,7 @@ internal fun IssueCard(
                 }
                 Text(
                     text = issue.createdAt.timeAgo(dateFormatter),
-                    style = AppTheme.typography.labelSmall,
+                    style = AppTheme.typography.labelMedium,
                     color = AppTheme.colors.onSurfaceVariant,
                 )
             }
@@ -204,7 +205,7 @@ private fun MetaItem(
         )
         Text(
             text = text,
-            style = AppTheme.typography.bodySmall,
+            style = AppTheme.typography.bodySmall.copy(fontSize = 13.sp),
             color = AppTheme.colors.onSurfaceVariant,
         )
     }

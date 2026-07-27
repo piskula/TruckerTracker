@@ -68,7 +68,7 @@
     }
     .person-icon { font-size: 20px; color: var(--tt-on-surface); flex-shrink: 0; }
     .person-info { display: flex; flex-direction: column; }
-    .person-role { font-size: 10px; color: var(--tt-on-surface-variant); font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; }
+    .person-role { font-size: 11px; color: var(--tt-on-surface-variant); font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; }
     .person-name { font-size: 13px; color: var(--tt-on-surface); font-weight: 700; }
 
     .content {
@@ -86,11 +86,9 @@
       padding: 16px;
     }
     .card-section-title {
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 500;
       color: var(--tt-on-surface-variant);
-      text-transform: uppercase;
-      letter-spacing: 1px;
       margin-bottom: 12px;
     }
 
@@ -150,10 +148,10 @@
       align-items: center;
       gap: 3px;
       color: var(--tt-on-surface-variant);
-      font-size: 12px;
+      font-size: 13px;
     }
     .meta-item .material-symbols-rounded { font-size: 15px; }
-    .card-time { margin-left: auto; font-size: 11px; color: #9E9E9E; }
+    .card-time { margin-left: auto; font-size: 12px; color: #9E9E9E; }
 
     .description-text {
       font-size: 14px;
@@ -220,15 +218,8 @@
     }
     .timeline-right { padding-bottom: 18px; flex: 1; min-width: 0; }
     .timeline-right:last-child { padding-bottom: 0; }
-    .step-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 4px;
-    }
     .step-status { font-size: 14px; font-weight: 700; color: var(--tt-on-surface); }
-    .step-person { font-size: 12px; color: var(--tt-on-surface-variant); white-space: nowrap; flex-shrink: 0; }
-    .step-time { font-size: 11px; color: #BDBDBD; margin-top: 1px; }
+    .step-footer { font-size: 11px; color: var(--tt-on-surface-variant); text-align: right; margin-top: 3px; }
 
     .note {
       text-align: center;
@@ -316,11 +307,8 @@
               <div class="step-line"></div>
             </div>
             <div class="timeline-right">
-              <div class="step-header">
-                <span class="step-status">Open</span>
-                <span class="step-person">N. Lauda</span>
-              </div>
-              <div class="step-time">Jun 20, 08:10</div>
+              <span class="step-status">Open</span>
+              <div class="step-footer">Jun 20, 08:10 - N. Lauda</div>
             </div>
           </div>
 
@@ -330,11 +318,8 @@
               <div class="step-line"></div>
             </div>
             <div class="timeline-right">
-              <div class="step-header">
-                <span class="step-status">In Progress</span>
-                <span class="step-person">Lewis Hamilton</span>
-              </div>
-              <div class="step-time">Jun 20, 09:40</div>
+              <span class="step-status">In Progress</span>
+              <div class="step-footer">Jun 20, 09:40 - Lewis Hamilton</div>
             </div>
           </div>
 
@@ -344,11 +329,8 @@
               <div class="step-dot assignee"><span class="material-symbols-rounded">emoji_people</span></div>
             </div>
             <div class="timeline-right">
-              <div class="step-header">
-                <span class="step-status">Reassigned</span>
-                <span class="step-person">Lewis Hamilton</span>
-              </div>
-              <div class="step-time">Jun 20, 09:41</div>
+              <span class="step-status">Reassigned</span>
+              <div class="step-footer">Jun 20, 09:41 - Lewis Hamilton</div>
             </div>
           </div>
 
