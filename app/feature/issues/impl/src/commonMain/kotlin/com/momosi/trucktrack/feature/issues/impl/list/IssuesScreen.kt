@@ -43,21 +43,21 @@ import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import com.momosi.trucktrack.feature.issues.impl.resources.Res
+import com.momosi.trucktrack.feature.issues.impl.resources.issues_title
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_empty
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_error_message
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_all
-import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_in_progress
-import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_my_closed
+import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_my_completed
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_my_issues
-import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_my_open
+import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_my_resolved
+import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_my_work
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_open
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_retry
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_subtitle_driver
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_subtitle_mechanic
-import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_title_driver
-import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_title_mechanic
 import com.momosi.trucktrack.user.model.UserRole
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -111,17 +111,17 @@ private fun IssuesScreenContent(
     modifier: Modifier = Modifier,
 ) {
     val userInfo = state.userInfo
-    val isDualRole = userInfo?.isDualRole == true
-    val isMechanic = !isDualRole && userInfo?.isMechanic == true
-    val isDriver = !isDualRole && !isMechanic
-    val role = if (isMechanic) IssueCardRole.Mechanic else IssueCardRole.Driver
+    val availableFilters = filtersByRole
+        .filterKeys { it in (userInfo?.roles ?: emptySet()) }
+        .values
+        .flatten()
+        .toSortedSet()
+        .toImmutableList()
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             DashboardTopBar(
-                title = stringResource(
-                    if (isDriver) Res.string.my_issues_title_driver else Res.string.my_issues_title_mechanic,
-                ),
+                title = stringResource(Res.string.issues_title),
                 subtitle = userInfo?.let { info ->
                     val roleLabel = info.roles.map { stringResource(it.labelRes()) }.joinToString(" · ")
                     "${info.name} · $roleLabel"
@@ -131,25 +131,7 @@ private fun IssuesScreenContent(
                 },
             )
             FilterChipRow(
-                items = when {
-                    isDualRole -> persistentListOf(
-                        IssueFilter.DualRole.Open,
-                        IssueFilter.DualRole.InProgress,
-                        IssueFilter.DualRole.All,
-                    )
-
-                    isMechanic -> persistentListOf(
-                        IssueFilter.Mechanic.MyIssues,
-                        IssueFilter.Mechanic.Open,
-                        IssueFilter.Mechanic.All,
-                    )
-
-                    else -> persistentListOf(
-                        IssueFilter.Driver.MyOpen,
-                        IssueFilter.Driver.MyClosed,
-                        IssueFilter.Driver.All,
-                    )
-                },
+                items = availableFilters,
                 selectedItem = state.selectedFilter,
                 labelSelector = { it.label() },
                 onSelect = onSelectFilter,
@@ -165,7 +147,7 @@ private fun IssuesScreenContent(
                     } else {
                         IssueList(
                             pagingItems = pagingItems,
-                            role = role,
+                            filter = state.selectedFilter,
                             dateFormatter = dateFormatter,
                             onOpenIssue = onNavigateToIssueDetail,
                             onRefresh = onRefresh,
@@ -174,7 +156,7 @@ private fun IssuesScreenContent(
                 }
             }
         }
-        if (isDriver || isDualRole) {
+        if (userInfo?.roles?.contains(UserRole.Driver) == true) {
             FloatingActionButton(
                 icon = TruckTrackIcons.Add,
                 onClick = onNavigateToCreateIssue,
@@ -190,7 +172,7 @@ private fun IssuesScreenContent(
 @Composable
 private fun IssueList(
     pagingItems: LazyPagingItems<Issue>,
-    role: IssueCardRole,
+    filter: IssueFilter,
     dateFormatter: DateFormatter,
     onOpenIssue: (Long) -> Unit,
     onRefresh: () -> Unit,
@@ -214,10 +196,8 @@ private fun IssueList(
             ) { index ->
                 val issue = pagingItems[index] ?: return@items
                 IssueCard(
-                    state = IssueCardState(
-                        issue = issue,
-                        role = role,
-                    ),
+                    issue = issue,
+                    filter = filter,
                     dateFormatter = dateFormatter,
                     onClick = { onOpenIssue(issue.id) },
                 )
@@ -282,15 +262,12 @@ private fun EmptyContent(modifier: Modifier = Modifier) {
 @Composable
 private fun IssueFilter.label(): String = stringResource(
     when (this) {
-        IssueFilter.Driver.MyOpen -> Res.string.my_issues_filter_my_open
-        IssueFilter.Driver.MyClosed -> Res.string.my_issues_filter_my_closed
-        IssueFilter.Driver.All -> Res.string.my_issues_filter_all
-        IssueFilter.Mechanic.MyIssues -> Res.string.my_issues_filter_my_issues
-        IssueFilter.Mechanic.Open -> Res.string.my_issues_filter_open
-        IssueFilter.Mechanic.All -> Res.string.my_issues_filter_all
-        IssueFilter.DualRole.Open -> Res.string.my_issues_filter_open
-        IssueFilter.DualRole.InProgress -> Res.string.my_issues_filter_in_progress
-        IssueFilter.DualRole.All -> Res.string.my_issues_filter_all
+        IssueFilter.MyIssues -> Res.string.my_issues_filter_my_issues
+        IssueFilter.MyResolved -> Res.string.my_issues_filter_my_resolved
+        IssueFilter.MyWork -> Res.string.my_issues_filter_my_work
+        IssueFilter.MyCompleted -> Res.string.my_issues_filter_my_completed
+        IssueFilter.Open -> Res.string.my_issues_filter_open
+        IssueFilter.All -> Res.string.my_issues_filter_all
     },
 )
 
@@ -356,7 +333,7 @@ private fun IssuesDriverPreview() {
                     name = "Michael Schumacher",
                     roles = persistentListOf(UserRole.Driver),
                 ),
-                selectedFilter = IssueFilter.Driver.MyOpen,
+                selectedFilter = IssueFilter.MyIssues,
             ),
             pagingItems = pagingItems,
             dateFormatter = DateFormatter(),
@@ -381,7 +358,7 @@ private fun IssuesMechanicPreview() {
                     name = "Mattia Binotto",
                     roles = persistentListOf(UserRole.Mechanic),
                 ),
-                selectedFilter = IssueFilter.Mechanic.MyIssues,
+                selectedFilter = IssueFilter.MyWork,
             ),
             pagingItems = pagingItems,
             dateFormatter = DateFormatter(),

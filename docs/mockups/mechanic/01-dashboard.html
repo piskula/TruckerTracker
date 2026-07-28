@@ -58,14 +58,16 @@
         }
         .icon-btn .material-symbols-rounded { color: var(--tt-on-surface); font-size: 24px; }
 
-        /* FilterChipRow: Mechanic = My Issues / Open / All */
+        /* FilterChipRow: Mechanic = My Work / My Completed / Open / All */
         .filter-row {
           background: var(--tt-surface-dim);
           padding: 0 16px 12px;
           display: flex;
           gap: 8px;
           flex-shrink: 0;
+          overflow-x: auto;
         }
+        .filter-row::-webkit-scrollbar { display: none; }
         .filter-chip {
           padding: 6px 14px;
           border-radius: 100px;
@@ -159,7 +161,7 @@
         }
         .meta-item .material-symbols-rounded { font-size: 15px; }
 
-        /* Bottom row: mechanic sees the reporter (Person icon) + time-ago, right-aligned */
+        /* Bottom row: time right-aligned; person info left */
         .card-bottom-row {
           display: flex;
           align-items: center;
@@ -169,6 +171,14 @@
           font-size: 12px;
           color: #9E9E9E;
           white-space: nowrap;
+          margin-left: 8px;
+          flex-shrink: 0;
+        }
+        /* All tab: reporter always shown, assignee stacked below when present */
+        .person-pair {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
         }
 
         /* NOTE: no FAB here — only Driver / dual-role can create issues.
@@ -188,21 +198,22 @@
 
     <div class="top-bar">
         <div class="top-bar-left">
-            <h2>All Issues</h2>
+            <h2>Issues</h2>
             <span class="top-bar-sub">Mattia Binotto · Mechanic</span>
         </div>
         <div class="icon-btn"><span class="material-symbols-rounded">account_circle</span></div>
     </div>
 
     <div class="filter-row">
-        <div class="filter-chip">My Issues</div>
-        <div class="filter-chip active">Open</div>
-        <div class="filter-chip">All</div>
+        <div class="filter-chip">My Work</div>
+        <div class="filter-chip">My Completed</div>
+        <div class="filter-chip">Open</div>
+        <div class="filter-chip active">All</div>
     </div>
 
     <div class="content">
 
-        <!-- High / In Progress, assigned to me -->
+        <!-- High / In Progress, assigned — reporter + assignee both shown -->
         <div class="card priority-high">
             <div class="card-top">
                 <div class="card-title">Engine warning light — truck won't start</div>
@@ -222,15 +233,21 @@
                 </div>
             </div>
             <div class="card-bottom-row">
-                <div class="meta-item">
-                    <span class="material-symbols-rounded">edit</span>
-                    <span>Michael Schumacher</span>
+                <div class="person-pair">
+                    <div class="meta-item">
+                        <span class="material-symbols-rounded">edit</span>
+                        <span>Michael Schumacher</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="material-symbols-rounded filled">assignment_ind</span>
+                        <span>Mattia Binotto</span>
+                    </div>
                 </div>
                 <span class="card-time">2 hr ago</span>
             </div>
         </div>
 
-        <!-- High / Open, unassigned -->
+        <!-- High / Open, no assignee — reporter only -->
         <div class="card priority-high">
             <div class="card-top">
                 <div class="card-title">Brake fluid leak — front axle</div>
@@ -258,13 +275,13 @@
             </div>
         </div>
 
-        <!-- Medium / Open -->
+        <!-- Medium / In Progress, assigned — reporter + assignee both shown -->
         <div class="card priority-medium">
             <div class="card-top">
                 <div class="card-title">Air suspension — right side not inflating</div>
-                <div class="status-chip status-open">
-                    <span class="material-symbols-rounded">radio_button_unchecked</span>
-                    Open
+                <div class="status-chip status-progress">
+                    <span class="material-symbols-rounded filled">build</span>
+                    In Progress
                 </div>
             </div>
             <div class="card-meta">
@@ -278,15 +295,21 @@
                 </div>
             </div>
             <div class="card-bottom-row">
-                <div class="meta-item">
-                    <span class="material-symbols-rounded">edit</span>
-                    <span>N. Lauda</span>
+                <div class="person-pair">
+                    <div class="meta-item">
+                        <span class="material-symbols-rounded">edit</span>
+                        <span>N. Lauda</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="material-symbols-rounded filled">assignment_ind</span>
+                        <span>Lewis Hamilton</span>
+                    </div>
                 </div>
                 <span class="card-time">Yesterday</span>
             </div>
         </div>
 
-        <!-- Medium / Open -->
+        <!-- Medium / Open, no assignee — reporter only -->
         <div class="card priority-medium">
             <div class="card-top">
                 <div class="card-title">Windshield wiper blade broken</div>
