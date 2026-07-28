@@ -6,6 +6,8 @@ import androidx.compose.material.icons.automirrored.rounded.ListAlt
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.filled.AssignmentInd
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.rounded.ChatBubble
+import androidx.compose.material.icons.rounded.Comment
 import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Add
@@ -67,5 +69,7 @@ data object TruckTrackIcons {
     val ListAlt = Icons.AutoMirrored.Rounded.ListAlt
     val Send = Icons.AutoMirrored.Rounded.Send
     val MoreVert = Icons.Rounded.MoreVert
+    val ChatBubble = Icons.Rounded.ChatBubble
+    val Comment = Icons.Rounded.Comment
     val ChatBubbleOutline = Icons.Outlined.ChatBubbleOutline
 }

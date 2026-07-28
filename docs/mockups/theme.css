@@ -21,6 +21,8 @@
     --tt-surface-container-high: #E9E7EB;
     --tt-surface-container-highest: #E3E2E6;
     --tt-surface-variant: #E0E2EC;
+    --tt-inverse-surface: #2F3033;
+    --tt-inverse-on-surface: #F1F0F4;
 
     /* ── Borders ──────────────────────────────────────────────── */
     --tt-outline: #74777F;

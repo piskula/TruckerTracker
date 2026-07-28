@@ -569,14 +569,14 @@ private fun TimelineStep(
                 IssueHistoryType.Comment -> {
                     Box(
                         modifier = Modifier
-                            .size(20.dp)
+                            .size(26.dp)
                             .background(AppTheme.colors.surfaceContainerHighest, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = TruckTrackIcons.ChatBubbleOutline,
+                            imageVector = TruckTrackIcons.Comment,
                             tint = AppTheme.colors.onSurfaceVariant,
-                            modifier = Modifier.size(11.dp),
+                            modifier = Modifier.size(14.dp),
                         )
                     }
                 }
@@ -601,7 +601,7 @@ private fun TimelineStep(
                     modifier = Modifier
                         .weight(1f)
                         .width(2.dp)
-                        .background(AppTheme.colors.outlineVariant),
+                        .background(AppTheme.colors.surfaceContainerHighest),
                 )
             }
         }

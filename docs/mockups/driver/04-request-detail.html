@@ -190,7 +190,7 @@
       width: 2px;
       height: 24px;
       margin: 3px 0;
-      background: var(--tt-outline-variant);
+      background: var(--tt-surface-container-highest);
     }
     .timeline-right { padding-bottom: 18px; flex: 1; min-width: 0; }
     .timeline-right:last-child { padding-bottom: 0; }
@@ -198,13 +198,13 @@
     .step-footer { font-size: 11px; color: var(--tt-outline); text-align: right; margin-top: 3px; }
 
     .step-dot-comment {
-      width: 20px; height: 20px;
+      width: 26px; height: 26px;
       border-radius: 50%;
       background: var(--tt-surface-container-highest);
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .step-dot-comment .material-symbols-rounded { font-size: 11px; color: var(--tt-on-surface-variant); }
+    .step-dot-comment .material-symbols-rounded { font-size: 14px; color: var(--tt-on-surface-variant); }
     .comment-label {
       font-size: 13px;
       font-weight: 400;
@@ -359,7 +359,7 @@
 
           <div class="timeline-step">
             <div class="timeline-left">
-              <div class="step-dot-comment"><span class="material-symbols-rounded">chat_bubble_outline</span></div>
+              <div class="step-dot-comment"><span class="material-symbols-rounded filled">comment</span></div>
             </div>
             <div class="timeline-right">
               <span class="comment-label">Issue diagnosed, spare parts ordered</span>

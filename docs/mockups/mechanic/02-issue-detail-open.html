@@ -182,7 +182,22 @@
     .step-dot.status-open { background: var(--tt-open); }
     .step-dot.status-open .material-symbols-rounded { color: var(--tt-on-open); }
     .step-dot .material-symbols-rounded { font-size: 17px; color: var(--tt-on-primary); }
-    .timeline-right { flex: 1; min-width: 0; }
+    .step-dot-comment {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--tt-surface-container-highest);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-dot-comment .material-symbols-rounded { font-size: 14px; color: var(--tt-on-surface-variant); }
+    .step-line {
+      width: 2px;
+      height: 24px;
+      margin: 3px 0;
+      background: var(--tt-surface-container-highest);
+    }
+    .timeline-right { padding-bottom: 18px; flex: 1; min-width: 0; }
+    .timeline-right:last-child { padding-bottom: 0; }
     .step-status { font-size: 14px; font-weight: 700; color: var(--tt-on-surface); }
     .step-footer { font-size: 11px; color: var(--tt-outline); text-align: right; margin-top: 3px; }
 
