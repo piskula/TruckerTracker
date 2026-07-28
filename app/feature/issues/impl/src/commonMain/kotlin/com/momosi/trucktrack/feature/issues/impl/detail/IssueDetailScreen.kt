@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
@@ -541,10 +543,12 @@ private fun TimelineStep(
     isLast: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier = modifier) {
+    Row(modifier = modifier.height(IntrinsicSize.Min)) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(32.dp),
+            modifier = Modifier
+                .width(32.dp)
+                .fillMaxHeight(),
         ) {
             when (entry.type) {
                 IssueHistoryType.StatusChange -> {
@@ -595,8 +599,8 @@ private fun TimelineStep(
             if (!isLast) {
                 Box(
                     modifier = Modifier
+                        .weight(1f)
                         .width(2.dp)
-                        .height(24.dp)
                         .background(AppTheme.colors.outlineVariant),
                 )
             }
