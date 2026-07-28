@@ -52,12 +52,12 @@ import kotlin.time.Instant
 
 @Composable
 internal fun IssueCard(
-    state: IssueCardState,
+    issue: Issue,
+    filter: IssueFilter,
     dateFormatter: DateFormatter,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val issue = state.issue
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -111,18 +111,27 @@ internal fun IssueCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                when (state.role) {
-                    IssueCardRole.Mechanic -> issue.reportedBy?.let { reporter ->
-                        MetaItem(
-                            icon = TruckTrackIcons.Edit,
-                            text = reporter.fullName,
-                        )
+                when (filter) {
+                    IssueFilter.MyWork,
+                    IssueFilter.MyCompleted,
+                    IssueFilter.Open -> issue.reportedBy?.let { reporter ->
+                        MetaItem(icon = TruckTrackIcons.Edit, text = reporter.fullName)
                     }
 
-                    IssueCardRole.Driver -> MetaItem(
+                    IssueFilter.MyIssues,
+                    IssueFilter.MyResolved -> MetaItem(
                         icon = TruckTrackIcons.AssignmentInd,
                         text = issue.assignedTo?.fullName ?: stringResource(Res.string.issue_unassigned),
                     )
+
+                    IssueFilter.All -> Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        issue.reportedBy?.let { reporter ->
+                            MetaItem(icon = TruckTrackIcons.Edit, text = reporter.fullName)
+                        }
+                        issue.assignedTo?.let { assignee ->
+                            MetaItem(icon = TruckTrackIcons.AssignmentInd, text = assignee.fullName)
+                        }
+                    }
                 }
                 Text(
                     text = issue.createdAt.timeAgo(dateFormatter),
@@ -303,10 +312,11 @@ private val sampleIssue = Issue(
 
 @Preview(showBackground = true)
 @Composable
-private fun IssueCardDriverHighPreview() {
+private fun IssueCardDriverMyIssuesPreview() {
     TruckTrackTheme {
         IssueCard(
-            state = IssueCardState(issue = sampleIssue, role = IssueCardRole.Driver),
+            issue = sampleIssue,
+            filter = IssueFilter.MyIssues,
             dateFormatter = DateFormatter(),
             onClick = {},
             modifier = Modifier.padding(12.dp),
@@ -316,10 +326,11 @@ private fun IssueCardDriverHighPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun IssueCardMechanicHighPreview() {
+private fun IssueCardMechanicMyWorkPreview() {
     TruckTrackTheme {
         IssueCard(
-            state = IssueCardState(issue = sampleIssue, role = IssueCardRole.Mechanic),
+            issue = sampleIssue,
+            filter = IssueFilter.MyWork,
             dateFormatter = DateFormatter(),
             onClick = {},
             modifier = Modifier.padding(12.dp),
@@ -329,41 +340,13 @@ private fun IssueCardMechanicHighPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun IssueCardOpenMediumPreview() {
+private fun IssueCardAllPreview() {
     TruckTrackTheme {
         IssueCard(
-            state = IssueCardState(
-                issue = sampleIssue.copy(
-                    title = "Air suspension — right side not inflating",
-                    status = IssueStatus.Open,
-                    priority = IssuePriority.Medium,
-                    vehicle = sampleIssue.vehicle?.copy(licensePlate = "MA-089-MR"),
-                    createdAt = Clock.System.now().minus(kotlin.time.Duration.parse("24h")),
-                ),
-                role = IssueCardRole.Driver,
+            issue = sampleIssue.copy(
+                assignedTo = Account(id = "2", username = "mbinotto", firstName = "Mattia", lastName = "Binotto"),
             ),
-            dateFormatter = DateFormatter(),
-            onClick = {},
-            modifier = Modifier.padding(12.dp),
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun IssueCardDoneLowPreview() {
-    TruckTrackTheme {
-        IssueCard(
-            state = IssueCardState(
-                issue = sampleIssue.copy(
-                    title = "Routine oil change service",
-                    status = IssueStatus.Done,
-                    priority = IssuePriority.Low,
-                    vehicle = sampleIssue.vehicle?.copy(licensePlate = "MA-118-AB"),
-                    createdAt = Clock.System.now().minus(kotlin.time.Duration.parse("600h")),
-                ),
-                role = IssueCardRole.Mechanic,
-            ),
+            filter = IssueFilter.All,
             dateFormatter = DateFormatter(),
             onClick = {},
             modifier = Modifier.padding(12.dp),

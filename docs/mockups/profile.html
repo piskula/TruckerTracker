@@ -182,7 +182,7 @@
 </head>
 <body>
   <!-- Main screen: signed-in driver -->
-  <div class="phone">
+  <div class="phone" id="phone-driver">
     <div class="status-bar">
       <span>9:41</span>
       <span>
@@ -231,7 +231,7 @@
   </div>
 
   <!-- Dual-role variant: Driver · Mechanic -->
-  <div class="phone">
+  <div class="phone" id="phone-mechanic">
     <div class="status-bar">
       <span>9:41</span>
       <span>
@@ -278,5 +278,10 @@
       </div>
     </div>
   </div>
+  <script>
+    const h = window.location.hash;
+    if (h === '#driver') document.getElementById('phone-mechanic').style.display = 'none';
+    else if (h === '#mechanic') document.getElementById('phone-driver').style.display = 'none';
+  </script>
 </body>
 </html>

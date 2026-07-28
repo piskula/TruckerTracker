@@ -1,15 +1,14 @@
 <resources>
-    <string name="my_issues_title_driver">Moje hlásenia</string>
-    <string name="my_issues_title_mechanic">Všetky hlásenia</string>
+    <string name="issues_title">Hlásenia</string>
     <string name="my_issues_error_message">Niečo sa pokazilo</string>
     <string name="my_issues_retry">Skúsiť znova</string>
     <string name="my_issues_empty">Nenašli sa žiadne hlásenia</string>
-    <string name="my_issues_filter_my_open">Moje otvorené</string>
-    <string name="my_issues_filter_my_closed">Moje uzatvorené</string>
-    <string name="my_issues_filter_all">Všetky</string>
     <string name="my_issues_filter_my_issues">Moje hlásenia</string>
+    <string name="my_issues_filter_my_resolved">Moje vyriešené</string>
+    <string name="my_issues_filter_my_work">Moja práca</string>
+    <string name="my_issues_filter_my_completed">Moje dokončené</string>
     <string name="my_issues_filter_open">Otvorené</string>
-    <string name="my_issues_filter_in_progress">V riešení</string>
+    <string name="my_issues_filter_all">Všetky</string>
     <string name="my_issues_subtitle_driver">Vodič</string>
     <string name="my_issues_subtitle_mechanic">Mechanik</string>
 

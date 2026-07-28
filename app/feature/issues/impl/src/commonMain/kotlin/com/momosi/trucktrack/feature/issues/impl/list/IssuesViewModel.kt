@@ -26,10 +26,11 @@ import kotlinx.coroutines.flow.stateIn
 @OptIn(ExperimentalCoroutinesApi::class)
 class IssuesViewModel(private val userRepository: UserRepository, private val issueRepository: IssueRepository) : ViewModel() {
 
-    private val initialFilter: IssueFilter = when {
-        userRepository.user.value?.isDualRole == true -> IssueFilter.DualRole.All
-        userRepository.user.value?.isMechanic == true -> IssueFilter.Mechanic.MyIssues
-        else -> IssueFilter.Driver.MyOpen
+    private val initialFilter: IssueFilter = run {
+        val userRoles = userRepository.user.value?.roles ?: emptySet()
+        IssueFilter.entries.first { filter ->
+            userRoles.any { filtersByRole[it]?.contains(filter) == true }
+        }
     }
     private val selectedFilter = MutableStateFlow<IssueFilter>(initialFilter)
     private val refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
@@ -88,25 +89,19 @@ class IssuesViewModel(private val userRepository: UserRepository, private val is
 }
 
 private fun IssueFilter.statuses(): List<IssueStatus> = when (this) {
-    IssueFilter.Driver.MyOpen -> listOf(IssueStatus.Open, IssueStatus.InProgress)
-    IssueFilter.Driver.MyClosed -> listOf(IssueStatus.Done)
-    IssueFilter.Driver.All -> emptyList()
-    IssueFilter.Mechanic.MyIssues -> listOf(IssueStatus.InProgress, IssueStatus.Done)
-    IssueFilter.Mechanic.Open -> listOf(IssueStatus.Open)
-    IssueFilter.Mechanic.All -> emptyList()
-    IssueFilter.DualRole.Open -> listOf(IssueStatus.Open)
-    IssueFilter.DualRole.InProgress -> listOf(IssueStatus.InProgress)
-    IssueFilter.DualRole.All -> emptyList()
+    IssueFilter.MyIssues -> listOf(IssueStatus.Open, IssueStatus.InProgress)
+    IssueFilter.MyResolved -> listOf(IssueStatus.Done)
+    IssueFilter.MyWork -> listOf(IssueStatus.InProgress)
+    IssueFilter.MyCompleted -> listOf(IssueStatus.Done)
+    IssueFilter.Open -> listOf(IssueStatus.Open)
+    IssueFilter.All -> emptyList()
 }
 
 private fun IssueFilter.accountIds(userId: String?): List<String> = when (this) {
-    IssueFilter.Driver.MyOpen -> listOfNotNull(userId)
-    IssueFilter.Driver.MyClosed -> listOfNotNull(userId)
-    IssueFilter.Driver.All -> emptyList()
-    IssueFilter.Mechanic.MyIssues -> listOfNotNull(userId)
-    IssueFilter.Mechanic.Open -> emptyList()
-    IssueFilter.Mechanic.All -> emptyList()
-    IssueFilter.DualRole.Open -> emptyList()
-    IssueFilter.DualRole.InProgress -> emptyList()
-    IssueFilter.DualRole.All -> emptyList()
+    IssueFilter.MyIssues,
+    IssueFilter.MyResolved,
+    IssueFilter.MyWork,
+    IssueFilter.MyCompleted -> listOfNotNull(userId)
+    IssueFilter.Open,
+    IssueFilter.All -> emptyList()
 }

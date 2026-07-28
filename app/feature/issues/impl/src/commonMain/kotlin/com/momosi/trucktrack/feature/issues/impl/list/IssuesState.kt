@@ -5,10 +5,7 @@ import com.momosi.trucktrack.user.model.UserRole
 import kotlinx.collections.immutable.ImmutableList
 
 @Immutable
-data class IssuesUserInfo(val name: String, val roles: ImmutableList<UserRole>) {
-    val isDualRole: Boolean = UserRole.Driver in roles && UserRole.Mechanic in roles
-    val isMechanic: Boolean = !isDualRole && UserRole.Mechanic in roles
-}
+data class IssuesUserInfo(val name: String, val roles: ImmutableList<UserRole>)
 
 @Immutable
-data class IssuesState(val userInfo: IssuesUserInfo? = null, val selectedFilter: IssueFilter = IssueFilter.Driver.MyOpen)
+data class IssuesState(val userInfo: IssuesUserInfo? = null, val selectedFilter: IssueFilter = IssueFilter.MyIssues)
