@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -627,11 +628,11 @@ private fun TimelineStep(
                     )
                 }
             }
-            val footer = listOfNotNull(entry.createdAtFormatted, entry.performedByName).joinToString(" - ")
+            val footer = listOfNotNull(entry.performedByName, entry.createdAtFormatted).joinToString(", ")
             Text(
                 text = footer,
-                style = AppTheme.typography.labelSmall,
-                color = AppTheme.colors.onSurfaceVariant,
+                style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                color = AppTheme.colors.outline,
                 textAlign = TextAlign.End,
                 modifier = Modifier.fillMaxWidth(),
             )
