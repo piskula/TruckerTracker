@@ -115,7 +115,8 @@ private fun IssuesScreenContent(
         .filterKeys { it in (userInfo?.roles ?: emptySet()) }
         .values
         .flatten()
-        .toSortedSet()
+        .distinct()
+        .sorted()
         .toImmutableList()
 
     Box(modifier = modifier.fillMaxSize()) {
