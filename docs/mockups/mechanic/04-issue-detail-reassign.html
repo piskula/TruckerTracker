@@ -151,7 +151,7 @@
       font-size: 13px;
     }
     .meta-item .material-symbols-rounded { font-size: 15px; }
-    .card-time { margin-left: auto; font-size: 12px; color: #9E9E9E; }
+    .card-time { margin-left: auto; font-size: 12px; color: var(--tt-on-surface-variant); }
 
     .description-text {
       font-size: 14px;
@@ -218,6 +218,8 @@
     }
     .timeline-right { padding-bottom: 18px; flex: 1; min-width: 0; }
     .timeline-right:last-child { padding-bottom: 0; }
+    .timeline-right-row { display: flex; align-items: center; justify-content: space-between; align-self: flex-start; height: 32px; padding-bottom: 0; }
+    .timeline-right-row .step-footer { margin-top: 0; }
     .step-status { font-size: 14px; font-weight: 700; color: var(--tt-on-surface); }
     .step-footer { font-size: 11px; color: var(--tt-outline); text-align: right; margin-top: 3px; }
 
@@ -306,7 +308,7 @@
               <div class="step-dot status-open"><span class="material-symbols-rounded">radio_button_unchecked</span></div>
               <div class="step-line"></div>
             </div>
-            <div class="timeline-right">
+            <div class="timeline-right timeline-right-row">
               <span class="step-status">Open</span>
               <div class="step-footer">N. Lauda, Jun 20, 08:10</div>
             </div>
@@ -317,7 +319,7 @@
               <div class="step-dot active"><span class="material-symbols-rounded filled">build</span></div>
               <div class="step-line"></div>
             </div>
-            <div class="timeline-right">
+            <div class="timeline-right timeline-right-row">
               <span class="step-status">In Progress</span>
               <div class="step-footer">Lewis Hamilton, Jun 20, 09:40</div>
             </div>
@@ -328,7 +330,7 @@
             <div class="timeline-left">
               <div class="step-dot assignee"><span class="material-symbols-rounded">emoji_people</span></div>
             </div>
-            <div class="timeline-right">
+            <div class="timeline-right timeline-right-row">
               <span class="step-status">Reassigned</span>
               <div class="step-footer">Lewis Hamilton, Jun 20, 09:41</div>
             </div>

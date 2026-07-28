@@ -607,13 +607,25 @@ private fun TimelineStep(
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.padding(bottom = if (isLast) 0.dp else 18.dp)) {
+            val footer = listOfNotNull(entry.performedByName, entry.createdAtFormatted).joinToString(", ")
             when (entry.type) {
                 IssueHistoryType.StatusChange -> {
-                    Text(
-                        text = entry.statusTo.displayName(),
-                        style = AppTheme.typography.titleSmall,
-                        color = AppTheme.colors.onSurface,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth().height(32.dp),
+                    ) {
+                        Text(
+                            text = entry.statusTo.displayName(),
+                            style = AppTheme.typography.titleSmall,
+                            color = AppTheme.colors.onSurface,
+                        )
+                        Text(
+                            text = footer,
+                            style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                            color = AppTheme.colors.outline,
+                        )
+                    }
                 }
 
                 IssueHistoryType.Comment -> {
@@ -622,24 +634,34 @@ private fun TimelineStep(
                         style = AppTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
                         color = AppTheme.colors.onSurface,
                     )
+                    Text(
+                        text = footer,
+                        style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                        color = AppTheme.colors.outline,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
 
                 IssueHistoryType.AssigneeChange -> {
-                    Text(
-                        text = stringResource(Res.string.issue_detail_history_reassigned),
-                        style = AppTheme.typography.titleSmall,
-                        color = AppTheme.colors.onSurface,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth().height(32.dp),
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.issue_detail_history_reassigned),
+                            style = AppTheme.typography.titleSmall,
+                            color = AppTheme.colors.onSurface,
+                        )
+                        Text(
+                            text = footer,
+                            style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+                            color = AppTheme.colors.outline,
+                        )
+                    }
                 }
             }
-            val footer = listOfNotNull(entry.performedByName, entry.createdAtFormatted).joinToString(", ")
-            Text(
-                text = footer,
-                style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
-                color = AppTheme.colors.outline,
-                textAlign = TextAlign.End,
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
     }
 }
