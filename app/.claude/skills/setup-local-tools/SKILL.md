@@ -19,7 +19,7 @@ description: Use when setting up a new machine for this repo, checking whether r
 
 | Tool | Version | Needed for | Check | Platform |
 |---|---|---|---|---|
-| JDK | 21 (Temurin/Adoptium recommended) | Gradle toolchain — `jvmToolchain(21)` in `app/build-logic/convention` | `java -version` | all |
+| JDK | 25 (Temurin/Adoptium recommended) | Gradle toolchain — `jvmToolchain(25)` in `app/build-logic/convention` | `java -version` | all |
 | Android SDK | cmdline-tools + platform 37 + build-tools (latest) | `./gradlew :app:app:android:assembleDebug` (from the repo root), Android Studio | Android SDK path env var set and exists (`ANDROID_HOME` on macOS/Linux, `%LOCALAPPDATA%\Android\Sdk` on Windows) | all |
 | Xcode | latest stable from the App Store (15+ minimum) + CLT | Building `app:ios` (`app/app/ios/iosApp.xcodeproj`) | `xcode-select -p` | **macOS only** — iOS can't be built elsewhere |
 | `gh` (GitHub CLI), logged in | latest | Agents running `gh run list`/`gh release create` etc. directly (`analyze-ci-failure`, `release-app` skills) | `gh auth status` | all |
@@ -34,7 +34,7 @@ Windows equally.
 ### macOS (Homebrew)
 
 ```bash
-brew install --cask temurin@21          # JDK 21
+brew install --cask temurin@25          # JDK 25
 brew install --cask android-commandlinetools   # or install SDK via Android Studio's SDK Manager
 xcode-select --install                  # Xcode itself: install from the App Store first
 brew install gh && gh auth login
@@ -45,9 +45,9 @@ npm install -g firebase-tools@latest && firebase login
 ### Linux (Debian/Ubuntu — adapt package manager as needed)
 
 ```bash
-# JDK 21
-sudo apt update && sudo apt install -y openjdk-21-jdk
-# or use sdkman: sdk install java 21-tem
+# JDK 25
+sudo apt update && sudo apt install -y openjdk-25-jdk
+# or use sdkman: sdk install java 25-tem
 
 # Android SDK — download cmdline-tools from developer.android.com/studio#command-tools,
 # unzip, then: sdkmanager "platform-tools" "platforms;android-37" "build-tools;37.0.0"
@@ -71,7 +71,7 @@ npm install -g firebase-tools@latest && firebase login
 ### Windows (PowerShell, winget)
 
 ```powershell
-winget install EclipseAdoptium.Temurin.21.JDK   # JDK 21
+winget install EclipseAdoptium.Temurin.25.JDK   # JDK 25
 # Android SDK — install via Android Studio's SDK Manager (simplest on Windows)
 winget install GitHub.cli
 gh auth login
@@ -108,7 +108,7 @@ Run all of these and confirm each passes before considering the machine ready (s
 Xcode/iOS-specific one off macOS):
 
 ```bash
-java -version                # 21
+java -version                # 25
 gh auth status                # logged in
 node --version                # 20+
 firebase --version
@@ -147,7 +147,7 @@ reconfigures. iOS additionally needs `pod install` run from `app/app/ios` (Cocoa
 
 | Gotcha | Why it happens |
 |---|---|
-| `./gradlew` fails with "No matching toolchains found for requested specification: {languageVersion=21}" even though JDK 21 is installed | `settings.gradle.kts` doesn't apply the `org.gradle.toolchains.foojay-resolver-convention` plugin, so Gradle only discovers JDKs already on the machine — it won't auto-download one. Point `JAVA_HOME` at the JDK 21 install (env var on macOS/Linux, System Environment Variables on Windows), or add its path to `org.gradle.java.installations.paths` in `gradle.properties` |
+| `./gradlew` fails with "No matching toolchains found for requested specification: {languageVersion=25}" even though JDK 25 is installed | `settings.gradle.kts` doesn't apply the `org.gradle.toolchains.foojay-resolver-convention` plugin, so Gradle only discovers JDKs already on the machine — it won't auto-download one. Point `JAVA_HOME` at the JDK 25 install (env var on macOS/Linux, System Environment Variables on Windows), or add its path to `org.gradle.java.installations.paths` in `gradle.properties` |
 | Firebase MCP tool list looks sparse | No `firebase.json` at the repo root yet, so the MCP server has nothing to detect and can only offer project-agnostic tools. Run `firebase init` for the features you actually need (App Distribution, Crashlytics, etc.) to get the full tool set |
 | A newly edited `.mcp.json` doesn't show new tools in the running session | MCP servers are only loaded at session start — start a new Claude Code session after any `.mcp.json` or auth change |
 | A tool installed via `winget`/`brew`/`apt` mid-session isn't found (`command not found` / `not recognized`) | The shell process was started before install and cached the old `PATH`. Open a new terminal/session, or on Windows reload it: `$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")` |

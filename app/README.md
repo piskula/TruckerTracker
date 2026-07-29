@@ -45,7 +45,7 @@ Kotlin Multiplatform client for TruckTrack, targeting Android and iOS from one s
 
 | Tool | Needed for | Check | Auth |
 |---|---|---|---|
-| JDK 21 | Gradle toolchain (`jvmToolchain(21)`, all modules) | `java -version` | — |
+| JDK 25 | Gradle toolchain (`jvmToolchain(25)`, all modules) | `java -version` | — |
 | Android SDK (cmdline-tools, platform 37, build-tools) | `./gradlew :app:android:assembleDebug`, Android Studio | Android SDK path env var set (`ANDROID_HOME`) | — |
 | Xcode 15+ + command line tools (**macOS only**) | Building `app:ios` | `xcode-select -p` | — |
 | CocoaPods (**macOS only**) | Linking Firebase into `app:ios` (`ios/Podfile`) | `pod --version` | — |

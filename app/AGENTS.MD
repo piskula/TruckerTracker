@@ -175,7 +175,7 @@ All modules are KMP. Convention plugins configure `kotlin("multiplatform")` + `c
 
 Use these in module `build.gradle.kts` files:
 
-* `trucktrack.library` — base KMP library (Kotlin Multiplatform, Android target with compileSdk/minSdk, JDK 21 toolchain, Spotless).
+* `trucktrack.library` — base KMP library (Kotlin Multiplatform, Android target with compileSdk/minSdk, JDK 25 toolchain, Spotless).
 * `trucktrack.feature.api` — feature API module (library + serialization + Navigation 3 runtime).
 * `trucktrack.feature.impl` — feature impl module (library + Koin + Compose + `:core:ui-library` + `:core:navigation`).
 * `trucktrack.koin` — Koin core (`commonMain`) + Koin Android + Koin Compose (`androidMain`).

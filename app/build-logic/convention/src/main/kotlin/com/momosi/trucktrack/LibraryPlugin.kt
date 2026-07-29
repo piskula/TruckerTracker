@@ -19,7 +19,7 @@ class LibraryPlugin : Plugin<Project> {
         }
 
         extensions.configure<KotlinMultiplatformExtension> {
-            jvmToolchain(21)
+            jvmToolchain(25)
 
             applyDefaultHierarchyTemplate()
 
