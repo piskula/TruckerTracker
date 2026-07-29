@@ -61,5 +61,8 @@
     <string name="create_issue_priority_high_hint">Blokuje prevádzku, treba riešiť ihneď</string>
     <string name="create_issue_priority_medium_hint">Treba opraviť čoskoro, ale nie je to kritické</string>
     <string name="create_issue_priority_low_hint">Menší problém, môže počkať na plánovanú údržbu</string>
+    <string name="create_issue_error_title_required">Názov je povinný</string>
+    <string name="create_issue_error_vehicle_required">Vyberte prosím vozidlo</string>
+    <string name="create_issue_error_submission_failed">Nepodarilo sa odoslať nahlásenie. Skúste to prosím znova.</string>
 </resources>
 

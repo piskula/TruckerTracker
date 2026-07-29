@@ -61,5 +61,8 @@
     <string name="create_issue_priority_high_hint">Blocks operation, immediate attention needed</string>
     <string name="create_issue_priority_medium_hint">Should be fixed soon, but not critical</string>
     <string name="create_issue_priority_low_hint">Minor issue, can wait for scheduled maintenance</string>
+    <string name="create_issue_error_title_required">Title is required</string>
+    <string name="create_issue_error_vehicle_required">Please select a vehicle</string>
+    <string name="create_issue_error_submission_failed">We couldn\'t submit your issue. Please try again.</string>
 </resources>
 

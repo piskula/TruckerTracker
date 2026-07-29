@@ -2,14 +2,18 @@ package com.momosi.trucktrack.feature.issues.impl.create
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.momosi.trucktrack.core.common.coroutines.combine
 import com.momosi.trucktrack.core.common.io.PhotoData
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.issue.IssueAttachmentRepository
 import com.momosi.trucktrack.core.issue.IssueRepository
 import com.momosi.trucktrack.core.issue.model.IssueCreate
+import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.vehicle.VehicleRepository
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import io.github.vinceglb.filekit.core.PlatformFile
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -23,8 +27,36 @@ import kotlinx.coroutines.launch
 
 class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, private val issueRepository: IssueRepository, private val issueAttachmentRepository: IssueAttachmentRepository) : ViewModel() {
 
-    private val _state = MutableStateFlow(CreateIssueState())
-    val state: StateFlow<CreateIssueState> = _state.stateIn(
+    private val vehiclesContent = MutableStateFlow<VehiclesContent>(VehiclesContent.Loading)
+    private val selectedVehicle = MutableStateFlow<Vehicle?>(null)
+    private val vehicleDropdownExpanded = MutableStateFlow(false)
+    private val title = MutableStateFlow("")
+    private val description = MutableStateFlow("")
+    private val selectedPriority = MutableStateFlow(IssuePriority.Medium)
+    private val photos = MutableStateFlow<ImmutableList<PhotoData>>(persistentListOf())
+    private val submitStatus = MutableStateFlow<SubmitStatus>(SubmitStatus.Idle)
+
+    val state: StateFlow<CreateIssueState> = combine(
+        vehiclesContent,
+        selectedVehicle,
+        vehicleDropdownExpanded,
+        title,
+        description,
+        selectedPriority,
+        photos,
+        submitStatus,
+    ) { vehicles, vehicle, dropdownExpanded, title, description, priority, photos, status ->
+        CreateIssueState(
+            vehicles = vehicles,
+            selectedVehicle = vehicle,
+            vehicleDropdownExpanded = dropdownExpanded,
+            title = title,
+            description = description,
+            selectedPriority = priority,
+            photos = photos,
+            submitStatus = status,
+        )
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = CreateIssueState(),
@@ -41,13 +73,13 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
         Logger.i("Action:CreateIssue", action.toString())
         when (action) {
             is CreateIssueAction.SelectVehicle -> selectVehicle(action.vehicle)
-            is CreateIssueAction.UpdateTitle -> _state.update { it.copy(title = action.title) }
-            is CreateIssueAction.UpdateDescription -> _state.update { it.copy(description = action.description) }
-            is CreateIssueAction.SelectPriority -> _state.update { it.copy(selectedPriority = action.priority) }
+            is CreateIssueAction.UpdateTitle -> title.value = action.title
+            is CreateIssueAction.UpdateDescription -> description.value = action.description
+            is CreateIssueAction.SelectPriority -> selectedPriority.value = action.priority
             is CreateIssueAction.AddPhotos -> addPhotos(action.files)
             is CreateIssueAction.RemovePhoto -> removePhoto(action.fileName)
             is CreateIssueAction.Submit -> submit()
-            is CreateIssueAction.ToggleVehicleDropdown -> _state.update { it.copy(vehicleDropdownExpanded = !it.vehicleDropdownExpanded) }
+            is CreateIssueAction.ToggleVehicleDropdown -> vehicleDropdownExpanded.update { !it }
         }
     }
 
@@ -55,16 +87,17 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
         viewModelScope.launch {
             vehicleRepository.getVehicles()
                 .onSuccess { vehicles ->
-                    _state.update { it.copy(vehicles = VehiclesContent.Loaded(vehicles.toImmutableList())) }
+                    vehiclesContent.value = VehiclesContent.Loaded(vehicles.toImmutableList())
                 }
                 .onFailure {
-                    _state.update { it.copy(vehicles = VehiclesContent.Error) }
+                    vehiclesContent.value = VehiclesContent.Error
                 }
         }
     }
 
     private fun selectVehicle(vehicle: Vehicle) {
-        _state.update { it.copy(selectedVehicle = vehicle, vehicleDropdownExpanded = false) }
+        selectedVehicle.value = vehicle
+        vehicleDropdownExpanded.value = false
     }
 
     private fun addPhotos(files: List<PlatformFile>) {
@@ -76,44 +109,43 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
                     mimeType = mimeTypeFromFileName(file.name),
                 )
             }
-            _state.update { current ->
-                val combined = (current.photos + newPhotos)
-                    .distinctBy { it.fileName }
-                    .toImmutableList()
-                current.copy(photos = combined)
+            photos.update { current ->
+                (current + newPhotos).distinctBy { it.fileName }.toImmutableList()
             }
         }
     }
 
     private fun removePhoto(fileName: String) {
-        _state.update { current ->
-            current.copy(photos = current.photos.filter { it.fileName != fileName }.toImmutableList())
-        }
+        photos.update { current -> current.filter { it.fileName != fileName }.toImmutableList() }
     }
 
     private fun submit() {
-        val current = _state.value
-        val vehicle = current.selectedVehicle ?: return
-        if (current.isSubmitting) return
+        if (submitStatus.value == SubmitStatus.InProgress) return
 
-        _state.update { it.copy(isSubmitting = true) }
+        val vehicle = selectedVehicle.value
+        val currentTitle = title.value
+        if (vehicle == null || currentTitle.isBlank()) {
+            submitStatus.value = SubmitStatus.ValidationError
+            return
+        }
+
+        submitStatus.value = SubmitStatus.InProgress
 
         viewModelScope.launch {
             issueRepository.createIssue(
                 IssueCreate(
                     vehicleId = vehicle.id,
-                    title = current.title,
-                    description = current.description,
-                    priority = current.selectedPriority,
+                    title = currentTitle,
+                    description = description.value,
+                    priority = selectedPriority.value,
                 ),
             )
                 .onSuccess { issue ->
-                    uploadPhotos(issue.id, current.photos)
+                    uploadPhotos(issue.id, photos.value)
                     _events.send(CreateIssueEvent.IssueCreated(issue.id))
                 }
                 .onFailure {
-                    _state.update { it.copy(isSubmitting = false) }
-                    _events.send(CreateIssueEvent.CreationFailed)
+                    submitStatus.value = SubmitStatus.RequestFailed
                 }
         }
     }

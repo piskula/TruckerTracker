@@ -87,6 +87,8 @@ private val state = StateFlow<FeatureState>
 * Collect state in Composables with `collectAsStateWithLifecycle()`.
 * One-shot events: `SharedFlow` or `Channel`.
 
+**Prefer multiple focused `MutableStateFlow`s over one shared flow mutated with `.update{}`.** Give each independently-owned piece of state its own `MutableStateFlow`, so every field has exactly one action/call site that writes it, then `combine(...)` them into the exposed `State`. Avoid a single backing flow updated via `.copy(...)` from many unrelated action handlers — it forces every writer to know the whole state shape and makes it easy for concurrent updates to clobber each other's intent. `kotlinx.coroutines.flow.combine` only has typed overloads up to 5 flows; `core:common`'s `Flows.kt` provides typed `combine` overloads beyond that (currently up to 8) — add another overload there following the same pattern if you need more, rather than falling back to the untyped vararg/array form. Only group multiple fields into one flow when they're inherently a single concern with one owner (e.g. a submit/request status) — and for that kind of grouped, mutually-exclusive state, prefer a `sealed interface` over several booleans, so illegal combinations (e.g. "submitting" and "failed" both true) can't be represented.
+
 #### State / Action / Event
 
 * **State** — `sealed interface` + `StateFlow`. All data classes marked `@Immutable`. **No lambdas in State** — use `Action` instead.

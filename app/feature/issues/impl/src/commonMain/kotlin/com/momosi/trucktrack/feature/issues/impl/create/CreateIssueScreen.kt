@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -55,6 +56,9 @@ import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_add_phot
 import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_camera_or_gallery
 import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_description
 import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_details
+import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_error_submission_failed
+import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_error_title_required
+import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_error_vehicle_required
 import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_photos
 import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_priority
 import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_priority_high_hint
@@ -90,7 +94,6 @@ internal fun CreateIssueScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is CreateIssueEvent.IssueCreated -> onIssueCreate(event.issueId)
-                is CreateIssueEvent.CreationFailed -> Unit
             }
         }
     }
@@ -135,6 +138,13 @@ private fun CreateIssueContent(
                     onToggle = { onAction(CreateIssueAction.ToggleVehicleDropdown) },
                     onSelect = { onAction(CreateIssueAction.SelectVehicle(it)) },
                 )
+                if (state.vehicleError) {
+                    Text(
+                        text = stringResource(Res.string.create_issue_error_vehicle_required),
+                        style = AppTheme.typography.bodySmall,
+                        color = AppTheme.colors.error,
+                    )
+                }
             }
 
             Card(title = stringResource(Res.string.create_issue_description)) {
@@ -142,7 +152,15 @@ private fun CreateIssueContent(
                     label = stringResource(Res.string.create_issue_short_title),
                     value = state.title,
                     onValueChange = { onAction(CreateIssueAction.UpdateTitle(it)) },
+                    isError = state.titleError,
                 )
+                if (state.titleError) {
+                    Text(
+                        text = stringResource(Res.string.create_issue_error_title_required),
+                        style = AppTheme.typography.bodySmall,
+                        color = AppTheme.colors.error,
+                    )
+                }
                 Spacer(modifier = Modifier.height(16.dp))
                 InputField(
                     label = stringResource(Res.string.create_issue_details),
@@ -174,7 +192,7 @@ private fun CreateIssueContent(
             }
         }
 
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(AppTheme.colors.surfaceContainerLowest)
@@ -184,12 +202,22 @@ private fun CreateIssueContent(
             Button(
                 text = stringResource(Res.string.create_issue_submit),
                 onClick = { onAction(CreateIssueAction.Submit) },
-                enabled = state.isSubmitEnabled,
+                enabled = true,
                 loading = state.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
                 role = ButtonRole.Open,
                 icon = TruckTrackIcons.RadioButtonUnchecked,
             )
+            if (state.submissionFailed) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(Res.string.create_issue_error_submission_failed),
+                    style = AppTheme.typography.bodySmall,
+                    color = AppTheme.colors.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
 }
@@ -304,6 +332,7 @@ private fun InputField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     minLines: Int = 1,
+    isError: Boolean = false,
 ) {
     Column(modifier = modifier) {
         Text(
@@ -329,7 +358,11 @@ private fun InputField(
                             .fillMaxWidth()
                             .height(2.dp)
                             .background(
-                                if (value.isNotEmpty()) AppTheme.colors.primary else AppTheme.colors.surfaceVariant,
+                                when {
+                                    isError -> AppTheme.colors.error
+                                    value.isNotEmpty() -> AppTheme.colors.primary
+                                    else -> AppTheme.colors.surfaceVariant
+                                },
                             ),
                     )
                 }
@@ -582,6 +615,26 @@ private fun CreateIssueEmptyPreview() {
     TruckTrackTheme {
         CreateIssueContent(
             state = CreateIssueState(),
+            onAction = {},
+            onBack = {},
+            onNavigateToFullScreenPhoto = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CreateIssueValidationErrorPreview() {
+    TruckTrackTheme {
+        CreateIssueContent(
+            state = CreateIssueState(
+                vehicles = VehiclesContent.Loaded(
+                    persistentListOf(
+                        Vehicle(1, "MA-204-TT", "Volvo", "FH16", VehicleType.Truck),
+                    ),
+                ),
+                submitStatus = SubmitStatus.ValidationError,
+            ),
             onAction = {},
             onBack = {},
             onNavigateToFullScreenPhoto = {},
