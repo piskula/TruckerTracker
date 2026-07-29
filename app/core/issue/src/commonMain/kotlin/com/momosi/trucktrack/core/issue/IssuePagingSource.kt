@@ -8,6 +8,7 @@ import com.momosi.trucktrack.core.issue.dto.toFilterDto
 import com.momosi.trucktrack.core.issue.dto.toIssue
 import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueStatus
+import kotlinx.coroutines.CancellationException
 
 internal class IssuePagingSource(private val issueApi: IssueApi, private val statuses: List<IssueStatus>, private val vehicleIds: List<Long>, private val accountIds: List<String>) : PagingSource<Int, Issue>() {
 
@@ -25,6 +26,8 @@ internal class IssuePagingSource(private val issueApi: IssueApi, private val sta
             prevKey = if (page > 0) page - 1 else null,
             nextKey = if (page < pageDto.totalPages - 1) page + 1 else null,
         )
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         Logger.e(TAG, e, "Failed to load issue page")
         LoadResult.Error(e)

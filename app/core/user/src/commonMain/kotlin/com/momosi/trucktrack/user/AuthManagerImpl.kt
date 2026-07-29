@@ -1,5 +1,7 @@
 package com.momosi.trucktrack.user
 
+import com.momosi.trucktrack.core.common.coroutines.mapCatchingCancellable
+import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.common.network.ConnectivityManager
 import com.momosi.trucktrack.user.internal.TokenVerifier
@@ -62,7 +64,7 @@ class AuthManagerImpl(
     }
 
     private suspend fun resumePendingFlowsIfAny() {
-        runCatching {
+        runCatchingCancellable {
             val authFlow = authFlowFactory.createAuthFlow(client)
             if (authFlow.canContinueLogin()) {
                 Logger.d(TAG, "Resuming pending login after process restart")
@@ -71,7 +73,7 @@ class AuthManagerImpl(
             }
         }.onFailure { Logger.e(TAG, it, "Failed to resume pending login") }
 
-        runCatching {
+        runCatchingCancellable {
             val endSessionFlow = authFlowFactory.createEndSessionFlow(client)
             if (endSessionFlow.canContinueLogout()) {
                 Logger.d(TAG, "Resuming pending logout after process restart")
@@ -89,12 +91,12 @@ class AuthManagerImpl(
         authenticationInProgress.value = true
         Logger.d(TAG, "Start authorization web flow")
 
-        return runCatching {
+        return runCatchingCancellable {
             val authFlow = authFlowFactory.createAuthFlow(client)
             authFlow.getAccessToken(configureAuthUrl = { parameters.append("prompt", "login") })
         }
             .onSuccess { Logger.d(TAG, "Authorization finished with success response") }
-            .mapCatching { tokens ->
+            .mapCatchingCancellable { tokens ->
                 verifyAndStore(tokens)
                 authenticationInProgress.value = false
                 authenticationState.value = AuthenticationState.Authorized
@@ -135,7 +137,7 @@ class AuthManagerImpl(
 
         Logger.d(TAG, "Start end session")
 
-        runCatching {
+        runCatchingCancellable {
             authFlowFactory.createEndSessionFlow(client).endSession(idToken)
         }
             .onSuccess {
@@ -174,9 +176,9 @@ class AuthManagerImpl(
 
         Logger.d(TAG, "Auth needs token refresh")
 
-        runCatching { client.refreshToken(refreshToken = refreshToken) }
+        runCatchingCancellable { client.refreshToken(refreshToken = refreshToken) }
             .onSuccess { Logger.d(TAG, "Auth refresh token successful") }
-            .mapCatching {
+            .mapCatchingCancellable {
                 verifyAndStore(it)
                 TokenResponse.Token(it.access_token)
             }

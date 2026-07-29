@@ -1,6 +1,7 @@
 package com.momosi.trucktrack.core.issue
 
 import com.momosi.trucktrack.core.common.TruckTrackConfig
+import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.common.model.Page
 import com.momosi.trucktrack.core.issue.api.IssueAttachmentApi
@@ -22,7 +23,7 @@ class IssueAttachmentRepositoryImpl(private val issueAttachmentApi: IssueAttachm
         page: Int?,
         size: Int?,
         sort: String?,
-    ): Result<Page<IssueAttachment>> = runCatching {
+    ): Result<Page<IssueAttachment>> = runCatchingCancellable {
         issueAttachmentApi.getPhotoList(
             issueId = issueId,
             page = page,
@@ -36,7 +37,7 @@ class IssueAttachmentRepositoryImpl(private val issueAttachmentApi: IssueAttachm
         fileName: String,
         fileBytes: ByteArray,
         contentType: String,
-    ): Result<IssueAttachment> = runCatching {
+    ): Result<IssueAttachment> = runCatchingCancellable {
         issueAttachmentApi.uploadPhoto(issueId) {
             setBody(
                 MultiPartFormDataContent(
@@ -55,7 +56,7 @@ class IssueAttachmentRepositoryImpl(private val issueAttachmentApi: IssueAttachm
         }.toIssueAttachment()
     }.onFailure { Logger.e(TAG, it, "Failed to upload photo for issue $issueId") }
 
-    override suspend fun downloadPhoto(issueId: Long, attachmentId: Long): Result<ByteArray> = runCatching {
+    override suspend fun downloadPhoto(issueId: Long, attachmentId: Long): Result<ByteArray> = runCatchingCancellable {
         issueAttachmentApi.downloadPhoto(issueId, attachmentId)
     }.onFailure { Logger.e(TAG, it, "Failed to download photo $attachmentId for issue $issueId") }
 }
