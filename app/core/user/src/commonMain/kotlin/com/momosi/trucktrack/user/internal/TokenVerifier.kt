@@ -3,6 +3,8 @@ package com.momosi.trucktrack.user.internal
 import com.momosi.trucktrack.core.common.coroutines.DispatcherProvider
 import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
 import com.momosi.trucktrack.core.common.logger.Logger
+import com.momosi.trucktrack.core.common.network.onNetworkFailure
+import com.momosi.trucktrack.core.common.network.onNoConnectionFailure
 import com.momosi.trucktrack.user.internal.api.AuthApi
 import kotlinx.coroutines.withContext
 import org.publicvalue.multiplatform.oidc.types.Jwt
@@ -19,9 +21,10 @@ class TokenVerifier(private val userStorage: UserStorage, private val authApi: A
                 authApi.getRealmInfo().publicKey
             }.onSuccess {
                 userStorage.serverPublicKey = it
-            }.onFailure {
-                Logger.e("TokenVerifier", it, "Error fetching server public key")
-            }.getOrNull()
+            }
+                .onNoConnectionFailure { Logger.w("TokenVerifier", it, "Error fetching server public key (offline)") }
+                .onNetworkFailure { Logger.e("TokenVerifier", it, "Error fetching server public key") }
+                .getOrNull()
         } else {
             currentPublicKey
         }

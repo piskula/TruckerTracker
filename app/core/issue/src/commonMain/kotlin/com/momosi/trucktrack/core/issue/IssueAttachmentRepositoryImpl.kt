@@ -4,6 +4,8 @@ import com.momosi.trucktrack.core.common.TruckTrackConfig
 import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.common.model.Page
+import com.momosi.trucktrack.core.common.network.onNetworkFailure
+import com.momosi.trucktrack.core.common.network.onNoConnectionFailure
 import com.momosi.trucktrack.core.issue.api.IssueAttachmentApi
 import com.momosi.trucktrack.core.issue.dto.toIssueAttachment
 import com.momosi.trucktrack.core.issue.model.IssueAttachment
@@ -30,7 +32,9 @@ class IssueAttachmentRepositoryImpl(private val issueAttachmentApi: IssueAttachm
             size = size,
             sort = sort,
         ).toPage { it.toIssueAttachment() }
-    }.onFailure { Logger.e(TAG, it, "Failed to get photos for issue $issueId") }
+    }
+        .onNoConnectionFailure { Logger.w(TAG, it, "Failed to get photos for issue $issueId (offline)") }
+        .onNetworkFailure { Logger.e(TAG, it, "Failed to get photos for issue $issueId") }
 
     override suspend fun uploadPhoto(
         issueId: Long,
@@ -54,9 +58,13 @@ class IssueAttachmentRepositoryImpl(private val issueAttachmentApi: IssueAttachm
                 ),
             )
         }.toIssueAttachment()
-    }.onFailure { Logger.e(TAG, it, "Failed to upload photo for issue $issueId") }
+    }
+        .onNoConnectionFailure { Logger.w(TAG, it, "Failed to upload photo for issue $issueId (offline)") }
+        .onNetworkFailure { Logger.e(TAG, it, "Failed to upload photo for issue $issueId") }
 
     override suspend fun downloadPhoto(issueId: Long, attachmentId: Long): Result<ByteArray> = runCatchingCancellable {
         issueAttachmentApi.downloadPhoto(issueId, attachmentId)
-    }.onFailure { Logger.e(TAG, it, "Failed to download photo $attachmentId for issue $issueId") }
+    }
+        .onNoConnectionFailure { Logger.w(TAG, it, "Failed to download photo $attachmentId for issue $issueId (offline)") }
+        .onNetworkFailure { Logger.e(TAG, it, "Failed to download photo $attachmentId for issue $issueId") }
 }

@@ -13,6 +13,6 @@ internal class CrashlyticsLogWriter : LogWriter() {
         throwable: Throwable?,
     ) {
         Firebase.crashlytics.log("[$tag] $message")
-        throwable?.let { Firebase.crashlytics.recordException(it) }
+        if (severity == Severity.Error) throwable?.let { Firebase.crashlytics.recordException(it) }
     }
 }

@@ -4,6 +4,9 @@ import com.momosi.trucktrack.core.common.coroutines.mapCatchingCancellable
 import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.common.network.ConnectivityManager
+import com.momosi.trucktrack.core.common.network.isTransientNetworkFailure
+import com.momosi.trucktrack.core.common.network.onNetworkFailure
+import com.momosi.trucktrack.core.common.network.onNoConnectionFailure
 import com.momosi.trucktrack.user.internal.TokenVerifier
 import com.momosi.trucktrack.user.internal.UserStorage
 import com.momosi.trucktrack.user.model.AuthActionResult
@@ -71,7 +74,9 @@ class AuthManagerImpl(
                 verifyAndStore(authFlow.continueLogin())
                 authenticationState.value = AuthenticationState.Authorized
             }
-        }.onFailure { Logger.e(TAG, it, "Failed to resume pending login") }
+        }
+            .onNoConnectionFailure { Logger.w(TAG, it, "Failed to resume pending login (offline)") }
+            .onNetworkFailure { Logger.e(TAG, it, "Failed to resume pending login") }
 
         runCatchingCancellable {
             val endSessionFlow = authFlowFactory.createEndSessionFlow(client)
@@ -80,7 +85,9 @@ class AuthManagerImpl(
                 endSessionFlow.continueLogout()
                 invalidateAuth()
             }
-        }.onFailure { Logger.e(TAG, it, "Failed to resume pending logout") }
+        }
+            .onNoConnectionFailure { Logger.w(TAG, it, "Failed to resume pending logout (offline)") }
+            .onNetworkFailure { Logger.e(TAG, it, "Failed to resume pending logout") }
     }
 
     override suspend fun signIn(): AuthActionResult {
@@ -116,7 +123,11 @@ class AuthManagerImpl(
                     }
 
                     else -> {
-                        Logger.e(TAG, exception, "Authorization failed")
+                        if (exception.isTransientNetworkFailure()) {
+                            Logger.w(TAG, exception, "Authorization failed (offline)")
+                        } else {
+                            Logger.e(TAG, exception, "Authorization failed")
+                        }
                         invalidateAuth()
                         AuthActionResult.Failed.Error(exception)
                     }
@@ -149,7 +160,11 @@ class AuthManagerImpl(
                     Logger.d(TAG, "User cancelled end session")
                     authenticationInProgress.value = false
                 } else {
-                    Logger.e(TAG, exception, "End session failed")
+                    if (exception.isTransientNetworkFailure()) {
+                        Logger.w(TAG, exception, "End session failed (offline)")
+                    } else {
+                        Logger.e(TAG, exception, "End session failed")
+                    }
                     invalidateAuth()
                 }
             }
@@ -183,7 +198,11 @@ class AuthManagerImpl(
                 TokenResponse.Token(it.access_token)
             }
             .getOrElse { exception ->
-                Logger.e(TAG, exception, "Auth refresh token error")
+                if (exception.isTransientNetworkFailure()) {
+                    Logger.w(TAG, exception, "Auth refresh token error (offline)")
+                } else {
+                    Logger.e(TAG, exception, "Auth refresh token error")
+                }
                 if (exception is OpenIdConnectException.UnsuccessfulTokenRequest) {
                     invalidateAuth()
                 }

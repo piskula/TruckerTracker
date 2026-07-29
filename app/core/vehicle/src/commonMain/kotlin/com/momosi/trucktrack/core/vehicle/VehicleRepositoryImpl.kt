@@ -2,6 +2,8 @@ package com.momosi.trucktrack.core.vehicle
 
 import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
 import com.momosi.trucktrack.core.common.logger.Logger
+import com.momosi.trucktrack.core.common.network.onNetworkFailure
+import com.momosi.trucktrack.core.common.network.onNoConnectionFailure
 import com.momosi.trucktrack.core.vehicle.api.VehicleApi
 import com.momosi.trucktrack.core.vehicle.dto.toVehicle
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
@@ -12,5 +14,7 @@ class VehicleRepositoryImpl(private val vehicleApi: VehicleApi) : VehicleReposit
 
     override suspend fun getVehicles(): Result<List<Vehicle>> = runCatchingCancellable {
         vehicleApi.getVehicleList().map { it.toVehicle() }
-    }.onFailure { Logger.e(TAG, it, "Failed to get vehicles") }
+    }
+        .onNoConnectionFailure { Logger.w(TAG, it, "Failed to get vehicles (offline)") }
+        .onNetworkFailure { Logger.e(TAG, it, "Failed to get vehicles") }
 }

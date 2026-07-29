@@ -2,6 +2,7 @@ package com.momosi.trucktrack.core.network.di
 
 import com.momosi.trucktrack.core.common.TruckTrackConfig
 import com.momosi.trucktrack.core.common.logger.Logger
+import com.momosi.trucktrack.core.common.network.isTransientNetworkFailure
 import com.momosi.trucktrack.core.network.httpClientEngineFactory
 import com.momosi.trucktrack.user.AuthManager
 import com.momosi.trucktrack.user.model.TokenResponse
@@ -106,7 +107,11 @@ private fun TokenResponse.toBearerTokens(): BearerTokens? = when (this) {
     is TokenResponse.Token -> BearerTokens(accessToken = token, refreshToken = "")
 
     is TokenResponse.TokenError -> {
-        Logger.e("Network", exception, "Token refresh failed, sending request unauthenticated")
+        if (exception.isTransientNetworkFailure()) {
+            Logger.w("Network", exception, "Token refresh failed, sending request unauthenticated (offline)")
+        } else {
+            Logger.e("Network", exception, "Token refresh failed, sending request unauthenticated")
+        }
         null
     }
 
