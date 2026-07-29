@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+app_dir="$repo_root/app"
+
+mapfile -t staged_files < <(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ ${#staged_files[@]} -eq 0 ]; then
+    exit 0
+fi
+
+# Maps each app/ Gradle module's directory (relative to app/) to its Gradle path.
+# Keep in sync with the include(...) list in app/settings.gradle.kts.
+declare -A module_dirs=(
+    ["app/android"]=":app:android"
+    ["app/shared"]=":app:shared"
+    ["core/common"]=":core:common"
+    ["core/ui-library"]=":core:ui-library"
+    ["core/navigation"]=":core:navigation"
+    ["core/network"]=":core:network"
+    ["core/user"]=":core:user"
+    ["core/vehicle"]=":core:vehicle"
+    ["core/issue"]=":core:issue"
+    ["feature/sign-in/api"]=":feature:sign-in:api"
+    ["feature/sign-in/impl"]=":feature:sign-in:impl"
+    ["feature/issues/api"]=":feature:issues:api"
+    ["feature/issues/impl"]=":feature:issues:impl"
+    ["feature/profile/api"]=":feature:profile:api"
+    ["feature/profile/impl"]=":feature:profile:impl"
+)
+
+declare -A affected_modules=()
+
+for f in "${staged_files[@]}"; do
+    case "$f" in
+        *.kt) ;;
+        *) continue ;;
+    esac
+    case "$f" in
+        app/*) rel="${f#app/}" ;;
+        *) continue ;;
+    esac
+    for dir in "${!module_dirs[@]}"; do
+        case "$rel" in
+            "$dir"/*)
+                affected_modules["${module_dirs[$dir]}"]=1
+                break
+                ;;
+        esac
+    done
+done
+
+if [ ${#affected_modules[@]} -eq 0 ]; then
+    exit 0
+fi
+
+tasks=()
+for module in "${!affected_modules[@]}"; do
+    tasks+=("${module}:spotlessApply")
+done
+
+echo "Running Spotless on: ${tasks[*]}"
+(cd "$app_dir" && ./gradlew "${tasks[@]}" --console=plain -q)
+
+# Re-stage in case Spotless reformatted any of the staged files.
+git add -- "${staged_files[@]}"
+
+exit 0
