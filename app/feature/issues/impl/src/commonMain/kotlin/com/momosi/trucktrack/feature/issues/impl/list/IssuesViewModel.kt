@@ -28,9 +28,9 @@ class IssuesViewModel(private val userRepository: UserRepository, private val is
 
     private val initialFilter: IssueFilter = run {
         val userRoles = userRepository.user.value?.roles ?: emptySet()
-        IssueFilter.entries.first { filter ->
+        IssueFilter.entries.firstOrNull { filter ->
             userRoles.any { filtersByRole[it]?.contains(filter) == true }
-        }
+        } ?: IssueFilter.All
     }
     private val selectedFilter = MutableStateFlow<IssueFilter>(initialFilter)
     private val refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
