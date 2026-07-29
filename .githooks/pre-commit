@@ -10,25 +10,25 @@ if [ ${#staged_files[@]} -eq 0 ]; then
     exit 0
 fi
 
-# Maps each app/ Gradle module's directory (relative to app/) to its Gradle path.
-# Keep in sync with the include(...) list in app/settings.gradle.kts.
-declare -A module_dirs=(
-    ["app/android"]=":app:android"
-    ["app/shared"]=":app:shared"
-    ["core/common"]=":core:common"
-    ["core/ui-library"]=":core:ui-library"
-    ["core/navigation"]=":core:navigation"
-    ["core/network"]=":core:network"
-    ["core/user"]=":core:user"
-    ["core/vehicle"]=":core:vehicle"
-    ["core/issue"]=":core:issue"
-    ["feature/sign-in/api"]=":feature:sign-in:api"
-    ["feature/sign-in/impl"]=":feature:sign-in:impl"
-    ["feature/issues/api"]=":feature:issues:api"
-    ["feature/issues/impl"]=":feature:issues:impl"
-    ["feature/profile/api"]=":feature:profile:api"
-    ["feature/profile/impl"]=":feature:profile:impl"
-)
+# Walks up from a staged file to the nearest ancestor directory containing a
+# build.gradle(.kts) - i.e. its Gradle module root - and prints that module's
+# Gradle path. Derived from the directory layout, so new modules need no
+# changes here.
+module_path_for() {
+    local dir
+    dir="$repo_root/$(dirname "$1")"
+
+    while [ "$dir" != "$app_dir" ] && [ "$dir" != "$repo_root" ] && [ "$dir" != "/" ]; do
+        if [ -f "$dir/build.gradle.kts" ] || [ -f "$dir/build.gradle" ]; then
+            local rel="${dir#"$app_dir"/}"
+            echo ":${rel//\//:}"
+            return 0
+        fi
+        dir="$(dirname "$dir")"
+    done
+
+    return 1
+}
 
 declare -A affected_modules=()
 
@@ -38,17 +38,14 @@ for f in "${staged_files[@]}"; do
         *) continue ;;
     esac
     case "$f" in
-        app/*) rel="${f#app/}" ;;
+        app/build-logic/*) continue ;; # separate Gradle build, not addressable from app/'s gradlew
+        app/*) ;;
         *) continue ;;
     esac
-    for dir in "${!module_dirs[@]}"; do
-        case "$rel" in
-            "$dir"/*)
-                affected_modules["${module_dirs[$dir]}"]=1
-                break
-                ;;
-        esac
-    done
+
+    if module=$(module_path_for "$f"); then
+        affected_modules["$module"]=1
+    fi
 done
 
 if [ ${#affected_modules[@]} -eq 0 ]; then
