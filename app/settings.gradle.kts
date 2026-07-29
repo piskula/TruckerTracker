@@ -1,5 +1,3 @@
-apply(from = "gradle/git-hooks.settings.gradle.kts")
-
 pluginManagement {
     includeBuild("build-logic")
 
@@ -8,6 +6,10 @@ pluginManagement {
         gradlePluginPortal()
         google()
     }
+}
+
+plugins {
+    id("trucktrack.git-hooks")
 }
 
 includeBuild("../shared")
