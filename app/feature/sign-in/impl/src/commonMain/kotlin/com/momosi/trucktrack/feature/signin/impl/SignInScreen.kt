@@ -2,7 +2,6 @@ package com.momosi.trucktrack.feature.signin.impl
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,12 +18,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.momosi.trucktrack.core.uilibrary.DarkBackgroundSystemBars
 import com.momosi.trucktrack.core.uilibrary.components.Button
 import com.momosi.trucktrack.core.uilibrary.components.ButtonStyle
 import com.momosi.trucktrack.core.uilibrary.components.Icon
@@ -48,6 +49,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 internal fun SignInScreen(viewModel: SignInViewModel = koinViewModel(), onNavigateToMyIssues: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    DarkBackgroundSystemBars()
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
