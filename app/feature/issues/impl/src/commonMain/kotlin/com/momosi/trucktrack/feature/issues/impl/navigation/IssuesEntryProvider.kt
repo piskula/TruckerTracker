@@ -3,6 +3,7 @@ package com.momosi.trucktrack.feature.issues.impl.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.momosi.trucktrack.core.navigation.Navigator
+import com.momosi.trucktrack.core.navigation.ResultKey
 import com.momosi.trucktrack.core.navigation.ResultStore
 import com.momosi.trucktrack.core.uilibrary.animation.slideFromEndEntryMetadata
 import com.momosi.trucktrack.feature.issues.api.IssuesNavKey
@@ -12,7 +13,7 @@ import com.momosi.trucktrack.feature.issues.impl.detail.IssueDetailScreen
 import com.momosi.trucktrack.feature.issues.impl.list.IssuesScreen
 import com.momosi.trucktrack.feature.profile.api.ProfileNavKey
 
-private object IssueStatusChangedKey
+private data object IssueStatusChangedKey : ResultKey
 
 fun EntryProviderScope<NavKey>.issuesEntries(navigator: Navigator, resultStore: ResultStore) {
     entry<IssuesNavKey> {

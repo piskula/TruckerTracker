@@ -5,21 +5,26 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 
+interface ResultKey
+
+private val ResultKey.identity: String
+    get() = this::class.qualifiedName ?: error("ResultKey must not be an anonymous object")
+
 @Stable
 class ResultStore {
-    private val results = mutableMapOf<Any, Any?>()
+    private val results = mutableMapOf<String, Any?>()
 
     @Suppress("UNCHECKED_CAST")
-    operator fun <T> get(key: Any): T? = results[key] as? T
+    operator fun <T> get(key: ResultKey): T? = results[key.identity] as? T
 
-    operator fun <T> set(key: Any, value: T) {
-        results[key] = value
+    operator fun <T> set(key: ResultKey, value: T) {
+        results[key.identity] = value
     }
 
-    fun remove(key: Any): Any? = results.remove(key)
+    fun remove(key: ResultKey): Any? = results.remove(key.identity)
 
     companion object {
-        val Saver = Saver<ResultStore, Map<Any, Any?>>(
+        val Saver = Saver<ResultStore, Map<String, Any?>>(
             save = { it.results.toMap() },
             restore = { ResultStore().apply { results.putAll(it) } },
         )
