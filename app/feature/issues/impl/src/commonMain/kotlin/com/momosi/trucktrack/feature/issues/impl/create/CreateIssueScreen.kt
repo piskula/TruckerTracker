@@ -411,10 +411,7 @@ private fun PrioritySegment(
 }
 
 @Composable
-private fun PriorityDescription(
-    priority: IssuePriority,
-    modifier: Modifier = Modifier,
-) {
+private fun PriorityDescription(priority: IssuePriority, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(10.dp),

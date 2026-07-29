@@ -56,7 +56,9 @@ fun Button(
             ButtonRole.Positive -> AppTheme.colors.positiveContainer to AppTheme.colors.onPositiveContainer
             ButtonRole.Open -> AppTheme.colors.openContainer to AppTheme.colors.onOpenContainer
         }
+
         ButtonStyle.Outlined -> Color.Transparent to AppTheme.colors.onSurface
+
         ButtonStyle.OutlinedFixed -> Color.Transparent to Color.White
     }
     val border = when (style) {

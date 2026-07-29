@@ -101,7 +101,10 @@ private fun IssueFilter.accountIds(userId: String?): List<String> = when (this) 
     IssueFilter.MyIssues,
     IssueFilter.MyResolved,
     IssueFilter.MyWork,
-    IssueFilter.MyCompleted -> listOfNotNull(userId)
+    IssueFilter.MyCompleted,
+    -> listOfNotNull(userId)
+
     IssueFilter.Open,
-    IssueFilter.All -> emptyList()
+    IssueFilter.All,
+    -> emptyList()
 }

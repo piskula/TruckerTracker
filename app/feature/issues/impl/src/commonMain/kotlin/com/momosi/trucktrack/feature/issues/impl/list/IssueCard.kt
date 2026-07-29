@@ -114,12 +114,14 @@ internal fun IssueCard(
                 when (filter) {
                     IssueFilter.MyWork,
                     IssueFilter.MyCompleted,
-                    IssueFilter.Open -> issue.reportedBy?.let { reporter ->
+                    IssueFilter.Open,
+                    -> issue.reportedBy?.let { reporter ->
                         MetaItem(icon = TruckTrackIcons.Edit, text = reporter.fullName)
                     }
 
                     IssueFilter.MyIssues,
-                    IssueFilter.MyResolved -> MetaItem(
+                    IssueFilter.MyResolved,
+                    -> MetaItem(
                         icon = TruckTrackIcons.AssignmentInd,
                         text = issue.assignedTo?.fullName ?: stringResource(Res.string.issue_unassigned),
                     )
