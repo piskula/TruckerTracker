@@ -16,7 +16,7 @@ Spring Boot backend for TruckTrack, a fleet-management issue-tracking system for
 
 | Concern | Choice |
 |---------|--------|
-| Framework | Spring Boot 4 (Kotlin, Java 21) |
+| Framework | Spring Boot 4 (Kotlin, Java 25) |
 | API docs | SpringDoc / Swagger UI, OAuth2 PKCE |
 | Auth | Keycloak (OAuth2 resource server, JWT validation) |
 | Persistence | PostgreSQL + Spring Data JPA, Liquibase migrations |
@@ -29,7 +29,7 @@ Spring Boot backend for TruckTrack, a fleet-management issue-tracking system for
 
 | Tool | Needed for | Check |
 |---|---|---|
-| JDK 21 | Gradle toolchain | `java -version` |
+| JDK 25 | Gradle toolchain | `java -version` |
 | Docker + Docker Compose | Local PostgreSQL + MinIO | `docker --version` |
 
 ### Run locally

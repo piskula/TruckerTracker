@@ -19,7 +19,7 @@ docker-compose up -d
 
 **`module-api`** — API contract layer. See `module-api/AGENTS.MD` for details.
 
-**`module-server`** — Spring Boot 4 backend (Kotlin, Java 21). See `module-server/AGENTS.MD` for details.
+**`module-server`** — Spring Boot 4 backend (Kotlin, Java 25). See `module-server/AGENTS.MD` for details.
 
 **`shared`** (separate build, `com.momosi.trucktrack:shared`) — DTOs and enums used across the API contract, both here and on the KMP client. See `../shared/AGENTS.MD`.
 

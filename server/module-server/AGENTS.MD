@@ -1,6 +1,6 @@
 # module-server
 
-Spring Boot 4 backend (Kotlin, Java 21). Base package: `sk.momosilabs.truckTrack`.
+Spring Boot 4 backend (Kotlin, Java 25). Base package: `sk.momosilabs.truckTrack`.
 
 ## Layering Rules
 
