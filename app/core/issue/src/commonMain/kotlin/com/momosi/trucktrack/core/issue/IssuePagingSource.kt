@@ -3,7 +3,7 @@ package com.momosi.trucktrack.core.issue
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.momosi.trucktrack.core.common.logger.Logger
-import com.momosi.trucktrack.core.common.network.isTransientNetworkFailure
+import com.momosi.trucktrack.core.common.network.ApiException
 import com.momosi.trucktrack.core.issue.api.IssueApi
 import com.momosi.trucktrack.core.issue.dto.toFilterDto
 import com.momosi.trucktrack.core.issue.dto.toIssue
@@ -30,7 +30,7 @@ internal class IssuePagingSource(private val issueApi: IssueApi, private val sta
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        if (e.isTransientNetworkFailure()) {
+        if (e is ApiException.NoConnection) {
             Logger.w(TAG, e, "Failed to load issue page (offline)")
         } else {
             Logger.e(TAG, e, "Failed to load issue page")

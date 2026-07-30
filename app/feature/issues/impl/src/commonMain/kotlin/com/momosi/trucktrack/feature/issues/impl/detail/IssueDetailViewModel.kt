@@ -2,6 +2,7 @@ package com.momosi.trucktrack.feature.issues.impl.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.momosi.trucktrack.core.common.error.ErrorReporter
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.issue.IssueAttachmentRepository
@@ -28,6 +29,7 @@ class IssueDetailViewModel(
     private val issueAttachmentRepository: IssueAttachmentRepository,
     private val userRepository: UserRepository,
     private val dateFormatter: DateFormatter,
+    private val errorReporter: ErrorReporter,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(IssueDetailState())
@@ -66,9 +68,11 @@ class IssueDetailViewModel(
             val issueDeferred = async { issueRepository.getIssue(issueId) }
             val historyDeferred = async { fetchHistory() }
 
-            val issue = issueDeferred.await().getOrNull()
+            val issueResult = issueDeferred.await()
+            val issue = issueResult.getOrNull()
             if (issue == null) {
                 _state.update { it.copy(content = IssueDetailContent.Error) }
+                issueResult.onFailure { errorReporter.report(it) }
                 return@launch
             }
             _state.update {
@@ -129,6 +133,11 @@ class IssueDetailViewModel(
         }
     }
 
+    private fun onMechanicActionFailure(error: Throwable) {
+        _state.update { it.copy(isMechanicActionLoading = false) }
+        errorReporter.report(error)
+    }
+
     private fun startWorking() {
         if (_state.value.isMechanicActionLoading) return
         _state.update { it.copy(isMechanicActionLoading = true) }
@@ -145,9 +154,7 @@ class IssueDetailViewModel(
                     }
                     refreshHistory()
                 }
-                .onFailure {
-                    _state.update { it.copy(isMechanicActionLoading = false) }
-                }
+                .onFailure(::onMechanicActionFailure)
         }
     }
 
@@ -167,9 +174,7 @@ class IssueDetailViewModel(
                     }
                     refreshHistory()
                 }
-                .onFailure {
-                    _state.update { it.copy(isMechanicActionLoading = false) }
-                }
+                .onFailure(::onMechanicActionFailure)
         }
     }
 
@@ -188,9 +193,7 @@ class IssueDetailViewModel(
                     }
                     refreshHistory()
                 }
-                .onFailure {
-                    _state.update { it.copy(isMechanicActionLoading = false) }
-                }
+                .onFailure(::onMechanicActionFailure)
         }
     }
 
@@ -207,7 +210,8 @@ class IssueDetailViewModel(
                     refreshHistory()
                 }
                 .onFailure {
-                    _state.update { it.copy(isSendingComment = false) }
+                    _state.update { state -> state.copy(isSendingComment = false) }
+                    errorReporter.report(it)
                 }
         }
     }
@@ -227,6 +231,7 @@ class IssueDetailViewModel(
                 fileBytes = file.readBytes(),
                 contentType = mimeTypeFromFileName(file.name),
             )
+                .onFailure { errorReporter.report(it) }
             _state.update { it.copy(isUploadingPhoto = false) }
             loadPhotos()
         }

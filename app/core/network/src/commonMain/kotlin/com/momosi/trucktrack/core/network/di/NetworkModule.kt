@@ -2,6 +2,7 @@ package com.momosi.trucktrack.core.network.di
 
 import com.momosi.trucktrack.core.common.TruckTrackConfig
 import com.momosi.trucktrack.core.common.logger.Logger
+import com.momosi.trucktrack.core.common.network.installApiExceptionMapping
 import com.momosi.trucktrack.core.common.network.isTransientNetworkFailure
 import com.momosi.trucktrack.core.network.httpClientEngineFactory
 import com.momosi.trucktrack.user.AuthManager
@@ -9,7 +10,6 @@ import com.momosi.trucktrack.user.model.TokenResponse
 import de.jensklingenberg.ktorfit.Ktorfit
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
-import io.ktor.client.plugins.HttpCallValidator
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
@@ -89,17 +89,15 @@ private fun buildHttpClient(authManager: AuthManager, block: HttpClientConfig<*>
         }
     }
 
-    install(HttpCallValidator) {
-        handleResponseExceptionWithRequest { cause, request ->
-            val response = (cause as? ResponseException)?.response
-            val durationMs = response?.let { it.responseTime.timestamp - it.requestTime.timestamp }
+    installApiExceptionMapping { cause, request ->
+        val response = (cause as? ResponseException)?.response
+        val durationMs = response?.let { it.responseTime.timestamp - it.requestTime.timestamp }
 
-            Logger.d(
-                "Network",
-                "Request failed: ${request.method.value} ${request.url.encodedPath}" +
-                    (response?.let { " status=${it.status.value} durationMs=$durationMs" } ?: " (no response)"),
-            )
-        }
+        Logger.d(
+            "Network",
+            "Request failed: ${request.method.value} ${request.url.encodedPath}" +
+                (response?.let { " status=${it.status.value} durationMs=$durationMs" } ?: " (no response)"),
+        )
     }
 }
 

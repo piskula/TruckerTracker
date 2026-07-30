@@ -121,6 +121,7 @@ internal fun IssueDetailScreen(
     BackHandler(enabled = shouldReload) {
         onBack(true)
     }
+
     IssueDetailScreenContent(
         state = state,
         onBack = { onBack(shouldReload) },

@@ -3,6 +3,7 @@ package com.momosi.trucktrack.feature.issues.impl.create
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.momosi.trucktrack.core.common.coroutines.combine
+import com.momosi.trucktrack.core.common.error.ErrorReporter
 import com.momosi.trucktrack.core.common.io.PhotoData
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.issue.IssueAttachmentRepository
@@ -25,7 +26,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, private val issueRepository: IssueRepository, private val issueAttachmentRepository: IssueAttachmentRepository) : ViewModel() {
+class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, private val issueRepository: IssueRepository, private val issueAttachmentRepository: IssueAttachmentRepository, private val errorReporter: ErrorReporter) :
+    ViewModel() {
 
     private val vehiclesContent = MutableStateFlow<VehiclesContent>(VehiclesContent.Loading)
     private val selectedVehicle = MutableStateFlow<Vehicle?>(null)
@@ -91,6 +93,7 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
                 }
                 .onFailure {
                     vehiclesContent.value = VehiclesContent.Error
+                    errorReporter.report(it)
                 }
         }
     }
@@ -145,6 +148,7 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
                     _events.send(CreateIssueEvent.IssueCreated(issue.id))
                 }
                 .onFailure {
+                    // Inline error text (see CreateIssueScreen) already covers this; skip errorReporter to avoid a duplicate snackbar.
                     submitStatus.value = SubmitStatus.RequestFailed
                 }
         }
@@ -160,6 +164,7 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
                         fileBytes = photo.bytes,
                         contentType = photo.mimeType,
                     )
+                        .onFailure { errorReporter.report(it) }
                 }
             }
         }

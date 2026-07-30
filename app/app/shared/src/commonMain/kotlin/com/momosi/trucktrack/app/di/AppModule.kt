@@ -21,7 +21,7 @@ import org.koin.dsl.module
 val appModule = module {
     single { CoroutineScope(SupervisorJob()) }
     single(createdAtStart = true) { CrashReportingSync(get(), get(), get()) }
-    viewModel { TruckTrackViewModel(get()) }
+    viewModel { TruckTrackViewModel(get(), get()) }
 }
 
 val allModules: List<Module> = listOf(

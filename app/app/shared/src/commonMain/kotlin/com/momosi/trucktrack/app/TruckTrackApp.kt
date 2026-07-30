@@ -19,6 +19,8 @@ import com.momosi.trucktrack.core.navigation.Navigator
 import com.momosi.trucktrack.core.navigation.rememberNavigationState
 import com.momosi.trucktrack.core.navigation.rememberResultStore
 import com.momosi.trucktrack.core.navigation.toEntries
+import com.momosi.trucktrack.core.uilibrary.components.ErrorSnackbarHost
+import com.momosi.trucktrack.core.uilibrary.components.rememberErrorSnackbarHostState
 import com.momosi.trucktrack.core.uilibrary.modifier.LocalSharedTransitionScope
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.feature.issues.api.IssuesNavKey
@@ -44,20 +46,28 @@ fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel 
     )
     val navigator = remember { Navigator(navigationState) }
     val resultStore = rememberResultStore()
+    val errorSnackbarHostState = rememberErrorSnackbarHostState()
 
     LaunchedEffect(navigationState.currentKey) {
         Logger.i("Nav", "-> ${navigationState.currentKey}")
         CrashReporting.setCustomKey("screen", navigationState.currentKey.toString())
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.errors.collect { error -> errorSnackbarHostState.showError(error) }
+    }
+
     TruckTrackTheme {
         SharedTransitionLayout(
             modifier = modifier,
         ) {
-            CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+            CompositionLocalProvider(
+                LocalSharedTransitionScope provides this,
+            ) {
                 Scaffold(
                     modifier = Modifier.fillMaxSize().imePadding(),
                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                    snackbarHost = { ErrorSnackbarHost(errorSnackbarHostState) },
                 ) { _ ->
                     NavDisplay(
                         modifier = Modifier.fillMaxSize(),

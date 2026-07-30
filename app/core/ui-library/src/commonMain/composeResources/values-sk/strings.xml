@@ -1,5 +1,8 @@
 <resources>
     <string name="ok">OK</string>
     <string name="cancel">Zrušiť</string>
+    <string name="error_no_connection">Žiadne internetové pripojenie. Skontrolujte pripojenie a skúste to znova.</string>
+    <string name="error_unauthorized">Vaše prihlásenie vypršalo. Prihláste sa znova.</string>
+    <string name="error_generic">Niečo sa pokazilo. Skúste to znova.</string>
 </resources>
 
