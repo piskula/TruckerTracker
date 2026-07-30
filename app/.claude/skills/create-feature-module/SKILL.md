@@ -5,7 +5,7 @@ description: Use when creating a new product feature from scratch. Triggered by 
 
 # Skill: Create a New Feature Module
 
-> Scaffolds a complete `feature/<name>/api` + `feature/<name>/impl` module pair from scratch, wired into the app. All modules are KMP with `commonMain` source sets.
+> Scaffolds a complete `app/feature/<name>/api` + `app/feature/<name>/impl` module pair from scratch, wired into the app. All modules are KMP with `commonMain` source sets.
 
 ## Triggers
 
@@ -33,7 +33,7 @@ app/feature/<name>/
     src/commonMain/kotlin/com/momosi/trucktrack/feature/<name>/impl/
 ```
 
-### 2. Create `feature/<name>/api/build.gradle.kts`
+### 2. Create `app/feature/<name>/api/build.gradle.kts`
 
 ```kotlin
 plugins {
@@ -67,7 +67,7 @@ For nav keys with parameters, use `data class` instead of `data object`:
 data class <Name>NavKey(val id: Long) : NavKey
 ```
 
-### 4. Create `feature/<name>/impl/build.gradle.kts`
+### 4. Create `app/feature/<name>/impl/build.gradle.kts`
 
 ```kotlin
 plugins {
