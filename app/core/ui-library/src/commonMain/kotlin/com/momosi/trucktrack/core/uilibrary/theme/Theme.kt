@@ -6,6 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import com.momosi.trucktrack.core.uilibrary.rememberSystemFontScale
 
 @Composable
 fun TruckTrackTheme(isDarkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
@@ -13,8 +16,11 @@ fun TruckTrackTheme(isDarkTheme: Boolean = isSystemInDarkTheme(), content: @Comp
     val materialColorScheme = remember(isDarkTheme) {
         if (isDarkTheme) darkColorScheme(truckTrackColors) else lightColorScheme(truckTrackColors)
     }
+    val ambientDensity = LocalDensity.current
+    val systemFontScale = rememberSystemFontScale()
 
     CompositionLocalProvider(
+        LocalDensity provides Density(ambientDensity.density, ambientDensity.fontScale * systemFontScale),
         LocalTruckTrackColors provides truckTrackColors,
         LocalTruckTrackTypography provides TruckTrackTypography.toTruckTrackTypographyStyles(),
     ) {
