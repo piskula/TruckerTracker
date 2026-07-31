@@ -32,11 +32,11 @@ class IssueDetailViewModel(
     private val errorReporter: ErrorReporter,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(IssueDetailState())
+    private val _state = MutableStateFlow(IssueDetailState(issueId = issueId))
     val state: StateFlow<IssueDetailState> = _state.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = IssueDetailState(),
+        initialValue = IssueDetailState(issueId = issueId),
     )
 
     init {

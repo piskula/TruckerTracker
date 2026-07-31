@@ -1,5 +1,6 @@
 package com.momosi.trucktrack.feature.issues.impl.list
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import com.momosi.trucktrack.core.uilibrary.components.PullToRefresh
 import com.momosi.trucktrack.core.uilibrary.components.Text
 import com.momosi.trucktrack.core.uilibrary.components.TopBarIconButton
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
+import com.momosi.trucktrack.core.uilibrary.modifier.ShimmerGroup
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
@@ -97,6 +99,8 @@ internal fun IssuesScreen(
     )
 }
 
+private enum class IssuesContentPhase { Loading, Error, Empty, List }
+
 @Composable
 private fun IssuesScreenContent(
     state: IssuesState,
@@ -137,23 +141,32 @@ private fun IssuesScreenContent(
                 labelSelector = { it.label() },
                 onSelect = onSelectFilter,
             )
-            when (pagingItems.loadState.refresh) {
-                is LoadState.Loading -> LoadingContent()
+            val contentPhase = when (pagingItems.loadState.refresh) {
+                is LoadState.Loading -> IssuesContentPhase.Loading
 
-                is LoadState.Error -> ErrorContent(onRetry = onRetry)
+                is LoadState.Error -> IssuesContentPhase.Error
 
-                is LoadState.NotLoading -> {
-                    if (pagingItems.itemCount == 0) {
-                        EmptyContent()
-                    } else {
-                        IssueList(
-                            pagingItems = pagingItems,
-                            filter = state.selectedFilter,
-                            dateFormatter = dateFormatter,
-                            onOpenIssue = onNavigateToIssueDetail,
-                            onRefresh = onRefresh,
-                        )
-                    }
+                is LoadState.NotLoading -> if (pagingItems.itemCount == 0) {
+                    IssuesContentPhase.Empty
+                } else {
+                    IssuesContentPhase.List
+                }
+            }
+            Crossfade(targetState = contentPhase) { phase ->
+                when (phase) {
+                    IssuesContentPhase.Loading -> LoadingContent()
+
+                    IssuesContentPhase.Error -> ErrorContent(onRetry = onRetry)
+
+                    IssuesContentPhase.Empty -> EmptyContent()
+
+                    IssuesContentPhase.List -> IssueList(
+                        pagingItems = pagingItems,
+                        filter = state.selectedFilter,
+                        dateFormatter = dateFormatter,
+                        onOpenIssue = onNavigateToIssueDetail,
+                        onRefresh = onRefresh,
+                    )
                 }
             }
         }
@@ -179,11 +192,10 @@ private fun IssueList(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isRefreshing = pagingItems.loadState.refresh is LoadState.Loading
     val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     PullToRefresh(
-        isRefreshing = isRefreshing,
+        isRefreshing = false,
         onRefresh = onRefresh,
     ) {
         LazyColumn(
@@ -220,13 +232,24 @@ private fun IssueList(
 
 @Composable
 private fun LoadingContent(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        LoadingSpinner()
+    ShimmerGroup {
+        LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 4.dp, top = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            items(count = SKELETON_ITEM_COUNT) { index ->
+                IssueCardSkeleton(
+                    titleWidthFraction = skeletonTitleWidthFractions[index % skeletonTitleWidthFractions.size],
+                )
+            }
+        }
     }
 }
+
+private const val SKELETON_ITEM_COUNT = 6
+
+private val skeletonTitleWidthFractions = listOf(0.85f, 0.6f, 0.75f, 0.5f, 0.7f)
 
 @Composable
 private fun ErrorContent(onRetry: () -> Unit, modifier: Modifier = Modifier) {

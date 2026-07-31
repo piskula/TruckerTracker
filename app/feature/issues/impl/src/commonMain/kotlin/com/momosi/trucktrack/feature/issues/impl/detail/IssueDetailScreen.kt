@@ -1,6 +1,7 @@
 package com.momosi.trucktrack.feature.issues.impl.detail
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -62,9 +63,11 @@ import com.momosi.trucktrack.core.uilibrary.components.ButtonStyle
 import com.momosi.trucktrack.core.uilibrary.components.ConfirmationDialog
 import com.momosi.trucktrack.core.uilibrary.components.Icon
 import com.momosi.trucktrack.core.uilibrary.components.LoadingSpinner
+import com.momosi.trucktrack.core.uilibrary.components.SkeletonBox
 import com.momosi.trucktrack.core.uilibrary.components.Text
 import com.momosi.trucktrack.core.uilibrary.components.Toolbar
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
+import com.momosi.trucktrack.core.uilibrary.modifier.ShimmerGroup
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.Shapes
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
@@ -136,6 +139,8 @@ internal fun IssueDetailScreen(
     )
 }
 
+private enum class IssueDetailPhase { Loading, Error, Loaded }
+
 @Composable
 private fun IssueDetailScreenContent(
     state: IssueDetailState,
@@ -167,23 +172,24 @@ private fun IssueDetailScreenContent(
         )
     }
 
+    val phase = when (state.content) {
+        is IssueDetailContent.Loading -> IssueDetailPhase.Loading
+        is IssueDetailContent.Error -> IssueDetailPhase.Error
+        is IssueDetailContent.Loaded -> IssueDetailPhase.Loaded
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(AppTheme.colors.surfaceContainer),
     ) {
-        when (val content = state.content) {
-            is IssueDetailContent.Loading -> {
-                Toolbar(title = "", onBack = onBack)
-                PeopleStrip(reportedByName = "", assignedToName = "")
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    LoadingSpinner()
-                }
-            }
+        Toolbar(title = stringResource(Res.string.issue_detail_title, state.issueId), onBack = onBack)
 
-            is IssueDetailContent.Error -> {
-                Toolbar(title = "", onBack = onBack)
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Crossfade(targetState = phase, modifier = Modifier.weight(1f)) { targetPhase ->
+            when (targetPhase) {
+                IssueDetailPhase.Loading -> IssueDetailSkeleton()
+
+                IssueDetailPhase.Error -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = stringResource(Res.string.issue_detail_error),
@@ -194,27 +200,27 @@ private fun IssueDetailScreenContent(
                         Button(text = stringResource(Res.string.my_issues_retry), onClick = onRetry)
                     }
                 }
-            }
 
-            is IssueDetailContent.Loaded -> {
-                LoadedContent(
-                    issue = content.issue,
-                    history = content.history,
-                    photosContent = state.photosContent,
-                    commentText = state.commentText,
-                    isSendingComment = state.isSendingComment,
-                    mechanicAction = state.mechanicAction,
-                    isMechanicActionLoading = state.isMechanicActionLoading,
-                    isUploadingPhoto = state.isUploadingPhoto,
-                    onBack = onBack,
-                    onUpdateComment = onUpdateComment,
-                    onSendComment = onSendComment,
-                    onStartWorking = onStartWorking,
-                    onResolveIssue = { showResolveConfirmation = true },
-                    onReassignToMe = onReassignToMe,
-                    onUploadPhoto = onUploadPhoto,
-                    onPhotoClick = onNavigateToFullScreenPhoto,
-                )
+                IssueDetailPhase.Loaded -> {
+                    val content = state.content as IssueDetailContent.Loaded
+                    LoadedContent(
+                        issue = content.issue,
+                        history = content.history,
+                        photosContent = state.photosContent,
+                        commentText = state.commentText,
+                        isSendingComment = state.isSendingComment,
+                        mechanicAction = state.mechanicAction,
+                        isMechanicActionLoading = state.isMechanicActionLoading,
+                        isUploadingPhoto = state.isUploadingPhoto,
+                        onUpdateComment = onUpdateComment,
+                        onSendComment = onSendComment,
+                        onStartWorking = onStartWorking,
+                        onResolveIssue = { showResolveConfirmation = true },
+                        onReassignToMe = onReassignToMe,
+                        onUploadPhoto = onUploadPhoto,
+                        onPhotoClick = onNavigateToFullScreenPhoto,
+                    )
+                }
             }
         }
     }
@@ -230,7 +236,6 @@ private fun LoadedContent(
     mechanicAction: MechanicActionType?,
     isMechanicActionLoading: Boolean,
     isUploadingPhoto: Boolean,
-    onBack: () -> Unit,
     onUpdateComment: (String) -> Unit,
     onSendComment: () -> Unit,
     onStartWorking: () -> Unit,
@@ -246,8 +251,6 @@ private fun LoadedContent(
     )
 
     Column(modifier = modifier.fillMaxSize()) {
-        Toolbar(title = stringResource(Res.string.issue_detail_title, issue.id), onBack = onBack)
-
         PeopleStrip(reportedByName = issue.reportedByName, assignedToName = issue.assignedToName)
 
         val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -260,13 +263,12 @@ private fun LoadedContent(
             if (issue.description.isNotBlank()) {
                 item { DescriptionCard(description = issue.description) }
             }
-            item {
-                AnimatedVisibility(
-                    visible = mechanicAction == MechanicActionType.Reassign,
-                ) {
+            if (mechanicAction == MechanicActionType.Reassign) {
+                item {
                     ReassignCard(
                         isLoading = isMechanicActionLoading,
                         onReassignToMe = onReassignToMe,
+                        modifier = Modifier.animateItem(),
                     )
                 }
             }
@@ -662,6 +664,13 @@ private fun PhotosCard(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (photosContent is IssuePhotosContent.Loading) {
+                ShimmerGroup {
+                    repeat(2) {
+                        SkeletonBox(modifier = Modifier.size(80.dp), shape = RoundedCornerShape(8.dp))
+                    }
+                }
+            }
             if (photosContent is IssuePhotosContent.Loaded) {
                 photosContent.items.forEach { photo ->
                     Box(
@@ -896,6 +905,7 @@ private fun IssueDetailLoadedPreview() {
     TruckTrackTheme {
         IssueDetailScreenContent(
             state = IssueDetailState(
+                issueId = previewIssue.id,
                 content = IssueDetailContent.Loaded(issue = previewIssue, history = previewHistory),
                 photosContent = IssuePhotosContent.Loaded(),
                 mechanicAction = MechanicActionType.Reassign,
@@ -919,6 +929,7 @@ private fun IssueDetailHistoryEmptyPreview() {
     TruckTrackTheme {
         IssueDetailScreenContent(
             state = IssueDetailState(
+                issueId = previewIssue.id,
                 content = IssueDetailContent.Loaded(issue = previewIssue, history = persistentListOf()),
                 photosContent = IssuePhotosContent.Loaded(),
             ),
@@ -940,7 +951,7 @@ private fun IssueDetailHistoryEmptyPreview() {
 private fun IssueDetailFullLoadingPreview() {
     TruckTrackTheme {
         IssueDetailScreenContent(
-            state = IssueDetailState(),
+            state = IssueDetailState(issueId = previewIssue.id),
             onBack = {},
             onRetry = {},
             onUpdateComment = {},

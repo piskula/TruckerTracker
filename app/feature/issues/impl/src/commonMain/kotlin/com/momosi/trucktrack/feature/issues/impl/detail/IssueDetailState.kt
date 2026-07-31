@@ -10,6 +10,7 @@ import kotlinx.collections.immutable.persistentListOf
 
 @Immutable
 data class IssueDetailState(
+    val issueId: Long,
     val content: IssueDetailContent = IssueDetailContent.Loading,
     val photosContent: IssuePhotosContent = IssuePhotosContent.Loading,
     val commentText: String = "",
