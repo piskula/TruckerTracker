@@ -37,6 +37,18 @@ Practical implications:
 
 ---
 
+## Code Comments — Don't Write Them
+
+**Never generate code comments.** This applies to every language and every part of the repo — no explanatory `//` comments, no block comments, no KDoc/Javadoc on classes, functions, properties or parameters, no "why" notes, no section banners, no TODO markers.
+
+* Express intent through naming and structure instead. If a line seems to need a comment, extract it into a well-named function, constant or type.
+* Do not add comments when modifying existing code, and do not "helpfully" document surrounding code you happen to touch.
+* Leave existing comments alone unless the code they describe is being changed or removed — don't do comment-removal sweeps unasked, and don't preserve a comment that has become wrong.
+* Narrow exceptions, only when they carry information the code genuinely cannot: license/copyright headers, tool directives that must be comments (`// ktlint-disable`, `// noinspection`, linter pragmas), and generated-file banners.
+* This rule is about source code. Markdown docs, `AGENTS.MD` files, and commit messages are prose and are still expected to explain things.
+
+---
+
 ## Security — This Repository Is Public
 
 `piskula/TruckerTracker-client` is a **public** GitHub repository. Commits, file contents, and GitHub Actions logs are visible to anyone on the internet, not just collaborators — treat every commit and every workflow run as world-readable before it happens, not after.
