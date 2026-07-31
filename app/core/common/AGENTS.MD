@@ -9,6 +9,7 @@ Base dependency for all other modules. Otherwise contains shared utilities with 
 | `DispatcherProvider` | Coroutine dispatcher abstraction (`main`, `io`, `default`). Inject instead of hardcoding `Dispatchers.*`. |
 | `ConnectivityManager` | Interface in `commonMain`. `ConnectivityManagerImpl` — Android impl (`android.net.ConnectivityManager`) in `androidMain`, iOS impl (`NWPathMonitor`) in `iosMain`. Use the interface everywhere. |
 | `AppVersionProvider` | Interface in `commonMain` exposing `versionName`/`versionCode` of the running app. `AppVersionProviderImpl` — Android impl (`PackageManager`) in `androidMain`, iOS impl (`NSBundle.mainBundle`) in `iosMain`. |
+| `AppEnvironment` | Singleton object (same pattern as `Logger`/`CrashReporting` — no DI) exposing `isDebug: Boolean`. Set once via `AppEnvironment.init(isDebug)` from `app:shared`'s `initApp(isDebug)`, which itself gets the flag from each platform's own build-type check (`BuildConfig.DEBUG` on Android, `#if DEBUG` on iOS). Read directly wherever a debug-only gate is needed. |
 | `VersionRepository` | `suspend fun getServerVersion(): Result<ServerVersion>` — fetches the backend's build info from `GET /api/v1/version` (public endpoint). Uses its own standalone `HttpClient` (`VersionApi`), same pattern as `core:user`'s `AuthApi` — see Notes. |
 | `Logger` | Kermit wrapper. Always use this, never call Kermit directly. |
 | `Page<T>` | Generic pagination model returned by all paginated repository calls. |
@@ -21,6 +22,7 @@ commonMain/
   coroutines/DispatcherProvider.kt
   coroutines/Flows.kt              ← Flow utility extensions
   network/ConnectivityManager.kt   ← Interface (pure Kotlin)
+  environment/AppEnvironment.kt    ← Singleton object holding isDebug
   version/AppVersionProvider.kt    ← Interface (pure Kotlin)
   version/VersionRepository.kt / VersionRepositoryImpl.kt
   version/model/ServerVersion.kt

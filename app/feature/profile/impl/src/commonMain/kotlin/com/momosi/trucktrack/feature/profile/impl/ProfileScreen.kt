@@ -1,6 +1,7 @@
 package com.momosi.trucktrack.feature.profile.impl
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -165,7 +166,11 @@ private fun ProfileContent(
             dismissText = stringResource(Res.string.profile_version_dismiss),
             onDismiss = { onAction(ProfileAction.DismissVersionInfo) },
         ) {
-            VersionRow(label = stringResource(Res.string.profile_version_app_label), value = state.appVersion)
+            VersionRow(
+                label = stringResource(Res.string.profile_version_app_label),
+                value = state.appVersion,
+                onClick = { onAction(ProfileAction.TapAppVersion) },
+            )
             Spacer(modifier = Modifier.height(16.dp))
             VersionRow(
                 label = stringResource(Res.string.profile_version_server_label),
@@ -184,8 +189,13 @@ private fun VersionRow(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+    ) {
         Text(
             text = label,
             style = AppTheme.typography.labelMedium,

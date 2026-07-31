@@ -18,8 +18,14 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class ProfileViewModel(userRepository: UserRepository, private val authManager: AuthManager, private val versionRepository: VersionRepository, appVersionProvider: AppVersionProvider, private val dateFormatter: DateFormatter) :
-    ViewModel() {
+class ProfileViewModel(
+    userRepository: UserRepository,
+    private val authManager: AuthManager,
+    private val versionRepository: VersionRepository,
+    appVersionProvider: AppVersionProvider,
+    private val dateFormatter: DateFormatter,
+    private val testCrashManager: TestCrashManager,
+) : ViewModel() {
 
     private val _event = Channel<ProfileEvent>(Channel.BUFFERED)
     val event: Flow<ProfileEvent> = _event.receiveAsFlow()
@@ -55,6 +61,7 @@ class ProfileViewModel(userRepository: UserRepository, private val authManager: 
             is ProfileAction.SignOut -> signOut()
             is ProfileAction.ShowVersionInfo -> showVersionInfo()
             is ProfileAction.DismissVersionInfo -> isVersionDialogVisible.value = false
+            is ProfileAction.TapAppVersion -> testCrashManager.registerAppVersionTap()
         }
     }
 
