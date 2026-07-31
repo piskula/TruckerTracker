@@ -18,10 +18,7 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
 
     companion object {
         private val LOG = KotlinLogging.logger {}
-        private val internalServerErrorDto = ErrorDto(
-            userMessage = "Internal Server Error",
-            errorIdentifier = UUID.randomUUID(),
-        )
+        private const val INTERNAL_SERVER_ERROR_MESSAGE = "Internal Server Error"
     }
 
     @ExceptionHandler(RuntimeException::class)
@@ -34,7 +31,7 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
             request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, exception, WebRequest.SCOPE_REQUEST)
         }
 
-        val errorDto = if (exception is GlobalException) getErrorDto(exception) else internalServerErrorDto
+        val errorDto = if (exception is GlobalException) getErrorDto(exception) else ErrorDto(INTERNAL_SERVER_ERROR_MESSAGE, UUID.randomUUID())
         LOG.error(exception) { "Error = $errorDto" }
 
         return ResponseEntity(errorDto, HttpHeaders(), httpStatus)

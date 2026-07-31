@@ -20,5 +20,6 @@ internal fun rememberApiErrorMessages(): ApiErrorMessages = ApiErrorMessages(
 internal fun Throwable.toMessage(messages: ApiErrorMessages): String = when (this) {
     is ApiException.NoConnection -> messages.noConnection
     is ApiException.Unauthorized -> messages.unauthorized
+    is ApiException.HttpError -> serverMessage?.takeIf { statusCode in 400..499 } ?: messages.generic
     else -> messages.generic
 }
