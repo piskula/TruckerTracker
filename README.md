@@ -14,6 +14,7 @@ Boot backend, sharing one contract module of DTOs.
 - [Repository layout](#repository-layout)
 - [Getting started](#getting-started)
 - [Continuous integration](#continuous-integration)
+- [AI and agent context](#ai-and-agent-context)
 - [Contributing](#contributing)
 - [Docs](#docs)
 
@@ -161,20 +162,28 @@ For day-to-day work you'll usually want just one side:
 client — see `app/README.md` for details. `build-server.yml` builds the server on every push to
 `main` — see `server/README.md`.
 
+## AI and agent context
+
+Project context is hierarchical and single-sourced so Claude Code and GitHub Copilot receive the
+same guidance without loading every module's details into every task:
+
+| Layer | Purpose |
+|---|---|
+| Root and nested `AGENTS.MD` files | Canonical repo and module instructions, loaded for the affected area |
+| Root and nested `CLAUDE.md` files | One-line Claude Code imports of the sibling `AGENTS.MD` |
+| `.github/copilot-instructions.md` | Thin Copilot entry point to the same `AGENTS.MD` hierarchy |
+| `app/.claude/skills/` | Client-specific Agent Skills loaded on demand by both Claude Code and Copilot |
+| `.mcp.json` | Shared Firebase MCP configuration for Claude Code and Copilot CLI |
+
 ## Contributing
 
-- **`AGENTS.MD`** (this directory) covers monorepo layout and repo-wide policy. Each part has its
-  own detailed `AGENTS.MD` with module structure and coding conventions — `app/AGENTS.MD`,
-  `server/AGENTS.MD` (+ `module-api`/`module-server`), `shared/AGENTS.MD` — read the relevant one
-  before making structural changes there. `CLAUDE.md` in each directory is a one-line pointer to
-  its `AGENTS.MD` (`@AGENTS.MD`) so both Claude Code and other AGENTS.MD-reading tools pick up the
-  same content.
+- Read [AI and agent context](#ai-and-agent-context) before changing project instructions or
+  reusable Agent Skills.
 - Run `./gradlew spotlessApply` inside `app/` to auto-format before committing (ktlint +
   compose-rules-ktlint). `server/` doesn't have Spotless configured yet.
-- `app/.claude/skills/` has reusable step-by-step workflows for common client tasks (scaffolding a
-  feature module, adding a screen, fixing Spotless violations, diagnosing CI failures, cutting a
-  release, onboarding a new machine, managing iOS signing) — scoped to `app/` since all of them are
-  client-specific today.
+- `app/.claude/skills/` has reusable workflows for common client tasks (scaffolding a feature
+  module, adding a screen, fixing Spotless violations, diagnosing CI failures, cutting a release,
+  onboarding a new machine, managing iOS signing) — scoped to `app/` since all are client-specific.
 
 ## Security — this repository is public
 
@@ -185,6 +194,7 @@ See `AGENTS.MD`'s "Security — This Repository Is Public" section for the full 
 ## Docs
 
 - **`AGENTS.MD`** — monorepo layout, repo-wide security policy, pointers to each part's own docs.
+- **`.github/copilot-instructions.md`** — Copilot adapter for the canonical `AGENTS.MD` hierarchy.
 - **`app/AGENTS.MD`**, **`server/AGENTS.MD`**, **`shared/AGENTS.MD`** — module structure,
   dependency rules, architecture (MVVM for the client), coding conventions for each part.
 - **`app/README.md`** — client tech stack, getting started, CI, project structure, testing,

@@ -229,7 +229,9 @@ The project has completed its **Kotlin Multiplatform** migration. All modules us
 
 ### Agent Skills
 
-Reusable step-by-step workflows are in `.claude/skills/` (scoped to this directory — they're all client-specific). Use them for recurring tasks:
+Reusable Agent Skills are in `.claude/skills/` (scoped to this directory — they're all
+client-specific). Both Claude Code and GitHub Copilot discover this location and load skills on
+demand. Use them for recurring tasks:
 
 | Skill | When to use |
 |-------|-------------|
