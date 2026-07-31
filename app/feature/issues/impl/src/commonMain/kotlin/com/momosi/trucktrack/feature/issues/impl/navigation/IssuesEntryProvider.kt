@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.NavKey
 import com.momosi.trucktrack.core.navigation.Navigator
 import com.momosi.trucktrack.core.navigation.ResultKey
 import com.momosi.trucktrack.core.navigation.ResultStore
+import com.momosi.trucktrack.core.uilibrary.animation.bottomEntryMetadata
 import com.momosi.trucktrack.core.uilibrary.animation.slideFromEndEntryMetadata
 import com.momosi.trucktrack.feature.issues.api.IssuesNavKey
 import com.momosi.trucktrack.feature.issues.impl.FullScreenPhotoScreen
@@ -25,7 +26,7 @@ fun EntryProviderScope<NavKey>.issuesEntries(navigator: Navigator, resultStore: 
             onNavigateToIssueDetail = { issueId -> navigator.navigate(IssueDetailNavKey(issueId)) },
         )
     }
-    entry<CreateIssueNavKey> {
+    entry<CreateIssueNavKey>(metadata = bottomEntryMetadata()) {
         CreateIssueScreen(
             onBack = navigator::goBack,
             onIssueCreate = { issueId ->

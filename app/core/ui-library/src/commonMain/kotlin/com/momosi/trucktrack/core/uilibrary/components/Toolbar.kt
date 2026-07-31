@@ -28,7 +28,7 @@ fun Toolbar(
             .fillMaxWidth()
             .background(AppTheme.colors.surfaceDim)
             .statusBarsPadding()
-            .padding(start = 4.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+            .padding(start = 4.dp, end = 4.dp, top = 12.dp, bottom = 12.dp),
     ) {
         TopBarIconButton(
             icon = TruckTrackIcons.Back,

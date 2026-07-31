@@ -33,7 +33,7 @@ fun DashboardTopBar(
             .fillMaxWidth()
             .background(AppTheme.colors.surfaceDim)
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(start = 16.dp, end = 4.dp, top = 14.dp, bottom = 14.dp),
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
