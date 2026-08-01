@@ -43,6 +43,7 @@ import com.momosi.trucktrack.core.uilibrary.components.ButtonRole
 import com.momosi.trucktrack.core.uilibrary.components.Icon
 import com.momosi.trucktrack.core.uilibrary.components.LoadingSpinner
 import com.momosi.trucktrack.core.uilibrary.components.Text
+import com.momosi.trucktrack.core.uilibrary.components.TextField
 import com.momosi.trucktrack.core.uilibrary.components.Toolbar
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
@@ -340,10 +341,9 @@ private fun InputField(
             style = AppTheme.typography.bodySmall,
             color = AppTheme.colors.primary,
         )
-        androidx.compose.foundation.text.BasicTextField(
+        TextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = AppTheme.typography.bodyLarge.copy(color = AppTheme.colors.onSurface),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             minLines = minLines,
             modifier = Modifier

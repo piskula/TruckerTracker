@@ -39,6 +39,7 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `PullToRefresh` | Pull-to-refresh wrapper |
 | `SectionLabel` | Section header label |
 | `Switch`, `Checkbox` | Form controls |
+| `TextField` | Themed `BasicTextField` wrapper — always sets `cursorBrush` to `AppTheme.colors.onSurface` so callers can't forget it (and get an invisible black cursor in dark mode); `decorationBox` slot for per-screen chrome (labels, underlines, placeholders) |
 | `SearchBarActive`, `SearchBarInactive` | Search UI |
 | `DateRangePickerDialog` | Date range picker |
 | `NavigationBar` | Bottom navigation bar |

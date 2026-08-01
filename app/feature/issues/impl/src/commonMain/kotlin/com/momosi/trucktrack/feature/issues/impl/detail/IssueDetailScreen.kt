@@ -33,7 +33,6 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,6 +64,7 @@ import com.momosi.trucktrack.core.uilibrary.components.Icon
 import com.momosi.trucktrack.core.uilibrary.components.LoadingSpinner
 import com.momosi.trucktrack.core.uilibrary.components.SkeletonBox
 import com.momosi.trucktrack.core.uilibrary.components.Text
+import com.momosi.trucktrack.core.uilibrary.components.TextField
 import com.momosi.trucktrack.core.uilibrary.components.Toolbar
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
 import com.momosi.trucktrack.core.uilibrary.modifier.ShimmerGroup
@@ -500,7 +500,7 @@ private fun HistoryCard(
                 .background(AppTheme.colors.surfaceContainer, RoundedCornerShape(10.dp))
                 .padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
         ) {
-            BasicTextField(
+            TextField(
                 value = commentText,
                 onValueChange = onUpdateComment,
                 textStyle = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.onSurface),
