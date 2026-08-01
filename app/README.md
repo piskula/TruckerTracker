@@ -183,8 +183,9 @@ graph TD
 
 Solid arrows are `implementation`/`api` project dependencies (`settings.gradle.kts` +
 `build.gradle.kts` across all modules); the dotted `cross-feature` arrows are `*/impl → other
-feature's */api` edges that exist in the current codebase despite `AGENTS.md`'s "no cross-feature
-dependencies" rule — worth a look before adding new ones. `core` modules form a DAG rooted at
+feature's */api` edges, each carrying nothing but the destination feature's `NavKey` so an entry
+provider can register it as a navigation target. That is the sanctioned use of an `api` module —
+depending on another feature's `impl` is not. `core` modules form a DAG rooted at
 `core:common` (everything depends on it, directly or transitively; nothing depends back), and
 `core:navigation` has no internal dependencies at all.
 

@@ -41,8 +41,11 @@ Modules that talk to the API depend on it via `implementation("com.momosi.truckt
 
 * `feature/*/api` — depends only on `:core:navigation`. Contains only `NavKey` objects. No business
   logic.
-* `feature/*/impl` — depends on its own `api` module + any `core` modules needed. **No cross-feature
-  dependencies.**
+* `feature/*/impl` — depends on its own `api` module + any `core` modules needed. It may also depend
+  on **another feature's `api` module**, solely to reference that feature's `NavKey` when registering
+  a navigation target — that's what `api` modules exist for. **Never depend on another feature's
+  `impl`**: no importing its ViewModel, state, or Composables. If two features need the same logic,
+  it belongs in a `core` module.
 * `core` modules — may depend on other `core` modules in a directed acyclic graph, plus
   `com.momosi.trucktrack:shared` for DTOs. **Never depend on `feature` modules.**
 * `app:shared` — depends on all `feature/*/impl` and all `core` modules.
