@@ -14,7 +14,7 @@ This file intentionally does **not** hardcode the Apple Team ID, Firebase App ID
 - Team ID / cert expiry: Apple Developer portal → Account → Membership; or `security find-certificate` on a machine with the cert imported.
 - Firebase iOS App ID: `firebase apps:list --project <project-id>` (bundle ID is `com.momosi.trucktrack`, fixed and non-sensitive — it's embedded in the shipped app anyway).
 - Which/how many devices the current ad-hoc profile covers: Apple Developer portal → Profiles → open the profile, or decode it locally (`security cms -D -i profile.mobileprovision`, never in CI logs — see "Public repo" section below).
-- Existing secret names (not values): `gh secret list --repo piskula/TruckerTracker-client`.
+- Existing secret names (not values): `gh secret list --repo piskula/TruckerTracker`.
 
 Ad-hoc profiles cap at 100 devices/year total; every device added means editing the profile and re-downloading it.
 
@@ -74,21 +74,21 @@ Adding a tester only touches the last one. You do **not** need to regenerate the
 **Never** pipe a secret value through PowerShell to `gh secret set` (`Get-Content -Raw | gh secret set NAME`) — Windows PowerShell 5.1's text pipeline to a native process re-encodes the string, which silently corrupted a 16KB base64 payload into invalid data (decoded to `error decoding base64 input stream` in CI) even though the source file was verified correct. Always use Bash with **raw file redirection**, which passes bytes through untouched:
 
 ```bash
-gh secret set IOS_PROVISIONING_PROFILE_BASE64 --repo piskula/TruckerTracker-client < profile.mobileprovision.base64.txt
+gh secret set IOS_PROVISIONING_PROFILE_BASE64 --repo piskula/TruckerTracker < profile.mobileprovision.base64.txt
 ```
 
 Watch trailing newlines too: `echo` and some `Get-Content` paths append one, which is invisible but changes the exact byte sequence gh uploads — this broke `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD` (25 bytes uploaded vs. 24-byte actual password) even though both round-tripped visually the same. When piping a password/short value, use `printf '%s'` instead of `echo`, or strip the trailing newline explicitly:
 ```bash
-printf '%s' "$(cat p12_password.txt)" | gh secret set IOS_DISTRIBUTION_CERTIFICATE_PASSWORD --repo piskula/TruckerTracker-client
+printf '%s' "$(cat p12_password.txt)" | gh secret set IOS_DISTRIBUTION_CERTIFICATE_PASSWORD --repo piskula/TruckerTracker
 ```
 
 Base64-encode with GNU `base64 -w0 file > file.b64` (single line, no wrapping) on this machine — that's fine for encoding. **Decoding happens in CI on macOS**, where `/usr/bin/base64` is the BSD variant and needs `-D`, not GNU's `--decode` long flag (both builds `.github/workflows/*.yml` already use `-D` — don't regress this if editing those files).
 
-After updating any secret, verify with a fresh CI run before assuming it worked — `gh workflow run build-app.yml --repo piskula/TruckerTracker-client --ref main` (uses the `workflow_dispatch` trigger, no throwaway commit needed) and watch the `build-ios` job.
+After updating any secret, verify with a fresh CI run before assuming it worked — `gh workflow run build-app.yml --repo piskula/TruckerTracker --ref main` (uses the `workflow_dispatch` trigger, no throwaway commit needed) and watch the `build-ios` job.
 
 ## Public repo — logging discipline
 
-`piskula/TruckerTracker-client` is a **public** repository, so Actions logs are visible to anyone, not just collaborators. If you add debug output while troubleshooting this pipeline again:
+`piskula/TruckerTracker` is a **public** repository, so Actions logs are visible to anyone, not just collaborators. If you add debug output while troubleshooting this pipeline again:
 - Byte counts, `file` type output, variable *lengths* (`${#VAR}`), and exit codes are safe.
 - **Never** dump decoded certificate/profile file *content* (e.g. `head`/`cat` on the decoded `.p12` or `.mobileprovision`/plist) — the profile plist contains the tester's device UDID and profile display name (often a real name), and dumping it leaks that publicly. `security cms -D -i profile.mobileprovision` output is exactly this risk.
 - GitHub auto-masks log text that exactly matches a registered secret value, but that only protects the literal secret string — it does nothing for derived content like a decoded plist's fields. Don't rely on masking; just don't print that content in the first place.

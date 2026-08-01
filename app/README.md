@@ -1,7 +1,7 @@
 # TruckTrack — Client
 
-[![Build Debug Apps](https://github.com/piskula/TruckerTracker-client/actions/workflows/build-app.yml/badge.svg)](https://github.com/piskula/TruckerTracker-client/actions/workflows/build-app.yml)
-[![Release App](https://github.com/piskula/TruckerTracker-client/actions/workflows/release-app.yml/badge.svg)](https://github.com/piskula/TruckerTracker-client/actions/workflows/release-app.yml)
+[![Build Debug Apps](https://github.com/piskula/TruckerTracker/actions/workflows/build-app.yml/badge.svg)](https://github.com/piskula/TruckerTracker/actions/workflows/build-app.yml)
+[![Release App](https://github.com/piskula/TruckerTracker/actions/workflows/release-app.yml/badge.svg)](https://github.com/piskula/TruckerTracker/actions/workflows/release-app.yml)
 
 Kotlin Multiplatform client for TruckTrack, targeting Android and iOS from one shared codebase. This is `app/` — its own Gradle build, part of the `TruckTrack` composite build. See the repo root `README.md` for how this fits alongside `server/` and `shared/`.
 

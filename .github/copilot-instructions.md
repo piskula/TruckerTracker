@@ -10,7 +10,7 @@ file.
 
 ## This repository is public
 
-`piskula/TruckerTracker-client` is a public GitHub repository. Commits, file contents, and Actions
+`piskula/TruckerTracker` is a public GitHub repository. Commits, file contents, and Actions
 logs are world-readable.
 
 * Never commit secret values — passwords, private keys, certificates, API tokens, `.p12` /

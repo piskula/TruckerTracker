@@ -51,7 +51,7 @@ Practical implications:
 
 ## Security — This Repository Is Public
 
-`piskula/TruckerTracker-client` is a **public** GitHub repository. Commits, file contents, and GitHub Actions logs are visible to anyone on the internet, not just collaborators — treat every commit and every workflow run as world-readable before it happens, not after.
+`piskula/TruckerTracker` is a **public** GitHub repository. Commits, file contents, and GitHub Actions logs are visible to anyone on the internet, not just collaborators — treat every commit and every workflow run as world-readable before it happens, not after.
 
 * **Never commit secret values** — passwords, private keys, certificates, API tokens, `.p12`/`.mobileprovision`/`.keystore` files, or any credential material. Only secret *names* belong in tracked files (e.g. `${{ secrets.FOO }}` in a workflow, or `` `FOO_SECRET` `` in docs) — never the value.
 * **Never log secret values or content derived from them** in CI. This includes not just the literal secret string (GitHub auto-masks exact matches, but that's a narrow safety net) but also anything decoded/derived from it — a decoded certificate, a decoded provisioning profile's fields, a device UDID, a tester's name. Debug output should be limited to byte counts, file types, variable *lengths*, and exit codes — never `cat`/`head`/dump actual decoded content.
