@@ -18,7 +18,7 @@ Kotlin Multiplatform client for TruckTrack, targeting Android and iOS from one s
 
 ## Features
 
-- **Sign in** — OAuth/OIDC authentication via AppAuth.
+- **Sign in** — OAuth/OIDC authentication via [kotlin-multiplatform-oidc](https://github.com/kalinjul/kotlin-multiplatform-oidc).
 - **Issues** — drivers and mechanics report, view, and track vehicle issues by status and priority.
 - **Profile** — user account details.
 - **Vehicles** — vehicle records backing issue tracking (domain layer today; no dedicated screen
@@ -104,7 +104,7 @@ without leaving the terminal.
 ## Project structure
 
 Multi-module KMP build — `app:*` (platform shells + shared app wiring), `core:*` (domain logic,
-infra), `feature:*/api` + `feature:*/impl` (product features). See **`AGENTS.MD`** for the full
+infra), `feature:*/api` + `feature:*/impl` (product features). See **`AGENTS.md`** for the full
 module map, dependency rules, and coding conventions — that's the canonical reference for
 contributing here (including for AI coding agents).
 
@@ -183,7 +183,7 @@ graph TD
 
 Solid arrows are `implementation`/`api` project dependencies (`settings.gradle.kts` +
 `build.gradle.kts` across all modules); the dotted `cross-feature` arrows are `*/impl → other
-feature's */api` edges that exist in the current codebase despite `AGENTS.MD`'s "no cross-feature
+feature's */api` edges that exist in the current codebase despite `AGENTS.md`'s "no cross-feature
 dependencies" rule — worth a look before adding new ones. `core` modules form a DAG rooted at
 `core:common` (everything depends on it, directly or transitively; nothing depends back), and
 `core:navigation` has no internal dependencies at all.
@@ -195,7 +195,7 @@ Network DTOs (`IssueDto`, `VehicleDto`, `PageDto`, etc.) come from the separate 
 
 ## Testing
 
-No automated tests exist yet. When adding them, follow the conventions in `AGENTS.MD`:
+No automated tests exist yet. When adding them, follow the conventions in `AGENTS.md`:
 
 - **MockK** for mocking, **Turbine** for `Flow` testing, **kotlinx-coroutines-test** (`runTest`)
   for coroutines.
@@ -230,7 +230,7 @@ git push origin v1.2.3
 
 ## Docs
 
-- **`AGENTS.MD`** (this directory) — module structure, dependency rules, architecture (MVVM), coding conventions. `../AGENTS.MD` (repo root) covers the monorepo layout and repo-wide policy instead.
+- **`AGENTS.md`** (this directory) — module structure, dependency rules, architecture (MVVM), coding conventions. `../AGENTS.md` (repo root) covers the monorepo layout and repo-wide policy instead.
 - **`../docs/TODO.md`** — product feature backlog.
 - **`.claude/skills/`** — reusable agent workflows, including `setup-local-tools` for onboarding a
   new machine (see [Getting started](#getting-started)).

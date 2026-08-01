@@ -4,7 +4,7 @@ API contract layer shared between backend and frontend.
 
 - Defines ALL endpoint contracts: `@PostMapping`, `@Operation`, `@Tag`, produces/consumes, return types
 - `module-server` controllers implement these interfaces — they add nothing to routing or docs on their own
-- Also used to generate the OpenAPI 3.1.0 spec file (`api-docs.json`), which drives Angular client generation
+- Also the source for the OpenAPI 3.1.0 spec file (`api-docs.json`), from which the Angular administration web app generates its API client. That app lives outside this repository — see the architecture diagram in the root `README.md`.
 - Dependencies: `compileOnly` Spring Web + SpringDoc, plus `com.momosi.trucktrack:shared` for DTOs. No Spring Data, no module-server types.
 - **DTOs and enums live in the separate `:shared` build** (`shared/src/commonMain/kotlin/com/momosi/trucktrack/shared/`), not here — module-api only defines the Spring MVC contract interfaces that use them. `shared` is a plain Kotlin Multiplatform module with zero Spring/Ktor dependencies, consumed by both this backend and the KMP client.
 
@@ -84,11 +84,11 @@ Sort direction values: `asc` or `desc`. Multiple columns separated by `;`.
 
 ## api-docs.json
 
-`api-docs.json` is **hand-written** — it is NOT auto-generated from annotations. Whenever you add or change an endpoint or DTO, you must also manually update `api-docs.json` and rebuild so the Angular client regenerates.
+`api-docs.json` is **hand-written** — it is NOT auto-generated from annotations. Whenever you add or change an endpoint or DTO, update `api-docs.json` in the same change so the committed spec matches the interfaces. The Angular administration web app regenerates its client from this file, so a stale spec silently breaks that consumer rather than failing any build here.
 
 _In the future, building of api-docs.json should also happen as part of the build._
 
 ## See Also
 
-- `../AGENTS.MD` — server-wide conventions.
-- `../../shared/AGENTS.MD` — the `shared` build these DTOs actually live in.
+- `../AGENTS.md` — server-wide conventions.
+- `../../shared/AGENTS.md` — the `shared` build these DTOs actually live in.

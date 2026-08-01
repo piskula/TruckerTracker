@@ -27,7 +27,7 @@ iosMain/
 
 - New screens/navigation entries never go here — add them to the relevant `feature/*/impl` module and wire the `*Entries` function into `TruckTrackApp()`.
 - New Koin bindings go in the owning `core`/`feature` module's own `module { }`; only the aggregation list lives here.
-- This module must not import `androidx.compose.material3` directly — use `:core:ui-library` components only, per the root `AGENTS.MD`'s UI Library rule.
+- This module must not import `androidx.compose.material3` directly — use `:core:ui-library` components only, per the root `AGENTS.md`'s UI Library rule.
 
 ## Depends On
 

@@ -27,4 +27,4 @@ commonMain/
 
 - `:core:common` — `Logger`, `DispatcherProvider`
 - `:core:network` — Ktor `HttpClient`
-- `com.momosi.trucktrack:shared` — `VehicleDto`, `VehicleTypeDto` (separate build, see `../../../shared/AGENTS.MD`)
+- `com.momosi.trucktrack:shared` — `VehicleDto`, `VehicleTypeDto` (separate build, see `../../../shared/AGENTS.md`)

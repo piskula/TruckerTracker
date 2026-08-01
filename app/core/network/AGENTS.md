@@ -21,7 +21,7 @@ commonMain/
 
 - `:core:common` — `ConnectivityManager`, `Logger`, `Page<T>`
 - `:core:user` — `AuthManager` (for bearer token injection via Ktor Auth plugin)
-- `com.momosi.trucktrack:shared` — `PageDto<T>` (separate build, see `../../../shared/AGENTS.MD`)
+- `com.momosi.trucktrack:shared` — `PageDto<T>` (separate build, see `../../../shared/AGENTS.md`)
 
 ## Configuration
 

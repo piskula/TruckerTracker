@@ -151,9 +151,9 @@ In `app/app/shared/src/commonMain/kotlin/.../app/di/AppModule.kt`, add `<name>Mo
 
 In `app/app/shared/src/commonMain/kotlin/.../app/TruckTrackApp.kt`, call `<name>Entries(navigator)` inside the `entryProvider` block.
 
-### 10. Create module AGENTS.MD files
+### 10. Create module AGENTS.md files
 
-Create `app/feature/<name>/api/AGENTS.MD` and `app/feature/<name>/impl/AGENTS.MD` (plus matching `CLAUDE.md` stubs — see any existing `feature/*` module for the one-line `@AGENTS.MD` pattern).
+Create `app/feature/<name>/api/AGENTS.md` and `app/feature/<name>/impl/AGENTS.md` (plus matching `CLAUDE.md` stubs — see any existing `feature/*` module for the one-line `@AGENTS.md` pattern).
 Document the nav keys, screens, and dependencies. See existing modules for examples.
 
 ## Verification

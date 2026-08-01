@@ -169,9 +169,9 @@ same guidance without loading every module's details into every task:
 
 | Layer | Purpose |
 |---|---|
-| Root and nested `AGENTS.MD` files | Canonical repo and module instructions, loaded for the affected area |
-| Root and nested `CLAUDE.md` files | One-line Claude Code imports of the sibling `AGENTS.MD` |
-| `.github/copilot-instructions.md` | Thin Copilot entry point to the same `AGENTS.MD` hierarchy |
+| Root and nested `AGENTS.md` files | Canonical repo and module instructions, loaded for the affected area |
+| Root and nested `CLAUDE.md` files | One-line Claude Code imports of the sibling `AGENTS.md` |
+| `.github/copilot-instructions.md` | Thin Copilot entry point to the same `AGENTS.md` hierarchy |
 | `app/.claude/skills/` | Client-specific Agent Skills loaded on demand by both Claude Code and Copilot |
 | `.mcp.json` | Shared Firebase MCP configuration for Claude Code and Copilot CLI |
 
@@ -189,13 +189,13 @@ same guidance without loading every module's details into every task:
 
 `piskula/TruckerTracker-client` is a **public** GitHub repository. Never commit secret values,
 log decoded secret content in CI, or hardcode environment-specific identifiers into tracked files.
-See `AGENTS.MD`'s "Security — This Repository Is Public" section for the full policy.
+See `AGENTS.md`'s "Security — This Repository Is Public" section for the full policy.
 
 ## Docs
 
-- **`AGENTS.MD`** — monorepo layout, repo-wide security policy, pointers to each part's own docs.
-- **`.github/copilot-instructions.md`** — Copilot adapter for the canonical `AGENTS.MD` hierarchy.
-- **`app/AGENTS.MD`**, **`server/AGENTS.MD`**, **`shared/AGENTS.MD`** — module structure,
+- **`AGENTS.md`** — monorepo layout, repo-wide security policy, pointers to each part's own docs.
+- **`.github/copilot-instructions.md`** — Copilot adapter for the canonical `AGENTS.md` hierarchy.
+- **`app/AGENTS.md`**, **`server/AGENTS.md`**, **`shared/AGENTS.md`** — module structure,
   dependency rules, architecture (MVVM for the client), coding conventions for each part.
 - **`app/README.md`** — client tech stack, getting started, CI, project structure, testing,
   releasing.

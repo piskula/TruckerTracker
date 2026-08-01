@@ -69,10 +69,10 @@ Two modules:
 
 - **`module-api`** — Spring MVC contract interfaces only (`@Tag`, `@Operation`, `@GetMapping`,
   etc.), importing DTOs from `com.momosi.trucktrack:shared`. No DTOs of its own. See
-  `module-api/AGENTS.MD`.
+  `module-api/AGENTS.md`.
 - **`module-server`** — the implementation: controllers, JPA entities/repositories, use cases.
   Implements `module-api`'s interfaces, mapping domain models to/from `shared`'s DTOs. See
-  `module-server/AGENTS.MD`.
+  `module-server/AGENTS.md`.
 
 ```
 Controller → UseCase → Persistence (or shared Service)
@@ -113,7 +113,7 @@ instance holds two schemas — one for Keycloak, one for the app.
 
 ## Docs
 
-- **`AGENTS.MD`** (this directory), **`module-api/AGENTS.MD`**, **`module-server/AGENTS.MD`** —
+- **`AGENTS.md`** (this directory), **`module-api/AGENTS.md`**, **`module-server/AGENTS.md`** —
   layering rules, entity/persistence conventions, controller conventions, and other
   agent-facing coding conventions.
 - **`devOps/README.md`** — step-by-step Keycloak realm/client/role setup.

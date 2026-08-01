@@ -71,7 +71,7 @@ data class <Thing>Dto(
 )
 ```
 
-See `shared/AGENTS.MD` for naming/type conventions (`kotlin.time.Instant` for dates, `kotlin.uuid.Uuid` for UUIDs, no framework annotations). Adding a new DTO here also needs a matching type on the `server/module-api`/`module-server` side — see `server/module-api/AGENTS.MD`.
+See `shared/AGENTS.md` for naming/type conventions (`kotlin.time.Instant` for dates, `kotlin.uuid.Uuid` for UUIDs, no framework annotations). Adding a new DTO here also needs a matching type on the `server/module-api`/`module-server` side — see `server/module-api/AGENTS.md`.
 
 ### 4. Create the DTO mapper in `dto/`
 
@@ -179,10 +179,10 @@ val <module>Module = module {
 If this is a new `val xxxModule`, add it to `app/app/shared/src/commonMain/kotlin/com/momosi/trucktrack/app/di/AppModule.kt`.
 If adding to an existing module file, no app-level change is needed.
 
-### 9. Update `app/core/<module>/AGENTS.MD`
+### 9. Update `app/core/<module>/AGENTS.md`
 
 Add the new repository interface and domain model to the Public API table.
-Add the new files to the Key Files section. If you added a new DTO in `shared`, add it to `shared/AGENTS.MD`'s domain list too.
+Add the new files to the Key Files section. If you added a new DTO in `shared`, add it to `shared/AGENTS.md`'s domain list too.
 
 ## Verification
 

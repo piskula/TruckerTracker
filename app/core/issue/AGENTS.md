@@ -21,15 +21,20 @@ resolveIssue(id: Long): Result<Issue>
 assignIssue(id: Long): Result<Issue>
 addComment(issueId: Long, comment: String): Result<IssueHistory>
 getIssueHistory(issueId, page, size): Result<Page<IssueHistory>>
+getIssuesPagingSource(statuses, vehicleIds, accountIds): PagingSource<Int, Issue>
 ```
 
 **`IssueAttachmentRepository` methods:**
 ```kotlin
 getPhotoUrl(issueId: Long, attachmentId: Long): String
 getPhotos(issueId, page, size, sort): Result<Page<IssueAttachment>>
-uploadPhoto(issueId: Long, file: File, contentType: String): Result<IssueAttachment>
-downloadPhoto(issueId: Long, attachmentId: Long): Result<ResponseBody>
+uploadPhoto(issueId: Long, fileName: String, fileBytes: ByteArray, contentType: String): Result<IssueAttachment>
+downloadPhoto(issueId: Long, attachmentId: Long): Result<ByteArray>
 ```
+
+Photo payloads cross the repository boundary as `ByteArray` + filename, never as a platform file
+handle or response type — this module is `commonMain` only, so `java.io.File` and OkHttp's
+`ResponseBody` are unavailable. Platform file pickers convert to bytes before calling in.
 
 ### Domain Models
 
@@ -63,4 +68,4 @@ commonMain/
 - `:core:network` — Ktor `HttpClient`, `PageDto` mapper
 - `:core:user` — `AuthManager` (via network)
 - `:core:vehicle` — `Vehicle` model referenced in `Issue`
-- `com.momosi.trucktrack:shared` — `IssueDto`, `AccountDto`, `IssueCreateDto`, `IssueFilterDto`, `IssueHistoryDto`, status/priority enums (separate build, see `../../../shared/AGENTS.MD`)
+- `com.momosi.trucktrack:shared` — `IssueDto`, `AccountDto`, `IssueCreateDto`, `IssueFilterDto`, `IssueHistoryDto`, status/priority enums (separate build, see `../../../shared/AGENTS.md`)

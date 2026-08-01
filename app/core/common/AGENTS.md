@@ -42,7 +42,7 @@ iosMain/
 
 ## Depends On
 
-No `core:*`/`feature:*` project dependencies — still the base module. Does use `com.momosi.trucktrack:shared` (external coordinate, separate build — see `../../../shared/AGENTS.MD`) for `BuildInfoDto`, and applies the `trucktrack.ktor` plugin for `VersionApi`'s standalone `HttpClient`.
+No `core:*`/`feature:*` project dependencies — still the base module. Does use `com.momosi.trucktrack:shared` (external coordinate, separate build — see `../../../shared/AGENTS.md`) for `BuildInfoDto`, and applies the `trucktrack.ktor` plugin for `VersionApi`'s standalone `HttpClient`.
 
 ## Notes
 

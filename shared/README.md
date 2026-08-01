@@ -26,7 +26,7 @@ compile against the exact same type, and drift like that isn't possible anymore.
 
 Pure Kotlin Multiplatform + `kotlinx.serialization` only — no Ktor, no Koin, no Spring, no
 Spring MVC/Jackson annotations, no Android/iOS-only APIs. It has to compile for a Spring Boot JVM
-process and for a KMP client (Android + iOS) alike. See `AGENTS.MD` for the full conventions
+process and for a KMP client (Android + iOS) alike. See `AGENTS.md` for the full conventions
 (naming, date/UUID type choices, how the server bridges those types to JSON).
 
 ## Consuming it
@@ -40,10 +40,10 @@ dependencies {
 ```
 
 Never `project(":shared")` — `shared` is a separate Gradle build, wired in only via composite-build
-dependency substitution (see the root `README.md`/`AGENTS.MD` "Repository Layout" section).
+dependency substitution (see the root `README.md`/`AGENTS.md` "Repository Layout" section).
 
 ## Docs
 
-- **`AGENTS.MD`** — package structure, naming/type conventions, consumers.
-- **`../server/module-api/AGENTS.MD`** — how the API contract layer imports these DTOs.
-- **`../server/module-server/AGENTS.MD`** — how the server maps these DTOs to/from domain models.
+- **`AGENTS.md`** — package structure, naming/type conventions, consumers.
+- **`../server/module-api/AGENTS.md`** — how the API contract layer imports these DTOs.
+- **`../server/module-server/AGENTS.md`** — how the server maps these DTOs to/from domain models.

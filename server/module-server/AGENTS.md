@@ -161,5 +161,5 @@ Download and delete do not check — a missing bucket/object should surface as a
 
 ## See Also
 
-- `../AGENTS.MD` — server-wide conventions, build commands, local env vars.
-- `../module-api/AGENTS.MD` — the API contract layer this module implements.
+- `../AGENTS.md` — server-wide conventions, build commands, local env vars.
+- `../module-api/AGENTS.md` — the API contract layer this module implements.

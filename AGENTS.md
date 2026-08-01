@@ -7,11 +7,11 @@ TruckTrack is a monorepo for a fleet-management product: a **Kotlin Multiplatfor
 * **Language** — Kotlin 2.x for all development, client and server.
 * **Libraries** — Use entries from `gradle/libs.versions.toml`, shared by all three builds.
 
-This file covers the monorepo layout and repo-wide policy only. Each part has its own detailed `AGENTS.MD` with module structure and coding conventions — read that before working inside it:
+This file covers the monorepo layout and repo-wide policy only. Each part has its own detailed `AGENTS.md` with module structure and coding conventions — read that before working inside it:
 
-* **`app/AGENTS.MD`** — Kotlin Multiplatform client: module map, MVVM architecture, Compose/Koin/Navigation conventions, KMP rules, testing, string resources.
-* **`server/AGENTS.MD`** — Spring Boot backend: build commands, module architecture, configuration. Plus `server/module-api/AGENTS.MD` and `server/module-server/AGENTS.MD` for layering/persistence conventions.
-* **`shared/AGENTS.MD`** — the DTO contract module: package structure, naming/type conventions, consumers.
+* **`app/AGENTS.md`** — Kotlin Multiplatform client: module map, MVVM architecture, Compose/Koin/Navigation conventions, KMP rules, testing, string resources.
+* **`server/AGENTS.md`** — Spring Boot backend: build commands, module architecture, configuration. Plus `server/module-api/AGENTS.md` and `server/module-server/AGENTS.md` for layering/persistence conventions.
+* **`shared/AGENTS.md`** — the DTO contract module: package structure, naming/type conventions, consumers.
 
 ### Repository Layout
 
@@ -45,7 +45,7 @@ Practical implications:
 * Do not add comments when modifying existing code, and do not "helpfully" document surrounding code you happen to touch.
 * Leave existing comments alone unless the code they describe is being changed or removed — don't do comment-removal sweeps unasked, and don't preserve a comment that has become wrong.
 * Narrow exceptions, only when they carry information the code genuinely cannot: license/copyright headers, tool directives that must be comments (`// ktlint-disable`, `// noinspection`, linter pragmas), and generated-file banners.
-* This rule is about source code. Markdown docs, `AGENTS.MD` files, and commit messages are prose and are still expected to explain things.
+* This rule is about source code. Markdown docs, `AGENTS.md` files, and commit messages are prose and are still expected to explain things.
 
 ---
 
@@ -63,7 +63,7 @@ Practical implications:
 
 ## Project Structure — `app/`, `server/`, and `shared/`
 
-* **`app/`** — Kotlin Multiplatform client (Android + iOS), Compose Multiplatform UI. See `app/AGENTS.MD` for the full module map and conventions.
-* **`server/module-api`** — Spring MVC contract interfaces only (`@Tag`, `@Operation`, `@GetMapping`, etc.), importing DTOs from `com.momosi.trucktrack:shared`. No DTOs of its own. See `server/module-api/AGENTS.MD`.
-* **`server/module-server`** — Spring Boot 4 implementation: controllers, JPA entities/repositories, use cases. Implements `module-api`'s interfaces, mapping domain models to/from `shared`'s DTOs. Includes `config/JacksonConfig.kt`, which bridges `kotlin.time.Instant` and `kotlin.uuid.Uuid` (the types `shared`'s DTOs use) to/from JSON the same plain-string way `kotlinx.serialization` already represents them on the client — the wire format is unaffected. See `server/module-server/AGENTS.MD`.
-* **`shared`** — pure KMP module (`commonMain` + `jvm()`/`androidTarget()`/iOS targets), `kotlinx.serialization`-annotated DTOs and enums (`IssueDto`, `VehicleDto`, `PageDto`, `AccountDto`, status/priority/type enums, etc.), package `com.momosi.trucktrack.shared.*`. No framework dependencies (no Ktor, Koin, Spring, Spring MVC annotations) — it must stay usable from both a Spring Boot JVM process and a KMP client. See `shared/AGENTS.MD`.
+* **`app/`** — Kotlin Multiplatform client (Android + iOS), Compose Multiplatform UI. See `app/AGENTS.md` for the full module map and conventions.
+* **`server/module-api`** — Spring MVC contract interfaces only (`@Tag`, `@Operation`, `@GetMapping`, etc.), importing DTOs from `com.momosi.trucktrack:shared`. No DTOs of its own. See `server/module-api/AGENTS.md`.
+* **`server/module-server`** — Spring Boot 4 implementation: controllers, JPA entities/repositories, use cases. Implements `module-api`'s interfaces, mapping domain models to/from `shared`'s DTOs. Includes `config/JacksonConfig.kt`, which bridges `kotlin.time.Instant` and `kotlin.uuid.Uuid` (the types `shared`'s DTOs use) to/from JSON the same plain-string way `kotlinx.serialization` already represents them on the client — the wire format is unaffected. See `server/module-server/AGENTS.md`.
+* **`shared`** — pure KMP module (`commonMain` + `jvm()`/`androidTarget()`/iOS targets), `kotlinx.serialization`-annotated DTOs and enums (`IssueDto`, `VehicleDto`, `PageDto`, `AccountDto`, status/priority/type enums, etc.), package `com.momosi.trucktrack.shared.*`. No framework dependencies (no Ktor, Koin, Spring, Spring MVC annotations) — it must stay usable from both a Spring Boot JVM process and a KMP client. See `shared/AGENTS.md`.

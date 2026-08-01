@@ -1,6 +1,6 @@
 # TruckTrack Server — Agent Instructions
 
-Spring Boot backend for the TruckTrack issue-tracking system. Own Gradle build (`server/`, plain `kotlin.jvm`), composite-built alongside `app/` and `shared/` — see the root `AGENTS.MD` for how the three fit together.
+Spring Boot backend for the TruckTrack issue-tracking system. Own Gradle build (`server/`, plain `kotlin.jvm`), composite-built alongside `app/` and `shared/` — see the root `AGENTS.md` for how the three fit together.
 
 ## Build Commands
 
@@ -17,11 +17,11 @@ docker-compose up -d
 
 ## Module Architecture
 
-**`module-api`** — API contract layer. See `module-api/AGENTS.MD` for details.
+**`module-api`** — API contract layer. See `module-api/AGENTS.md` for details.
 
-**`module-server`** — Spring Boot 4 backend (Kotlin, Java 25). See `module-server/AGENTS.MD` for details.
+**`module-server`** — Spring Boot 4 backend (Kotlin, Java 25). See `module-server/AGENTS.md` for details.
 
-**`shared`** (separate build, `com.momosi.trucktrack:shared`) — DTOs and enums used across the API contract, both here and on the KMP client. See `../shared/AGENTS.MD`.
+**`shared`** (separate build, `com.momosi.trucktrack:shared`) — DTOs and enums used across the API contract, both here and on the KMP client. See `../shared/AGENTS.md`.
 
 ## Key Configuration
 
@@ -39,5 +39,12 @@ docker-compose up -d
 - `KEYCLOAK_URL` — defaults to `https://sso.momosi.org`
 - `KEYCLOAK_REALM` — defaults to `trucktrack`
 
-## Runtime
-Currently, application, when deployed on PROD, uses Docker on Ubuntu VM. In Docker there is keycloak, postgres and NGINX. Application itself is running as a service in Linux with `java -jar` command. There is 1 shared postgres with 2 schemas, 1 for keycloak and 1 for Spring Boot app.
+## Production Runtime
+
+Ubuntu VM. Keycloak, PostgreSQL, and NGINX run in Docker; the Spring Boot app itself runs as a
+systemd service via `java -jar`, not in a container. One PostgreSQL instance serves two schemas —
+one for Keycloak, one for the app.
+
+Two consequences for changes made here: a schema migration touches only the app's own schema and
+must never assume ownership of the Keycloak one, and anything that would require the app to run
+inside Docker (container-only networking, image-baked config) needs the deployment changed first.

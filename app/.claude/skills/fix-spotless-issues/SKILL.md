@@ -65,7 +65,7 @@ From `SpotlessPlugin.kt`'s `editorConfigOverride` — these are **not** stock kt
 | `compose:modifier-reused-check` | Same `Modifier` instance applied to more than one element | Apply the incoming `modifier` only to the outermost element; give inner elements their own `Modifier` |
 | `compose:multiple-emitters-check` | Composable emits more than one top-level UI element | Wrap in a single root container (`Column`, `Box`, etc.) |
 | `compose:param-order-check` | Params ordered wrong | Required params first, then `modifier`, then other optional params, trailing-lambda `content`/`onX` last |
-| `compose:unstable-collections-check` | `List<T>` / `Map<K,V>` in a stable Composable param or `@Immutable` state | Use `ImmutableList<T>` / `persistentListOf()` from `kotlinx.collections.immutable` (matches `AGENTS.MD` Compose Stability rules) |
+| `compose:unstable-collections-check` | `List<T>` / `Map<K,V>` in a stable Composable param or `@Immutable` state | Use `ImmutableList<T>` / `persistentListOf()` from `kotlinx.collections.immutable` (matches `AGENTS.md` Compose Stability rules) |
 | `compose:preview-naming-check` | `@Preview` function named with past tense (`OnClickedPreview`) | Rename to present tense, `Preview` suffix, e.g. `IssueCardDriverPreview` |
 | `standard:trailing-comma-on-declaration-site` / `-on-call-site` | Missing trailing comma in multiline call/decl | `spotlessApply` adds it — no manual fix needed |
 
