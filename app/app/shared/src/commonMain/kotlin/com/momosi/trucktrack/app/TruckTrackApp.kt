@@ -10,8 +10,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
@@ -23,6 +21,7 @@ import com.momosi.trucktrack.core.navigation.rememberResultStore
 import com.momosi.trucktrack.core.navigation.toEntries
 import com.momosi.trucktrack.core.uilibrary.components.ErrorSnackbarHost
 import com.momosi.trucktrack.core.uilibrary.components.rememberErrorSnackbarHostState
+import com.momosi.trucktrack.core.uilibrary.markTestTagsAsResourceId
 import com.momosi.trucktrack.core.uilibrary.modifier.LocalSharedTransitionScope
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.feature.issues.api.IssuesNavKey
@@ -67,7 +66,7 @@ fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel 
                 LocalSharedTransitionScope provides this,
             ) {
                 Scaffold(
-                    modifier = Modifier.fillMaxSize().imePadding().semantics { testTagsAsResourceId = true },
+                    modifier = Modifier.fillMaxSize().imePadding().markTestTagsAsResourceId(),
                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
                     snackbarHost = { ErrorSnackbarHost(errorSnackbarHostState) },
                 ) { _ ->
