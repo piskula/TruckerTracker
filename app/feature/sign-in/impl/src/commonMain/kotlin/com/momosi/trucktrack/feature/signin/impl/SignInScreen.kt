@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -146,7 +147,7 @@ private fun SignInContent(
                     onClick = { onAction(SignInAction.SignInClick) },
                     loading = state is SignInState.Loading,
                     style = ButtonStyle.OutlinedFixed,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("sign_in_button"),
                 )
                 errorMessage?.let { error ->
                     Spacer(modifier = Modifier.height(16.dp))

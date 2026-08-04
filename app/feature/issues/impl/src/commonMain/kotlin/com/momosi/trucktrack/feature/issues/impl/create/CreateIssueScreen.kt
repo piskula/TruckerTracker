@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -154,6 +155,7 @@ private fun CreateIssueContent(
                     value = state.title,
                     onValueChange = { onAction(CreateIssueAction.UpdateTitle(it)) },
                     isError = state.titleError,
+                    fieldTestTag = "create_issue_title_field",
                 )
                 if (state.titleError) {
                     Text(
@@ -168,6 +170,7 @@ private fun CreateIssueContent(
                     value = state.description,
                     onValueChange = { onAction(CreateIssueAction.UpdateDescription(it)) },
                     minLines = 4,
+                    fieldTestTag = "create_issue_description_field",
                 )
             }
 
@@ -205,7 +208,7 @@ private fun CreateIssueContent(
                 onClick = { onAction(CreateIssueAction.Submit) },
                 enabled = true,
                 loading = state.isSubmitting,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("create_issue_submit_button"),
                 role = ButtonRole.Open,
                 icon = TruckTrackIcons.RadioButtonUnchecked,
             )
@@ -261,7 +264,8 @@ private fun VehicleSelector(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onToggle)
-                .padding(vertical = 8.dp),
+                .padding(vertical = 8.dp)
+                .testTag("create_issue_vehicle_selector"),
         ) {
             Icon(
                 imageVector = selectedVehicle?.type.vehicleIcon(),
@@ -306,7 +310,8 @@ private fun VehicleSelector(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onSelect(vehicle) }
-                            .padding(vertical = 10.dp, horizontal = 4.dp),
+                            .padding(vertical = 10.dp, horizontal = 4.dp)
+                            .testTag("create_issue_vehicle_option_${vehicle.id}"),
                     ) {
                         Icon(
                             imageVector = vehicle.type.vehicleIcon(),
@@ -331,6 +336,7 @@ private fun InputField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
+    fieldTestTag: String,
     modifier: Modifier = Modifier,
     minLines: Int = 1,
     isError: Boolean = false,
@@ -348,7 +354,8 @@ private fun InputField(
             minLines = minLines,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp),
+                .padding(top = 4.dp)
+                .testTag(fieldTestTag),
             decorationBox = { innerTextField ->
                 Column {
                     innerTextField()
@@ -427,7 +434,8 @@ private fun PrioritySegment(
         modifier = modifier
             .background(backgroundColor)
             .clickable(onClick = onClick)
-            .padding(vertical = 10.dp, horizontal = 8.dp),
+            .padding(vertical = 10.dp, horizontal = 8.dp)
+            .testTag("create_issue_priority_${priority.name}"),
     ) {
         Icon(
             imageVector = priority.icon(),
@@ -514,7 +522,8 @@ private fun PhotoUploadArea(onClick: () -> Unit, modifier: Modifier = Modifier) 
             .fillMaxWidth()
             .border(2.dp, AppTheme.colors.surfaceVariant, RoundedCornerShape(10.dp))
             .clickable(onClick = onClick)
-            .padding(20.dp),
+            .padding(20.dp)
+            .testTag("create_issue_add_photo_button"),
     ) {
         Icon(
             imageVector = TruckTrackIcons.AddPhoto,
@@ -556,7 +565,8 @@ private fun PhotoPreviews(
                     modifier = Modifier
                         .size(72.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { onPhotoClick(photo) },
+                        .clickable { onPhotoClick(photo) }
+                        .testTag("create_issue_photo_$index"),
                 )
                 Box(
                     modifier = Modifier
@@ -564,7 +574,8 @@ private fun PhotoPreviews(
                         .padding(2.dp)
                         .size(18.dp)
                         .background(AppTheme.colors.outlineVariant, CircleShape)
-                        .clickable { onRemove(photo.fileName) },
+                        .clickable { onRemove(photo.fileName) }
+                        .testTag("create_issue_remove_photo_$index"),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(

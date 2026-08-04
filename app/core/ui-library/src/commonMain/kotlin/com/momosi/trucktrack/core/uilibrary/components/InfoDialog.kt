@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -27,7 +28,11 @@ fun InfoDialog(
             Column(content = content)
         },
         confirmButton = {
-            TextButton(modifier = Modifier.fillMaxWidth(), text = dismissText, onClick = onDismiss)
+            TextButton(
+                modifier = Modifier.fillMaxWidth().testTag("info_dialog_dismiss_button"),
+                text = dismissText,
+                onClick = onDismiss,
+            )
         },
         containerColor = AppTheme.colors.surfaceContainerLowest,
         modifier = modifier,

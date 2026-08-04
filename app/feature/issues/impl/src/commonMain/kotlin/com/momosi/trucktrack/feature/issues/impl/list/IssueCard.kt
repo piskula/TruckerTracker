@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
@@ -60,6 +61,7 @@ internal fun IssueCard(
 ) {
     Box(
         modifier = modifier
+            .testTag("issue_card_${issue.id}")
             .fillMaxWidth()
             .shadow(
                 elevation = 4.dp,

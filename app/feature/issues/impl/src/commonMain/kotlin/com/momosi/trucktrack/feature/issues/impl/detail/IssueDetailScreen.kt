@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -197,7 +198,11 @@ private fun IssueDetailScreenContent(
                             color = AppTheme.colors.onSurface,
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(text = stringResource(Res.string.my_issues_retry), onClick = onRetry)
+                        Button(
+                            text = stringResource(Res.string.my_issues_retry),
+                            onClick = onRetry,
+                            modifier = Modifier.testTag("issue_detail_retry_button"),
+                        )
                     }
                 }
 
@@ -507,7 +512,8 @@ private fun HistoryCard(
                 minLines = 2,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 32.dp),
+                    .padding(bottom = 32.dp)
+                    .testTag("issue_detail_comment_field"),
                 decorationBox = { inner ->
                     if (commentText.isEmpty()) {
                         Text(
@@ -523,7 +529,8 @@ private fun HistoryCard(
                 modifier = Modifier
                     .size(24.dp)
                     .align(Alignment.BottomEnd)
-                    .clickable(enabled = sendEnabled && !isSending, onClick = onSend),
+                    .clickable(enabled = sendEnabled && !isSending, onClick = onSend)
+                    .testTag("issue_detail_send_comment_button"),
                 contentAlignment = Alignment.Center,
             ) {
                 if (isSending) {
@@ -672,13 +679,14 @@ private fun PhotosCard(
                 }
             }
             if (photosContent is IssuePhotosContent.Loaded) {
-                photosContent.items.forEach { photo ->
+                photosContent.items.forEachIndexed { index, photo ->
                     Box(
                         modifier = Modifier
                             .size(80.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(AppTheme.colors.surfaceVariant)
-                            .clickable { onPhotoClick(photo.url) },
+                            .clickable { onPhotoClick(photo.url) }
+                            .testTag("issue_detail_photo_$index"),
                         contentAlignment = Alignment.BottomCenter,
                     ) {
                         AsyncImage(
@@ -695,7 +703,8 @@ private fun PhotosCard(
                     .size(80.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(AppTheme.colors.surfaceVariant)
-                    .clickable(enabled = !isUploading, onClick = onAddPhoto),
+                    .clickable(enabled = !isUploading, onClick = onAddPhoto)
+                    .testTag("issue_detail_add_photo_button"),
                 contentAlignment = Alignment.Center,
             ) {
                 if (isUploading) {
@@ -740,6 +749,7 @@ private fun ReassignCard(
             role = ButtonRole.Warning,
             style = ButtonStyle.Tonal,
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+            modifier = Modifier.testTag("issue_detail_reassign_button"),
         )
     }
 }
@@ -766,7 +776,7 @@ private fun MechanicActionBar(
                 loading = isLoading,
                 icon = TruckTrackIcons.Build,
                 role = ButtonRole.Warning,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("issue_detail_start_working_button"),
             )
 
             MechanicActionType.ResolveIssue -> Button(
@@ -775,7 +785,7 @@ private fun MechanicActionBar(
                 loading = isLoading,
                 icon = TruckTrackIcons.Check,
                 role = ButtonRole.Positive,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("issue_detail_resolve_button"),
             )
 
             MechanicActionType.Reassign -> Unit

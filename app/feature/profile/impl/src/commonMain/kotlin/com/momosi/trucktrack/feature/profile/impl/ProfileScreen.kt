@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -91,6 +92,7 @@ private fun ProfileContent(
                 TopBarIconButton(
                     icon = TruckTrackIcons.Info,
                     onClick = { onAction(ProfileAction.ShowVersionInfo) },
+                    modifier = Modifier.testTag("profile_version_info_button"),
                 )
             },
         )
@@ -155,7 +157,7 @@ private fun ProfileContent(
                 text = stringResource(Res.string.profile_sign_out),
                 onClick = { onAction(ProfileAction.SignOut) },
                 loading = state.isSigningOut,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("profile_sign_out_button"),
             )
         }
     }
@@ -170,6 +172,7 @@ private fun ProfileContent(
                 label = stringResource(Res.string.profile_version_app_label),
                 value = state.appVersion,
                 onClick = { onAction(ProfileAction.TapAppVersion) },
+                modifier = Modifier.testTag("profile_app_version_row"),
             )
             Spacer(modifier = Modifier.height(16.dp))
             VersionRow(

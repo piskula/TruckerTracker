@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.momosi.trucktrack.core.uilibrary.components.Icon
@@ -44,7 +45,8 @@ private fun FullScreenPhoto(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
-            .clickable(onClick = onDismiss),
+            .clickable(onClick = onDismiss)
+            .testTag("full_screen_photo"),
         contentAlignment = Alignment.Center,
     ) {
         AsyncImage(
@@ -59,7 +61,8 @@ private fun FullScreenPhoto(
                 .padding(16.dp)
                 .size(40.dp)
                 .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                .clickable(onClick = onDismiss),
+                .clickable(onClick = onDismiss)
+                .testTag("full_screen_photo_close_button"),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

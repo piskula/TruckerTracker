@@ -13,6 +13,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
@@ -40,6 +41,7 @@ fun <T> FilterChipRow(
             FilterChip(
                 selected = selected,
                 onClick = { onSelect(item) },
+                modifier = Modifier.testTag("filter_chip_$item"),
                 label = {
                     Text(
                         text = labelSelector(item),

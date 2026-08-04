@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.navigation3.runtime.NavKey
 import kotlinx.collections.immutable.ImmutableList
 
@@ -43,6 +44,7 @@ fun NavigationBar(
                 NavigationBarItem(
                     selected = isSelected,
                     onClick = { onSelectKey(item.navKey) },
+                    modifier = Modifier.testTag("nav_bar_item_${item.navKey::class.simpleName}"),
                     icon = {
                         Icon(
                             imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,

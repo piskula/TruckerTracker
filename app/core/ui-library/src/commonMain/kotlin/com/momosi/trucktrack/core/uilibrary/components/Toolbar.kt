@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
@@ -33,6 +34,7 @@ fun Toolbar(
         TopBarIconButton(
             icon = TruckTrackIcons.Back,
             onClick = onBack,
+            modifier = Modifier.testTag("toolbar_back_button"),
         )
         Text(
             text = title,

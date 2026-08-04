@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
@@ -132,7 +133,11 @@ private fun IssuesScreenContent(
                     "${info.name} · $roleLabel"
                 }.orEmpty(),
                 actions = {
-                    TopBarIconButton(icon = TruckTrackIcons.AccountCircle, onClick = onNavigateToProfile)
+                    TopBarIconButton(
+                        icon = TruckTrackIcons.AccountCircle,
+                        onClick = onNavigateToProfile,
+                        modifier = Modifier.testTag("issues_profile_button"),
+                    )
                 },
             )
             FilterChipRow(
@@ -177,7 +182,8 @@ private fun IssuesScreenContent(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .navigationBarsPadding()
-                    .padding(end = 20.dp, bottom = 20.dp),
+                    .padding(end = 20.dp, bottom = 20.dp)
+                    .testTag("issues_create_fab"),
             )
         }
     }
@@ -264,7 +270,11 @@ private fun ErrorContent(onRetry: () -> Unit, modifier: Modifier = Modifier) {
                 color = AppTheme.colors.onSurface,
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Button(text = stringResource(Res.string.my_issues_retry), onClick = onRetry)
+            Button(
+                text = stringResource(Res.string.my_issues_retry),
+                onClick = onRetry,
+                modifier = Modifier.testTag("issues_retry_button"),
+            )
         }
     }
 }

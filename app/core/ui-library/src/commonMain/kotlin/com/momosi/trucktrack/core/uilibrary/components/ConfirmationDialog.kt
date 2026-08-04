@@ -5,6 +5,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -41,11 +42,12 @@ fun ConfirmationDialog(
                 text = confirmText,
                 onClick = onConfirm,
                 role = confirmButtonRole,
+                modifier = Modifier.testTag("confirmation_dialog_confirm_button"),
             )
         },
         dismissButton = {
             TextButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("confirmation_dialog_dismiss_button"),
                 onClick = onDismiss,
             ) {
                 Text(text = dismissText, style = AppTheme.typography.labelLarge, color = AppTheme.colors.onSurfaceVariant)
