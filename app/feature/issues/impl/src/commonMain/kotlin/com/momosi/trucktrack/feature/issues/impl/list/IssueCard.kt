@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
@@ -74,8 +75,9 @@ internal fun IssueCard(
             .clickable(onClick = onClick)
             .padding(start = 14.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.Top,
             ) {
@@ -84,6 +86,8 @@ internal fun IssueCard(
                     style = AppTheme.typography.titleSmall,
                     color = AppTheme.colors.onSurface,
                     modifier = Modifier.weight(1f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 StatusChip(
                     label = issue.status.displayName(),
@@ -110,30 +114,35 @@ internal fun IssueCard(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top,
             ) {
-                when (filter) {
-                    IssueFilter.MyWork,
-                    IssueFilter.MyCompleted,
-                    IssueFilter.Open,
-                    -> issue.reportedBy?.let { reporter ->
-                        MetaItem(icon = TruckTrackIcons.Edit, text = reporter.fullName)
-                    }
-
-                    IssueFilter.MyIssues,
-                    IssueFilter.MyResolved,
-                    -> MetaItem(
-                        icon = TruckTrackIcons.AssignmentInd,
-                        text = issue.assignedTo?.fullName ?: stringResource(Res.string.issue_unassigned),
-                    )
-
-                    IssueFilter.All -> Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        issue.reportedBy?.let { reporter ->
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    when (filter) {
+                        IssueFilter.MyWork,
+                        IssueFilter.MyCompleted,
+                        IssueFilter.Open,
+                        -> issue.reportedBy?.let { reporter ->
                             MetaItem(icon = TruckTrackIcons.Edit, text = reporter.fullName)
                         }
-                        issue.assignedTo?.let { assignee ->
-                            MetaItem(icon = TruckTrackIcons.AssignmentInd, text = assignee.fullName)
+
+                        IssueFilter.MyIssues,
+                        IssueFilter.MyResolved,
+                        -> MetaItem(
+                            icon = TruckTrackIcons.AssignmentInd,
+                            text = issue.assignedTo?.fullName ?: stringResource(Res.string.issue_unassigned),
+                        )
+
+                        IssueFilter.All -> {
+                            issue.reportedBy?.let { reporter ->
+                                MetaItem(icon = TruckTrackIcons.Edit, text = reporter.fullName)
+                            }
+                            issue.assignedTo?.let { assignee ->
+                                MetaItem(icon = TruckTrackIcons.AssignmentInd, text = assignee.fullName)
+                            }
                         }
                     }
                 }
@@ -141,6 +150,8 @@ internal fun IssueCard(
                     text = issue.createdAt.timeAgo(dateFormatter),
                     style = AppTheme.typography.labelMedium,
                     color = AppTheme.colors.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -171,6 +182,8 @@ private fun StatusChip(
             text = label.uppercase(),
             style = AppTheme.typography.labelSmall,
             color = contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -196,6 +209,8 @@ private fun PriorityIndicator(
             text = label.uppercase(),
             style = AppTheme.typography.labelSmall,
             color = color,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -220,6 +235,9 @@ private fun MetaItem(
             text = text,
             style = AppTheme.typography.bodySmall.copy(fontSize = 13.sp),
             color = AppTheme.colors.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
         )
     }
 }
