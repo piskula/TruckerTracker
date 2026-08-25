@@ -175,7 +175,10 @@ private fun IssuesScreenContent(
                 }
             }
         }
-        if (userInfo?.roles?.contains(UserRole.Driver) == true) {
+        if (
+            userInfo?.roles?.contains(UserRole.Driver) == true ||
+            userInfo?.roles?.contains(UserRole.Mechanic) == true
+        ) {
             FloatingActionButton(
                 icon = TruckTrackIcons.Add,
                 onClick = onNavigateToCreateIssue,
