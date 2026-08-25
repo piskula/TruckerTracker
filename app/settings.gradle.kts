@@ -30,7 +30,7 @@ dependencyResolutionManagement {
 }
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "app"
+rootProject.name = "trucktrack-app"
 include(
     ":app:android",
     ":app:shared",
