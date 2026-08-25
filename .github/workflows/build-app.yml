@@ -109,7 +109,14 @@ jobs:
 
             -   name: Install CocoaPods dependencies
                 working-directory: app/app/ios
-                run: pod install
+                run: |
+                    for attempt in 1 2 3; do
+                        pod install && break
+                        if [ "$attempt" -eq 3 ]; then
+                            exit 1
+                        fi
+                        sleep $((attempt * 15))
+                    done
 
             -   name: Check iOS signing secrets are configured
                 id: check-secrets

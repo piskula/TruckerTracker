@@ -1,5 +1,7 @@
 rootProject.name = "TruckTrack"
 
-includeBuild("app")
+includeBuild("app") {
+    name = "app"
+}
 includeBuild("server")
 includeBuild("shared")
