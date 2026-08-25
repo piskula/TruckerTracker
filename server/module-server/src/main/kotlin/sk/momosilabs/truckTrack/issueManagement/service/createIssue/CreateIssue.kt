@@ -9,7 +9,7 @@ import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
 import sk.momosilabs.truckTrack.issueManagement.model.IssueModel
 import sk.momosilabs.truckTrack.issueManagement.service.IssuePersistence
 import sk.momosilabs.truckTrack.security.CurrentUserService
-import sk.momosilabs.truckTrack.security.annotation.IsDriver
+import sk.momosilabs.truckTrack.security.annotation.IsUser
 import sk.momosilabs.truckTrack.vehicle.service.VehiclePersistence
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -22,7 +22,7 @@ class CreateIssue(
     private val currentUserService: CurrentUserService,
 ) : CreateIssueUseCase {
 
-    @IsDriver
+    @IsUser
     @Transactional
     override fun create(command: CreateIssueCommand): IssueModel {
         val vehicle = vehiclePersistence.findById(command.vehicleId)
