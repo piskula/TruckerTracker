@@ -10,7 +10,7 @@ Handles authentication (OAuth/OIDC against a Keycloak realm via [kotlin-multipla
 | `UserRepository` | Interface. Exposes `user: StateFlow<User?>`. |
 | `AuthenticationState` | Enum: `Guest`, `Authorized`. |
 | `AuthActionResult` | Sealed class: `Success`, `Failed` (`UserCancelled`, `NoInternet`, `NoActivity`, `Error`). |
-| `User` | Domain model with id, name, email, roles. |
+| `User` | Domain model with id, name, email, username (login/`preferred_username` claim), roles. |
 | `UserRole` | Enum: `Driver`, `Mechanic`. |
 | `TokenResponse` | Sealed class: `Token`, `TokenError`, `GuestWithoutToken`. |
 

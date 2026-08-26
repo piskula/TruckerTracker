@@ -14,6 +14,7 @@ private const val SERVER_PUBLIC_KEY = "server_public_key"
 private const val USER_ID = "user_id"
 private const val USER_NAME = "user_name"
 private const val USER_EMAIL = "user_email"
+private const val USER_USERNAME = "user_username"
 private const val USER_ROLES = "user_roles"
 
 class UserStorageImpl(private val authStorage: SharedPreferences) : UserStorage {
@@ -38,11 +39,13 @@ class UserStorageImpl(private val authStorage: SharedPreferences) : UserStorage 
                     putString(USER_ID, value.id)
                     putString(USER_NAME, value.name)
                     putString(USER_EMAIL, value.email)
+                    putString(USER_USERNAME, value.username)
                     putString(USER_ROLES, value.roles.joinToString(",") { it.name })
                 } else {
                     remove(USER_ID)
                     remove(USER_NAME)
                     remove(USER_EMAIL)
+                    remove(USER_USERNAME)
                     remove(USER_ROLES)
                 }
             }
@@ -54,10 +57,11 @@ class UserStorageImpl(private val authStorage: SharedPreferences) : UserStorage 
         val id = authStorage.getString(USER_ID, null) ?: return null
         val name = authStorage.getString(USER_NAME, null) ?: return null
         val email = authStorage.getString(USER_EMAIL, null) ?: return null
+        val username = authStorage.getString(USER_USERNAME, null).orEmpty()
         val roles = authStorage.getString(USER_ROLES, null)
             ?.split(",")
             ?.mapNotNullTo(mutableSetOf()) { runCatching { UserRole.valueOf(it.trim()) }.getOrNull() }
             ?.takeIf { it.isNotEmpty() } ?: return null
-        return User(id = id, name = name, email = email, roles = roles)
+        return User(id = id, name = name, email = email, username = username, roles = roles)
     }
 }

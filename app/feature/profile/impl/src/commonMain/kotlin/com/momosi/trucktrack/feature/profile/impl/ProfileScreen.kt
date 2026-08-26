@@ -44,6 +44,7 @@ import com.momosi.trucktrack.feature.profile.impl.resources.profile_role_driver
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_role_mechanic
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_sign_out
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_title
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_username
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_app_label
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_dialog_title
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_dismiss
@@ -146,6 +147,15 @@ private fun ProfileContent(
                                 color = AppTheme.colors.onSurfaceVariant,
                             )
                         }
+                    }
+                    if (user.username.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(Res.string.profile_username, user.username),
+                            style = AppTheme.typography.bodySmall,
+                            color = AppTheme.colors.onSurfaceVariant,
+                            modifier = Modifier.testTag("profile_username"),
+                        )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -296,7 +306,7 @@ private fun ProfileDriverPreview() {
     TruckTrackTheme {
         ProfileContent(
             state = ProfileState(
-                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", roles = setOf(UserRole.Driver)),
+                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", username = "mschumacher", roles = setOf(UserRole.Driver)),
                 appVersion = "1.4.2 (89)",
                 serverVersion = ServerVersionContent.Loaded("1.4.0 · Jul 20, 2026"),
             ),
@@ -312,7 +322,7 @@ private fun ProfileMechanicPreview() {
     TruckTrackTheme {
         ProfileContent(
             state = ProfileState(
-                user = User(id = "", name = "Mattia Binotto", email = "mattia@example.com", roles = setOf(UserRole.Mechanic)),
+                user = User(id = "", name = "Mattia Binotto", email = "mattia@example.com", username = "mbinotto", roles = setOf(UserRole.Mechanic)),
                 appVersion = "1.4.2 (89)",
                 serverVersion = ServerVersionContent.Loaded("1.4.0 · Jul 20, 2026"),
             ),
@@ -328,7 +338,7 @@ private fun ProfileDualRolePreview() {
     TruckTrackTheme {
         ProfileContent(
             state = ProfileState(
-                user = User(id = "", name = "Lewis Hamilton", email = "lewis@hamilton.com", roles = setOf(UserRole.Driver, UserRole.Mechanic)),
+                user = User(id = "", name = "Lewis Hamilton", email = "lewis@hamilton.com", username = "lhamilton", roles = setOf(UserRole.Driver, UserRole.Mechanic)),
                 appVersion = "1.4.2 (89)",
                 serverVersion = ServerVersionContent.Loaded("1.4.0 · Jul 20, 2026"),
             ),
@@ -356,7 +366,7 @@ private fun ProfileSigningOutPreview() {
     TruckTrackTheme {
         ProfileContent(
             state = ProfileState(
-                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", roles = setOf(UserRole.Driver)),
+                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", username = "mschumacher", roles = setOf(UserRole.Driver)),
                 isSigningOut = true,
                 appVersion = "1.4.2 (89)",
                 serverVersion = ServerVersionContent.Loaded("1.4.0 · Jul 20, 2026"),
@@ -373,7 +383,7 @@ private fun ProfileVersionDialogPreview() {
     TruckTrackTheme {
         ProfileContent(
             state = ProfileState(
-                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", roles = setOf(UserRole.Driver)),
+                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", username = "mschumacher", roles = setOf(UserRole.Driver)),
                 appVersion = "1.4.2 (89)",
                 isVersionDialogVisible = true,
                 serverVersion = ServerVersionContent.Loaded("1.4.0 · Jul 20, 2026"),
@@ -390,7 +400,7 @@ private fun ProfileLanguageDialogPreview() {
     TruckTrackTheme {
         ProfileContent(
             state = ProfileState(
-                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", roles = setOf(UserRole.Driver)),
+                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", username = "mschumacher", roles = setOf(UserRole.Driver)),
                 appVersion = "1.4.2 (89)",
                 isLanguageDialogVisible = true,
                 language = AppLanguage.Slovak,
@@ -408,7 +418,7 @@ private fun ProfileRestartNoticePreview() {
     TruckTrackTheme {
         ProfileContent(
             state = ProfileState(
-                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", roles = setOf(UserRole.Driver)),
+                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", username = "mschumacher", roles = setOf(UserRole.Driver)),
                 appVersion = "1.4.2 (89)",
                 isRestartNoticeVisible = true,
                 language = AppLanguage.Slovak,

@@ -236,6 +236,7 @@ private fun Jwt.toUser(): User {
         id = payload.sub ?: "",
         name = claims["name"] as? String ?: "",
         email = claims["email"] as? String ?: "",
+        username = claims["preferred_username"] as? String ?: "",
         roles = roles.mapNotNullTo(mutableSetOf()) { it.toUserRole() }.ifEmpty { setOf(UserRole.Driver) },
     )
 }

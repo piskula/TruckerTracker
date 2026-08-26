@@ -13,6 +13,7 @@ private const val SERVER_PUBLIC_KEY = "server_public_key"
 private const val USER_ID = "user_id"
 private const val USER_NAME = "user_name"
 private const val USER_EMAIL = "user_email"
+private const val USER_USERNAME = "user_username"
 private const val USER_ROLES = "user_roles"
 
 class UserStorageImpl(private val defaults: NSUserDefaults) : UserStorage {
@@ -38,11 +39,13 @@ class UserStorageImpl(private val defaults: NSUserDefaults) : UserStorage {
                 defaults.setObject(value.id, USER_ID)
                 defaults.setObject(value.name, USER_NAME)
                 defaults.setObject(value.email, USER_EMAIL)
+                defaults.setObject(value.username, USER_USERNAME)
                 defaults.setObject(value.roles.joinToString(",") { it.name }, USER_ROLES)
             } else {
                 defaults.removeObjectForKey(USER_ID)
                 defaults.removeObjectForKey(USER_NAME)
                 defaults.removeObjectForKey(USER_EMAIL)
+                defaults.removeObjectForKey(USER_USERNAME)
                 defaults.removeObjectForKey(USER_ROLES)
             }
             _userFlow.value = value
@@ -53,10 +56,11 @@ class UserStorageImpl(private val defaults: NSUserDefaults) : UserStorage {
         val id = defaults.stringForKey(USER_ID) ?: return null
         val name = defaults.stringForKey(USER_NAME) ?: return null
         val email = defaults.stringForKey(USER_EMAIL) ?: return null
+        val username = defaults.stringForKey(USER_USERNAME).orEmpty()
         val roles = defaults.stringForKey(USER_ROLES)
             ?.split(",")
             ?.mapNotNullTo(mutableSetOf()) { runCatching { UserRole.valueOf(it.trim()) }.getOrNull() }
             ?.takeIf { it.isNotEmpty() } ?: return null
-        return User(id = id, name = name, email = email, roles = roles)
+        return User(id = id, name = name, email = email, username = username, roles = roles)
     }
 }
