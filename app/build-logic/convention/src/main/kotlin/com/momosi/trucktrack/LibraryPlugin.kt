@@ -16,6 +16,7 @@ class LibraryPlugin : Plugin<Project> {
             apply("org.jetbrains.kotlin.multiplatform")
             apply("com.android.kotlin.multiplatform.library")
             apply("trucktrack.spotless")
+            apply("trucktrack.detekt")
         }
 
         extensions.configure<KotlinMultiplatformExtension> {

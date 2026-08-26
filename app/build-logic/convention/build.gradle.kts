@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.spotless.gradle.plugin)
     implementation(libs.ksp.gradle.plugin)
     implementation(libs.ktorfit.gradle.plugin)
+    implementation(project(":detekt"))
 }
 
 gradlePlugin {

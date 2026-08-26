@@ -1,0 +1,60 @@
+config:
+  warningsAsErrors: false
+
+comments:
+  active: false
+
+complexity:
+  active: false
+
+naming:
+  active: false
+
+performance:
+  active: false
+
+coroutines:
+  active: false
+
+empty-blocks:
+  active: false
+
+style:
+  active: true
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: false
+  ReturnCount:
+    active: false
+  ThrowsCount:
+    active: false
+  NewLineAtEndOfFile:
+    active: false
+
+exceptions:
+  active: true
+  TooGenericExceptionThrown:
+    active: true
+    severity: warning
+  NotImplementedDeclaration:
+    active: true
+    severity: warning
+
+potential-bugs:
+  active: true
+  CastNullableToNonNullableType:
+    active: true
+    severity: error
+  CastToNullableType:
+    active: true
+    severity: error
+  DontDowncastCollectionTypes:
+    active: true
+    severity: error
+  NullCheckOnMutableProperty:
+    active: true
+    severity: error
+  UnconditionalJumpStatementInLoop:
+    active: true
+    severity: error

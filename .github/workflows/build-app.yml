@@ -10,9 +10,39 @@ on:
             - '.claude/**'
             - 'docs/**'
             - 'server/**'
+    pull_request:
+        paths-ignore:
+            - '**/*.md'
+            - '**/*.MD'
+            - '.claude/**'
+            - 'docs/**'
+            - 'server/**'
     workflow_dispatch:
 
 jobs:
+    verify:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            security-events: write
+
+        steps:
+            -   name: Checkout Repository
+                uses: actions/checkout@v4
+
+            -   name: Set up Gradle build environment
+                uses: ./.github/actions/setup-gradle-build
+
+            -   name: Run detekt and Android Lint
+                run: ./gradlew :app:app:android:detekt :app:app:android:lintDebug --continue
+
+            -   name: Upload SARIF reports
+                if: always()
+                uses: github/codeql-action/upload-sarif@v4
+                with:
+                    sarif_file: app
+                    category: android
+
     build-android:
         runs-on: ubuntu-latest
 
@@ -20,19 +50,8 @@ jobs:
             -   name: Checkout Repository
                 uses: actions/checkout@v4
 
-            -   name: Set up JDK 21
-                uses: actions/setup-java@v5
-                with:
-                    java-version: '21'
-                    distribution: 'jetbrains'
-                env:
-                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            -   name: Setup Gradle
-                uses: gradle/actions/setup-gradle@v4
-
-            -   name: Grant execute permission for gradlew
-                run: chmod +x gradlew
+            -   name: Set up Gradle build environment
+                uses: ./.github/actions/setup-gradle-build
 
             -   name: Fetch Firebase Android config
                 run: |
@@ -71,19 +90,8 @@ jobs:
             -   name: Checkout Repository
                 uses: actions/checkout@v4
 
-            -   name: Set up JDK 21
-                uses: actions/setup-java@v5
-                with:
-                    java-version: '21'
-                    distribution: 'jetbrains'
-                env:
-                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            -   name: Setup Gradle
-                uses: gradle/actions/setup-gradle@v4
-
-            -   name: Grant execute permission for gradlew
-                run: chmod +x gradlew
+            -   name: Set up Gradle build environment
+                uses: ./.github/actions/setup-gradle-build
 
             -   name: Select latest Xcode
                 uses: maxim-lobanov/setup-xcode@v1
@@ -258,8 +266,12 @@ jobs:
                 run: security delete-keychain "$KEYCHAIN_PATH" || true
 
     publish-release:
-        needs: [ build-android, build-ios ]
-        if: always()
+        needs: [ verify, build-android, build-ios ]
+        if: |
+            always() &&
+            github.event_name != 'pull_request' &&
+            github.ref == 'refs/heads/main' &&
+            needs.verify.result == 'success'
         runs-on: ubuntu-latest
         permissions:
             contents: write
@@ -322,7 +334,11 @@ jobs:
                     GH_REPO: ${{ github.repository }}
 
     distribute-android:
-        needs: [ build-android ]
+        needs: [ verify, build-android ]
+        if: |
+            github.event_name != 'pull_request' &&
+            github.ref == 'refs/heads/main' &&
+            needs.verify.result == 'success'
         runs-on: ubuntu-latest
 
         steps:
@@ -354,8 +370,12 @@ jobs:
                     FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
 
     distribute-ios:
-        needs: [ build-ios ]
-        if: needs.build-ios.outputs.signed == 'true'
+        needs: [ verify, build-ios ]
+        if: |
+            github.event_name != 'pull_request' &&
+            github.ref == 'refs/heads/main' &&
+            needs.verify.result == 'success' &&
+            needs.build-ios.outputs.signed == 'true'
         runs-on: ubuntu-latest
 
         steps:
