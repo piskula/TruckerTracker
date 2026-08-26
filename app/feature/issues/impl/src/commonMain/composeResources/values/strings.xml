@@ -41,6 +41,11 @@
     <string name="issue_detail_resolve_confirm_message">Mark this issue as resolved? This action cannot be undone.</string>
     <string name="issue_detail_resolve_confirm_confirm">Resolve</string>
     <string name="issue_detail_resolve_confirm_cancel">Cancel</string>
+    <string name="issue_detail_delete_photo">Delete photo</string>
+    <string name="issue_detail_delete_photo_confirm_title">Delete Photo</string>
+    <string name="issue_detail_delete_photo_confirm_message">Remove this photo from the issue? This action cannot be undone.</string>
+    <string name="issue_detail_delete_photo_confirm_confirm">Delete</string>
+    <string name="issue_detail_delete_photo_confirm_cancel">Cancel</string>
     <string name="issue_detail_error">Could not load issue details</string>
     <string name="issue_detail_start_working">Start Working</string>
     <string name="issue_detail_resolve_issue">Resolve Issue</string>

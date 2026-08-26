@@ -6,7 +6,9 @@ import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStatus
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
 
 @Immutable
 data class IssueDetailState(
@@ -18,6 +20,8 @@ data class IssueDetailState(
     val mechanicAction: MechanicActionType? = null,
     val isMechanicActionLoading: Boolean = false,
     val isUploadingPhoto: Boolean = false,
+    val canDeletePhotos: Boolean = false,
+    val deletingPhotoIds: ImmutableSet<Long> = persistentSetOf(),
     val statusChanged: Boolean = false,
 )
 

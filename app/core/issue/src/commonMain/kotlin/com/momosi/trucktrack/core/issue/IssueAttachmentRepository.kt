@@ -22,4 +22,6 @@ interface IssueAttachmentRepository {
     ): Result<IssueAttachment>
 
     suspend fun downloadPhoto(issueId: Long, attachmentId: Long): Result<ByteArray>
+
+    suspend fun deletePhoto(issueId: Long, attachmentId: Long): Result<Unit>
 }

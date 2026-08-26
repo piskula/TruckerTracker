@@ -434,6 +434,38 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Issue Attachments"
+        ],
+        "summary": "Delete photo",
+        "operationId": "deletePhoto",
+        "parameters": [
+          {
+            "name": "issueId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/api/v1/issue/{id}/history": {

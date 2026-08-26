@@ -7,4 +7,5 @@ import sk.momosilabs.truckTrack.issueAttachment.entity.IssueAttachmentEntity
 
 interface IssueAttachmentRepository : JpaRepository<IssueAttachmentEntity, Long> {
     fun findAllByIssueId(issueId: Long, pageable: Pageable): Page<IssueAttachmentEntity>
+    fun findByIdAndIssueId(id: Long, issueId: Long): IssueAttachmentEntity?
 }
