@@ -225,17 +225,19 @@ class AuthManagerImpl(
     }
 }
 
-private fun Jwt.toUser(): User {
-    val claims = payload.additionalClaims
+private fun Jwt.toUser(): User = claimsToUser(sub = payload.sub, claims = payload.additionalClaims)
+
+internal fun claimsToUser(sub: String?, claims: Map<String, Any?>): User {
     val roles = ((claims["realm_access"] as? Map<*, *>)?.get("roles") as? List<*>)
         ?.filterIsInstance<String>()
         ?.filterNot { it.startsWith("default-roles") || it in setOf("offline_access", "uma_authorization") }
         .orEmpty()
 
     return User(
-        id = payload.sub ?: "",
+        id = sub ?: "",
         name = claims["name"] as? String ?: "",
         email = claims["email"] as? String ?: "",
+        username = claims["preferred_username"] as? String ?: "",
         roles = roles.mapNotNullTo(mutableSetOf()) { it.toUserRole() }.ifEmpty { setOf(UserRole.Driver) },
     )
 }
