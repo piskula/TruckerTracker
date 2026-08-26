@@ -88,13 +88,14 @@ internal fun IssueCard(
                     text = stringResource(Res.string.issue_card_id, issue.id),
                     style = AppTheme.typography.labelMedium,
                     color = AppTheme.colors.onSurfaceVariant,
+                    modifier = Modifier.alignByBaseline(),
                     maxLines = 1,
                 )
                 Text(
                     text = issue.title,
                     style = AppTheme.typography.titleSmall,
                     color = AppTheme.colors.onSurface,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).alignByBaseline(),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )

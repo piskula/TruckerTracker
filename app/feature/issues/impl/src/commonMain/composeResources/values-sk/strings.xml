@@ -19,7 +19,7 @@
     <string name="issue_priority_medium">Stredná</string>
     <string name="issue_priority_low">Nízka</string>
     <string name="issue_unassigned">Nepriradené</string>
-    <string name="issue_card_id">č. %1$d</string>
+    <string name="issue_card_id">#%1$d</string>
 
     <string name="time_ago_just_now">Práve teraz</string>
     <string name="time_ago_minutes">pred %1$d min.</string>
