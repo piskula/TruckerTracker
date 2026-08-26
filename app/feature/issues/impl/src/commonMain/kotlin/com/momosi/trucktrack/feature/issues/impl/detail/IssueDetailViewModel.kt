@@ -55,6 +55,7 @@ class IssueDetailViewModel(
             is IssueDetailAction.StartWorking -> startWorking()
             is IssueDetailAction.ResolveIssue -> resolveIssue()
             is IssueDetailAction.ReassignToMe -> reassignToMe()
+            is IssueDetailAction.CancelIssue -> cancelIssue()
         }
     }
 
@@ -82,6 +83,7 @@ class IssueDetailViewModel(
                     content = IssueDetailContent.Loaded(issue.toUi(), historyDeferred.await()),
                     mechanicAction = computeMechanicAction(issue),
                     canDeletePhotos = computeCanDeletePhotos(issue),
+                    canCancelIssue = computeCanCancelIssue(issue),
                 )
             }
         }
@@ -137,6 +139,12 @@ class IssueDetailViewModel(
     }
 
     private fun computeCanDeletePhotos(issue: Issue): Boolean {
+        val user = userRepository.user.value ?: return false
+        if (!user.isDriver) return false
+        return issue.status == IssueStatus.Open && issue.reportedBy?.id == user.id
+    }
+
+    private fun computeCanCancelIssue(issue: Issue): Boolean {
         val user = userRepository.user.value ?: return false
         if (!user.isDriver) return false
         return issue.status == IssueStatus.Open && issue.reportedBy?.id == user.id
@@ -203,6 +211,29 @@ class IssueDetailViewModel(
                     refreshHistory()
                 }
                 .onFailure(::onMechanicActionFailure)
+        }
+    }
+
+    private fun cancelIssue() {
+        if (_state.value.isCancellingIssue) return
+        _state.update { it.copy(isCancellingIssue = true) }
+        viewModelScope.launch {
+            issueRepository.cancelIssue(issueId)
+                .onSuccess { issue ->
+                    _state.update {
+                        it.copy(
+                            content = it.withUpdatedIssue(issue),
+                            canCancelIssue = computeCanCancelIssue(issue),
+                            isCancellingIssue = false,
+                            statusChanged = true,
+                        )
+                    }
+                    refreshHistory()
+                }
+                .onFailure {
+                    _state.update { state -> state.copy(isCancellingIssue = false) }
+                    errorReporter.report(it)
+                }
         }
     }
 

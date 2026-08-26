@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class IssueStatusDto {
-    OPEN, IN_PROGRESS, DONE
+    OPEN, IN_PROGRESS, DONE, CANCELLED
 }

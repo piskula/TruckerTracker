@@ -11,4 +11,5 @@ sealed interface IssueDetailAction {
     data object StartWorking : IssueDetailAction
     data object ResolveIssue : IssueDetailAction
     data object ReassignToMe : IssueDetailAction
+    data object CancelIssue : IssueDetailAction
 }

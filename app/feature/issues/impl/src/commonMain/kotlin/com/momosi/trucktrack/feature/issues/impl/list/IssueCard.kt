@@ -40,6 +40,7 @@ import com.momosi.trucktrack.feature.issues.impl.resources.Res
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_high
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_low
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_medium
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_cancelled
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_done
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_in_progress
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_open
@@ -253,6 +254,7 @@ private fun IssueStatus.containerColor() = when (this) {
     IssueStatus.Open -> AppTheme.colors.open
     IssueStatus.InProgress -> AppTheme.colors.warning
     IssueStatus.Done -> AppTheme.colors.positive
+    IssueStatus.Cancelled -> AppTheme.colors.error
 }
 
 @Composable
@@ -260,12 +262,14 @@ private fun IssueStatus.contentColor() = when (this) {
     IssueStatus.Open -> AppTheme.colors.onOpen
     IssueStatus.InProgress -> AppTheme.colors.onWarning
     IssueStatus.Done -> AppTheme.colors.onPositive
+    IssueStatus.Cancelled -> AppTheme.colors.onError
 }
 
 private fun IssueStatus.icon() = when (this) {
     IssueStatus.Open -> TruckTrackIcons.RadioButtonUnchecked
     IssueStatus.InProgress -> TruckTrackIcons.Build
     IssueStatus.Done -> TruckTrackIcons.Check
+    IssueStatus.Cancelled -> TruckTrackIcons.Close
 }
 
 @Composable
@@ -274,6 +278,7 @@ private fun IssueStatus.displayName(): String = stringResource(
         IssueStatus.Open -> Res.string.issue_status_open
         IssueStatus.InProgress -> Res.string.issue_status_in_progress
         IssueStatus.Done -> Res.string.issue_status_done
+        IssueStatus.Cancelled -> Res.string.issue_status_cancelled
     },
 )
 

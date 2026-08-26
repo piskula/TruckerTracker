@@ -48,6 +48,10 @@ interface IssueManagementApi {
     @PostMapping("$ENDPOINT/{id}/resolve")
     fun resolveIssue(@PathVariable id: Long): IssueDto
 
+    @Operation(summary = "Cancel issue")
+    @PostMapping("$ENDPOINT/{id}/cancel")
+    fun cancelIssue(@PathVariable id: Long): IssueDto
+
     @Operation(summary = "Get issue history")
     @GetMapping("$ENDPOINT/{id}/history")
     fun getIssueHistory(

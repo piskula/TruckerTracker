@@ -63,6 +63,12 @@ class IssueRepositoryImpl(private val issueApi: IssueApi, private val issueHisto
         .onNoConnectionFailure { Logger.w(TAG, it, "Failed to resolve issue $id (offline)") }
         .onNetworkFailure { Logger.e(TAG, it, "Failed to resolve issue $id") }
 
+    override suspend fun cancelIssue(id: Long): Result<Issue> = runCatchingCancellable {
+        issueApi.cancelIssue(id).toIssue()
+    }
+        .onNoConnectionFailure { Logger.w(TAG, it, "Failed to cancel issue $id (offline)") }
+        .onNetworkFailure { Logger.e(TAG, it, "Failed to cancel issue $id") }
+
     override suspend fun assignIssue(id: Long): Result<Issue> = runCatchingCancellable {
         issueApi.assignIssue(id).toIssue()
     }
