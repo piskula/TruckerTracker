@@ -39,5 +39,8 @@ interface IssueRepository {
         statuses: List<IssueStatus> = emptyList(),
         vehicleIds: List<Long> = emptyList(),
         accountIds: List<String> = emptyList(),
+        sort: String = DEFAULT_ISSUE_SORT,
     ): PagingSource<Int, Issue>
 }
+
+const val DEFAULT_ISSUE_SORT = "status,desc;priority,asc;createdAtUtc,asc"

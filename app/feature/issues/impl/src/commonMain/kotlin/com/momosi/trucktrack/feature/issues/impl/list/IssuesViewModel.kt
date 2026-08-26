@@ -7,6 +7,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.momosi.trucktrack.core.common.logger.Logger
+import com.momosi.trucktrack.core.issue.DEFAULT_ISSUE_SORT
 import com.momosi.trucktrack.core.issue.IssueRepository
 import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueStatus
@@ -52,6 +53,7 @@ class IssuesViewModel(private val userRepository: UserRepository, private val is
                     issueRepository.getIssuesPagingSource(
                         statuses = filter.statuses(),
                         accountIds = filter.accountIds(userId),
+                        sort = filter.sort(),
                     )
                 },
             ).flow
@@ -95,6 +97,17 @@ private fun IssueFilter.statuses(): List<IssueStatus> = when (this) {
     IssueFilter.MyCompleted -> listOf(IssueStatus.Done)
     IssueFilter.Open -> listOf(IssueStatus.Open)
     IssueFilter.All -> emptyList()
+}
+
+private fun IssueFilter.sort(): String = when (this) {
+    IssueFilter.MyCompleted -> "updatedAtUtc,desc"
+
+    IssueFilter.MyIssues,
+    IssueFilter.MyResolved,
+    IssueFilter.MyWork,
+    IssueFilter.Open,
+    IssueFilter.All,
+    -> DEFAULT_ISSUE_SORT
 }
 
 private fun IssueFilter.accountIds(userId: String?): List<String> = when (this) {

@@ -19,6 +19,7 @@
     <string name="issue_priority_medium">Medium</string>
     <string name="issue_priority_low">Low</string>
     <string name="issue_unassigned">Unassigned</string>
+    <string name="issue_card_id">#%1$d</string>
 
     <string name="time_ago_just_now">Just now</string>
     <string name="time_ago_minutes">%1$d min ago</string>

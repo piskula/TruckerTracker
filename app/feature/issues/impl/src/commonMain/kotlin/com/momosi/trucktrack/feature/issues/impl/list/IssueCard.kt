@@ -37,6 +37,7 @@ import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import com.momosi.trucktrack.feature.issues.impl.resources.Res
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_card_id
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_high
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_low
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_medium
@@ -83,6 +84,12 @@ internal fun IssueCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.Top,
             ) {
+                Text(
+                    text = stringResource(Res.string.issue_card_id, issue.id),
+                    style = AppTheme.typography.labelMedium,
+                    color = AppTheme.colors.onSurfaceVariant,
+                    maxLines = 1,
+                )
                 Text(
                     text = issue.title,
                     style = AppTheme.typography.titleSmall,

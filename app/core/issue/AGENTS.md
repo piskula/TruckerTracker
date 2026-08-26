@@ -21,7 +21,7 @@ resolveIssue(id: Long): Result<Issue>
 assignIssue(id: Long): Result<Issue>
 addComment(issueId: Long, comment: String): Result<IssueHistory>
 getIssueHistory(issueId, page, size): Result<Page<IssueHistory>>
-getIssuesPagingSource(statuses, vehicleIds, accountIds): PagingSource<Int, Issue>
+getIssuesPagingSource(statuses, vehicleIds, accountIds, sort): PagingSource<Int, Issue>
 ```
 
 **`IssueAttachmentRepository` methods:**
