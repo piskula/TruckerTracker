@@ -100,10 +100,11 @@ private fun IssueFilter.statuses(): List<IssueStatus> = when (this) {
 }
 
 private fun IssueFilter.sort(): String = when (this) {
-    IssueFilter.MyCompleted -> "updatedAtUtc,desc"
+    IssueFilter.MyCompleted,
+    IssueFilter.MyResolved,
+    -> "updatedAtUtc,desc"
 
     IssueFilter.MyIssues,
-    IssueFilter.MyResolved,
     IssueFilter.MyWork,
     IssueFilter.Open,
     IssueFilter.All,
