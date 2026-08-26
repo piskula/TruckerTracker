@@ -3,6 +3,7 @@
     <string name="profile_sign_out">Sign Out</string>
     <string name="profile_role_driver">Driver</string>
     <string name="profile_role_mechanic">Mechanic</string>
+    <string name="profile_username">Login name: %1$s</string>
     <string name="profile_version_dialog_title">App Version</string>
     <string name="profile_version_app_label">App</string>
     <string name="profile_version_server_label">Server</string>

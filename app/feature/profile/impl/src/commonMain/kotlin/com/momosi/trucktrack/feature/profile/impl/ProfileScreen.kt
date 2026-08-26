@@ -44,6 +44,7 @@ import com.momosi.trucktrack.feature.profile.impl.resources.profile_role_driver
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_role_mechanic
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_sign_out
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_title
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_username
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_app_label
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_dialog_title
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_dismiss
@@ -150,7 +151,7 @@ private fun ProfileContent(
                     if (user.username.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "@${user.username}",
+                            text = stringResource(Res.string.profile_username, user.username),
                             style = AppTheme.typography.bodySmall,
                             color = AppTheme.colors.onSurfaceVariant,
                             modifier = Modifier.testTag("profile_username"),

@@ -3,6 +3,7 @@
     <string name="profile_sign_out">Odhlásiť sa</string>
     <string name="profile_role_driver">Vodič</string>
     <string name="profile_role_mechanic">Mechanik</string>
+    <string name="profile_username">Prihlasovacie meno: %1$s</string>
     <string name="profile_version_dialog_title">Verzia aplikácie</string>
     <string name="profile_version_app_label">Aplikácia</string>
     <string name="profile_version_server_label">Server</string>
