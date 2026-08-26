@@ -14,8 +14,5 @@ kotlin {
             implementation(libs.oidc.core)
             api(libs.oidc.appsupport)
         }
-        commonTest.dependencies {
-            implementation(kotlin("test"))
-        }
     }
 }
