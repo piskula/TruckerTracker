@@ -128,7 +128,7 @@ internal fun IssueCard(
                         IssueFilter.MyCompleted,
                         IssueFilter.Open,
                         -> issue.reportedBy?.let { reporter ->
-                            MetaItem(icon = TruckTrackIcons.Edit, text = reporter.fullName)
+                            MetaItem(icon = TruckTrackIcons.Edit, text = reporter.fullName, maxLines = 2)
                         }
 
                         IssueFilter.MyIssues,
@@ -136,14 +136,15 @@ internal fun IssueCard(
                         -> MetaItem(
                             icon = TruckTrackIcons.AssignmentInd,
                             text = issue.assignedTo?.fullName ?: stringResource(Res.string.issue_unassigned),
+                            maxLines = 2,
                         )
 
                         IssueFilter.All -> {
                             issue.reportedBy?.let { reporter ->
-                                MetaItem(icon = TruckTrackIcons.Edit, text = reporter.fullName)
+                                MetaItem(icon = TruckTrackIcons.Edit, text = reporter.fullName, maxLines = 2)
                             }
                             issue.assignedTo?.let { assignee ->
-                                MetaItem(icon = TruckTrackIcons.AssignmentInd, text = assignee.fullName)
+                                MetaItem(icon = TruckTrackIcons.AssignmentInd, text = assignee.fullName, maxLines = 2)
                             }
                         }
                     }
@@ -224,9 +225,10 @@ private fun MetaItem(
     icon: ImageVector,
     text: String,
     modifier: Modifier = Modifier,
+    maxLines: Int = 1,
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = if (maxLines > 1) Alignment.Top else Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp),
         modifier = modifier,
     ) {
@@ -239,7 +241,7 @@ private fun MetaItem(
             text = text,
             style = AppTheme.typography.bodySmall.copy(fontSize = 13.sp),
             color = AppTheme.colors.onSurfaceVariant,
-            maxLines = 1,
+            maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f, fill = false),
         )
