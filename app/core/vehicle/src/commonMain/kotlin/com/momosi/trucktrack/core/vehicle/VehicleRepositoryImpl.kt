@@ -13,7 +13,7 @@ private const val TAG = "Vehicles"
 class VehicleRepositoryImpl(private val vehicleApi: VehicleApi) : VehicleRepository {
 
     override suspend fun getVehicles(): Result<List<Vehicle>> = runCatchingCancellable {
-        vehicleApi.getVehicleList().map { it.toVehicle() }
+        vehicleApi.getVehicleList().map { it.toVehicle() }.sortedBy { it.licensePlate }
     }
         .onNoConnectionFailure { Logger.w(TAG, it, "Failed to get vehicles (offline)") }
         .onNetworkFailure { Logger.e(TAG, it, "Failed to get vehicles") }
