@@ -84,21 +84,26 @@ internal fun IssueCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.Top,
             ) {
-                Text(
-                    text = stringResource(Res.string.issue_card_id, issue.id),
-                    style = AppTheme.typography.labelMedium,
-                    color = AppTheme.colors.onSurfaceVariant,
-                    modifier = Modifier.alignByBaseline(),
-                    maxLines = 1,
-                )
-                Text(
-                    text = issue.title,
-                    style = AppTheme.typography.titleSmall,
-                    color = AppTheme.colors.onSurface,
-                    modifier = Modifier.weight(1f).alignByBaseline(),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.issue_card_id, issue.id),
+                        style = AppTheme.typography.labelMedium,
+                        color = AppTheme.colors.onSurfaceVariant,
+                        modifier = Modifier.alignByBaseline(),
+                        maxLines = 1,
+                    )
+                    Text(
+                        text = issue.title,
+                        style = AppTheme.typography.titleSmall,
+                        color = AppTheme.colors.onSurface,
+                        modifier = Modifier.weight(1f).alignByBaseline(),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 StatusChip(
                     label = issue.status.displayName(),
                     containerColor = issue.status.containerColor(),
