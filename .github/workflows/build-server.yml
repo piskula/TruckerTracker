@@ -38,12 +38,19 @@ jobs:
                 working-directory: server
                 run: ./gradlew detekt --continue
 
-            -   name: Upload SARIF reports
+            -   name: Upload module-api SARIF report
                 if: always()
                 uses: github/codeql-action/upload-sarif@v4
                 with:
-                    sarif_file: server
-                    category: server
+                    sarif_file: server/module-api/build/reports/detekt/detekt.sarif
+                    category: server-module-api
+
+            -   name: Upload module-server SARIF report
+                if: always()
+                uses: github/codeql-action/upload-sarif@v4
+                with:
+                    sarif_file: server/module-server/build/reports/detekt/detekt.sarif
+                    category: server-module-server
 
     build:
         runs-on: ubuntu-latest

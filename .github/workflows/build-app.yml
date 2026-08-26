@@ -33,15 +33,31 @@ jobs:
             -   name: Set up Gradle build environment
                 uses: ./.github/actions/setup-gradle-build
 
+            -   name: Fetch Firebase Android config
+                run: |
+                    npx firebase-tools@latest apps:sdkconfig ANDROID "$FIREBASE_APP_ID" \
+                        --project trucktrack-cf134 \
+                        -o app/app/android/google-services.json
+                env:
+                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+                    FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+
             -   name: Run detekt and Android Lint
                 run: ./gradlew :app:app:android:detekt :app:app:android:lintDebug --continue
 
-            -   name: Upload SARIF reports
+            -   name: Upload detekt SARIF report
                 if: always()
                 uses: github/codeql-action/upload-sarif@v4
                 with:
-                    sarif_file: app
-                    category: android
+                    sarif_file: app/app/android/build/reports/detekt/detekt.sarif
+                    category: android-detekt
+
+            -   name: Upload Android Lint SARIF report
+                if: always()
+                uses: github/codeql-action/upload-sarif@v4
+                with:
+                    sarif_file: app/app/android/build/reports/lint-results-debug.sarif
+                    category: android-lint
 
     build-android:
         runs-on: ubuntu-latest
