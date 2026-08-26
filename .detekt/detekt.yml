@@ -2,22 +2,22 @@ config:
   warningsAsErrors: false
 
 comments:
-  active: false
+  active: true
 
 complexity:
-  active: false
+  active: true
 
 naming:
-  active: false
+  active: true
 
 performance:
-  active: false
+  active: true
 
 coroutines:
-  active: false
+  active: true
 
 empty-blocks:
-  active: false
+  active: true
 
 style:
   active: true
