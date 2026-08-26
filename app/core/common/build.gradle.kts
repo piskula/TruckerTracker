@@ -15,5 +15,8 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation("com.momosi.trucktrack:shared")
         }
+        androidMain.dependencies {
+            implementation(libs.androidx.appcompat)
+        }
     }
 }

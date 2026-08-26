@@ -64,6 +64,7 @@ dependencies {
     implementation(projects.core.user)
 
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.appcompat)
     implementation(libs.coil.compose)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)

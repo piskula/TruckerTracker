@@ -96,7 +96,8 @@ that uses them gets the tag for free — don't re-tag these per screen.
 `create_issue_remove_photo_<index>`, `create_issue_submit_button`
 
 **Profile:** `toolbar_back_button`, `profile_version_info_button`, `profile_sign_out_button`,
-`profile_app_version_row`, `info_dialog_dismiss_button`
+`profile_app_version_row`, `profile_language_button`, `profile_language_english_row`,
+`profile_language_slovak_row`, `info_dialog_dismiss_button`
 
 **Full Screen Photo:** `full_screen_photo` (tap-to-dismiss background), `full_screen_photo_close_button`
 

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.EmojiPeople
 import androidx.compose.material.icons.rounded.GroupAdd
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PhotoCamera
@@ -45,6 +46,7 @@ data object TruckTrackIcons {
     val Close = Icons.Rounded.Close
     val GroupAdd = Icons.Rounded.GroupAdd
     val Info = Icons.Rounded.Info
+    val Language = Icons.Rounded.Language
     val Truck = TruckVectorIcon
     val Trailer = TrailerVectorIcon
     val Search = Icons.Rounded.Search

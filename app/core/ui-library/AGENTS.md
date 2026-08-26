@@ -17,7 +17,7 @@ KMP module: components in `commonMain`, `@Preview` functions in `androidMain`.
 
 `TruckTrackIcons` — single object containing all icon references. Always add new icons here, never import Material icon classes directly in feature modules.
 
-Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `RadioButtonUnchecked`, `ArrowUpward`, `ArrowDownward`, `Remove`, `Truck` (custom), `Trailer` (custom), `Search`, `MoreVert`, `Send`, `ChatBubbleOutline`, `Info`.
+Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `RadioButtonUnchecked`, `ArrowUpward`, `ArrowDownward`, `Remove`, `Truck` (custom), `Trailer` (custom), `Search`, `MoreVert`, `Send`, `ChatBubbleOutline`, `Info`, `Language`.
 
 ## Components
 

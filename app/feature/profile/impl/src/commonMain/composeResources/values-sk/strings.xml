@@ -9,5 +9,10 @@
     <string name="profile_version_loading">Načítava sa…</string>
     <string name="profile_version_unavailable">Nedostupné</string>
     <string name="profile_version_dismiss">OK</string>
+    <string name="profile_language_title">Jazyk</string>
+    <string name="profile_language_english">Angličtina</string>
+    <string name="profile_language_slovak">Slovenčina</string>
+    <string name="profile_language_restart_title">Vyžaduje sa reštart</string>
+    <string name="profile_language_restart_message">Zatvorte a znova otvorte aplikáciu, aby sa zmena jazyka prejavila.</string>
 </resources>
 

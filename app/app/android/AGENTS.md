@@ -12,7 +12,7 @@ TruckTrackActivity.kt      ← setContent { }, enableEdgeToEdge(), renders Truck
 ## Responsibilities
 
 - `TruckTrackApplication`: initializes Koin via `initializeApp()` from `app:shared`, sets up Coil image loader.
-- `TruckTrackActivity`: calls `setContent { TruckTrackApp() }` — the shared root Composable from `app:shared`.
+- `TruckTrackActivity`: calls `setContent { TruckTrackApp() }` — the shared root Composable from `app:shared`. Extends `AppCompatActivity` (not a plain `ComponentActivity`) specifically so `AppCompatDelegate.setApplicationLocales()` (used by `core:common`'s `LanguageRepository`) auto-recreates it when the in-app language changes — AppCompat only does this for `AppCompatActivity` subclasses, so don't change the base class back without re-solving that. This requires `AppTheme` (`res/values/themes.xml`) to descend from `Theme.AppCompat.*` — `AppCompatActivity.setContentView`/`setContent` throws `IllegalStateException` at startup with a non-AppCompat parent theme (e.g. a plain `android:Theme.Material.*`).
 
 ## Depends On
 

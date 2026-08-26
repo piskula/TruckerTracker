@@ -2,7 +2,10 @@ package com.momosi.trucktrack.feature.profile.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.momosi.trucktrack.core.common.coroutines.combine
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
+import com.momosi.trucktrack.core.common.language.AppLanguage
+import com.momosi.trucktrack.core.common.language.LanguageRepository
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.common.version.AppVersionProvider
 import com.momosi.trucktrack.core.common.version.VersionRepository
@@ -13,7 +16,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -25,6 +27,7 @@ class ProfileViewModel(
     appVersionProvider: AppVersionProvider,
     private val dateFormatter: DateFormatter,
     private val testCrashManager: TestCrashManager,
+    private val languageRepository: LanguageRepository,
 ) : ViewModel() {
 
     private val _event = Channel<ProfileEvent>(Channel.BUFFERED)
@@ -35,19 +38,27 @@ class ProfileViewModel(
     private val isSigningOut = MutableStateFlow(false)
     private val isVersionDialogVisible = MutableStateFlow(false)
     private val serverVersion = MutableStateFlow<ServerVersionContent>(ServerVersionContent.Loading)
+    private val isLanguageDialogVisible = MutableStateFlow(false)
+    private val isRestartNoticeVisible = MutableStateFlow(false)
 
     val state: StateFlow<ProfileState> = combine(
         userRepository.user,
         isSigningOut,
         isVersionDialogVisible,
         serverVersion,
-    ) { user, signingOut, versionDialogVisible, serverVersionState ->
+        languageRepository.language,
+        isLanguageDialogVisible,
+        isRestartNoticeVisible,
+    ) { user, signingOut, versionDialogVisible, serverVersionState, language, languageDialogVisible, restartNoticeVisible ->
         ProfileState(
             user = user,
             isSigningOut = signingOut,
             appVersion = appVersion,
             isVersionDialogVisible = versionDialogVisible,
             serverVersion = serverVersionState,
+            language = language,
+            isLanguageDialogVisible = languageDialogVisible,
+            isRestartNoticeVisible = restartNoticeVisible,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -62,6 +73,18 @@ class ProfileViewModel(
             is ProfileAction.ShowVersionInfo -> showVersionInfo()
             is ProfileAction.DismissVersionInfo -> isVersionDialogVisible.value = false
             is ProfileAction.TapAppVersion -> testCrashManager.registerAppVersionTap()
+            is ProfileAction.ShowLanguageSelector -> isLanguageDialogVisible.value = true
+            is ProfileAction.DismissLanguageSelector -> isLanguageDialogVisible.value = false
+            is ProfileAction.SelectLanguage -> selectLanguage(action.language)
+            is ProfileAction.DismissRestartNotice -> isRestartNoticeVisible.value = false
+        }
+    }
+
+    private fun selectLanguage(language: AppLanguage) {
+        languageRepository.setLanguage(language)
+        isLanguageDialogVisible.value = false
+        if (languageRepository.requiresRestartToApply) {
+            isRestartNoticeVisible.value = true
         }
     }
 

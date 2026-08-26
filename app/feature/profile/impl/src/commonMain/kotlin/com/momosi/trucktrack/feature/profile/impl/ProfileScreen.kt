@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.momosi.trucktrack.core.common.language.AppLanguage
 import com.momosi.trucktrack.core.uilibrary.components.Button
 import com.momosi.trucktrack.core.uilibrary.components.Icon
 import com.momosi.trucktrack.core.uilibrary.components.InfoDialog
@@ -34,6 +35,11 @@ import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.feature.profile.impl.resources.Res
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_language_english
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_language_restart_message
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_language_restart_title
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_language_slovak
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_language_title
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_role_driver
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_role_mechanic
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_sign_out
@@ -89,6 +95,11 @@ private fun ProfileContent(
             title = stringResource(Res.string.profile_title),
             onBack = onBack,
             actions = {
+                TopBarIconButton(
+                    icon = TruckTrackIcons.Language,
+                    onClick = { onAction(ProfileAction.ShowLanguageSelector) },
+                    modifier = Modifier.testTag("profile_language_button"),
+                )
                 TopBarIconButton(
                     icon = TruckTrackIcons.Info,
                     onClick = { onAction(ProfileAction.ShowVersionInfo) },
@@ -184,6 +195,68 @@ private fun ProfileContent(
                 },
             )
         }
+    }
+
+    if (state.isLanguageDialogVisible) {
+        InfoDialog(
+            title = stringResource(Res.string.profile_language_title),
+            dismissText = stringResource(Res.string.profile_version_dismiss),
+            onDismiss = { onAction(ProfileAction.DismissLanguageSelector) },
+        ) {
+            LanguageRow(
+                label = stringResource(Res.string.profile_language_english),
+                selected = state.language == AppLanguage.English,
+                onClick = { onAction(ProfileAction.SelectLanguage(AppLanguage.English)) },
+                modifier = Modifier.testTag("profile_language_english_row"),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LanguageRow(
+                label = stringResource(Res.string.profile_language_slovak),
+                selected = state.language == AppLanguage.Slovak,
+                onClick = { onAction(ProfileAction.SelectLanguage(AppLanguage.Slovak)) },
+                modifier = Modifier.testTag("profile_language_slovak_row"),
+            )
+        }
+    }
+
+    if (state.isRestartNoticeVisible) {
+        InfoDialog(
+            title = stringResource(Res.string.profile_language_restart_title),
+            dismissText = stringResource(Res.string.profile_version_dismiss),
+            onDismiss = { onAction(ProfileAction.DismissRestartNotice) },
+        ) {
+            Text(
+                text = stringResource(Res.string.profile_language_restart_message),
+                style = AppTheme.typography.bodyMedium,
+                color = AppTheme.colors.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
+private fun LanguageRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(
+            imageVector = if (selected) TruckTrackIcons.CheckCircle else TruckTrackIcons.RadioButtonUnchecked,
+            tint = if (selected) AppTheme.colors.primary else AppTheme.colors.onSurfaceVariant,
+        )
+        Text(
+            text = label,
+            style = AppTheme.typography.bodyLarge,
+            color = AppTheme.colors.onSurface,
+        )
     }
 }
 
@@ -303,6 +376,42 @@ private fun ProfileVersionDialogPreview() {
                 user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", roles = setOf(UserRole.Driver)),
                 appVersion = "1.4.2 (89)",
                 isVersionDialogVisible = true,
+                serverVersion = ServerVersionContent.Loaded("1.4.0 · Jul 20, 2026"),
+            ),
+            onAction = {},
+            onBack = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProfileLanguageDialogPreview() {
+    TruckTrackTheme {
+        ProfileContent(
+            state = ProfileState(
+                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", roles = setOf(UserRole.Driver)),
+                appVersion = "1.4.2 (89)",
+                isLanguageDialogVisible = true,
+                language = AppLanguage.Slovak,
+                serverVersion = ServerVersionContent.Loaded("1.4.0 · Jul 20, 2026"),
+            ),
+            onAction = {},
+            onBack = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProfileRestartNoticePreview() {
+    TruckTrackTheme {
+        ProfileContent(
+            state = ProfileState(
+                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", roles = setOf(UserRole.Driver)),
+                appVersion = "1.4.2 (89)",
+                isRestartNoticeVisible = true,
+                language = AppLanguage.Slovak,
                 serverVersion = ServerVersionContent.Loaded("1.4.0 · Jul 20, 2026"),
             ),
             onAction = {},
