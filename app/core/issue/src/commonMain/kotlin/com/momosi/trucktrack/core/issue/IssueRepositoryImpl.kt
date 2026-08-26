@@ -33,7 +33,7 @@ class IssueRepositoryImpl(private val issueApi: IssueApi, private val issueHisto
             filter = statuses.toFilterDto(vehicleIds, accountIds),
             page = 0,
             size = 500,
-            sort = "status,desc;priority,asc;createdAtUtc,asc",
+            sort = DEFAULT_ISSUE_SORT,
         ).toPage { it.toIssue() }
     }
         .onNoConnectionFailure { Logger.w(TAG, it, "Failed to get issues (offline)") }
@@ -94,10 +94,12 @@ class IssueRepositoryImpl(private val issueApi: IssueApi, private val issueHisto
         statuses: List<IssueStatus>,
         vehicleIds: List<Long>,
         accountIds: List<String>,
+        sort: String,
     ): PagingSource<Int, Issue> = IssuePagingSource(
         issueApi = issueApi,
         statuses = statuses,
         vehicleIds = vehicleIds,
         accountIds = accountIds,
+        sort = sort,
     )
 }

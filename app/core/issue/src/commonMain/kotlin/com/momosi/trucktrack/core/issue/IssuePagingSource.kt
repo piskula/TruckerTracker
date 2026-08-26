@@ -11,7 +11,7 @@ import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueStatus
 import kotlinx.coroutines.CancellationException
 
-internal class IssuePagingSource(private val issueApi: IssueApi, private val statuses: List<IssueStatus>, private val vehicleIds: List<Long>, private val accountIds: List<String>) : PagingSource<Int, Issue>() {
+internal class IssuePagingSource(private val issueApi: IssueApi, private val statuses: List<IssueStatus>, private val vehicleIds: List<Long>, private val accountIds: List<String>, private val sort: String) : PagingSource<Int, Issue>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Issue> = try {
         val page = params.key ?: 0
@@ -19,7 +19,7 @@ internal class IssuePagingSource(private val issueApi: IssueApi, private val sta
             filter = statuses.toFilterDto(vehicleIds, accountIds),
             page = page,
             size = params.loadSize,
-            sort = "status,desc;priority,asc;createdAtUtc,asc",
+            sort = sort,
         )
         val issues = pageDto.content.map { it.toIssue() }
         LoadResult.Page(
