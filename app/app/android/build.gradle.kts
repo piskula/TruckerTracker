@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.trucktrack.spotless)
     alias(libs.plugins.trucktrack.android.signing)
+    alias(libs.plugins.trucktrack.detekt)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.services)
@@ -43,7 +44,7 @@ android {
     }
 
     lint {
-        disable += "MissingTranslation"
+        sarifReport = true
     }
 }
 

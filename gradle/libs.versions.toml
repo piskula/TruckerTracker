@@ -32,6 +32,7 @@ ksp = "2.3.10"
 kotlinx-serialization-json = "1.11.0"
 spotless = "8.8.0"
 compose-rules-ktlint = "0.6.2"
+detekt = "2.0.0-alpha.5"
 paging = "3.5.0"
 
 # Firebase
@@ -130,6 +131,7 @@ spotless-gradle-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradl
 ksp-gradle-plugin = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 ktorfit-gradle-plugin = { module = "de.jensklingenberg.ktorfit:de.jensklingenberg.ktorfit.gradle.plugin", version.ref = "ktorfit" }
 compose-rules-ktlint = { module = "io.nlopez.compose.rules:ktlint", version.ref = "compose-rules-ktlint" }
+detekt-gradle-plugin = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -149,6 +151,9 @@ trucktrack-compose = { id = "trucktrack.compose" }
 trucktrack-ktor = { id = "trucktrack.ktor" }
 trucktrack-android-signing = { id = "trucktrack.android.signing" }
 trucktrack-firebase = { id = "trucktrack.firebase" }
+trucktrack-detekt = { id = "trucktrack.detekt" }
+trucktrack-sarif-merge = { id = "trucktrack.sarif-merge" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-gradle" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
