@@ -30,4 +30,9 @@ class FilePersistenceProvider(
         )
         return fileRepository.save(entityToSave).toModel()
     }
+
+    @Transactional
+    override fun delete(fileId: Long) {
+        fileRepository.deleteById(fileId)
+    }
 }

@@ -9,7 +9,7 @@ Domain models, repositories, and DTOs for the issue (maintenance request) domain
 | Interface | Description |
 |-----------|-------------|
 | `IssueRepository` | CRUD + lifecycle actions on issues. See below for full method list. |
-| `IssueAttachmentRepository` | Photo upload, download, and listing for an issue. |
+| `IssueAttachmentRepository` | Photo upload, download, listing, and deletion for an issue. |
 
 **`IssueRepository` methods:**
 ```kotlin
@@ -30,6 +30,7 @@ getPhotoUrl(issueId: Long, attachmentId: Long): String
 getPhotos(issueId, page, size, sort): Result<Page<IssueAttachment>>
 uploadPhoto(issueId: Long, fileName: String, fileBytes: ByteArray, contentType: String): Result<IssueAttachment>
 downloadPhoto(issueId: Long, attachmentId: Long): Result<ByteArray>
+deletePhoto(issueId: Long, attachmentId: Long): Result<Unit>
 ```
 
 Photo payloads cross the repository boundary as `ByteArray` + filename, never as a platform file

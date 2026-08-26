@@ -41,6 +41,11 @@
     <string name="issue_detail_resolve_confirm_message">Označiť toto hlásenie ako vyriešené? Túto akciu nemožno vrátiť späť.</string>
     <string name="issue_detail_resolve_confirm_confirm">Uzavrieť</string>
     <string name="issue_detail_resolve_confirm_cancel">Zrušiť</string>
+    <string name="issue_detail_delete_photo">Vymazať fotografiu</string>
+    <string name="issue_detail_delete_photo_confirm_title">Vymazať fotografiu</string>
+    <string name="issue_detail_delete_photo_confirm_message">Odstrániť túto fotografiu z hlásenia? Túto akciu nemožno vrátiť späť.</string>
+    <string name="issue_detail_delete_photo_confirm_confirm">Vymazať</string>
+    <string name="issue_detail_delete_photo_confirm_cancel">Zrušiť</string>
     <string name="issue_detail_error">Nepodarilo sa načítať detail hlásenia</string>
     <string name="issue_detail_start_working">Začať pracovať</string>
     <string name="issue_detail_resolve_issue">Uzavrieť hlásenie</string>

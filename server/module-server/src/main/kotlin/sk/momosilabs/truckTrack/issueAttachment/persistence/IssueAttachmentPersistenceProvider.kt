@@ -42,4 +42,17 @@ class IssueAttachmentPersistenceProvider(
             )
         ).toModel()
     }
+
+    @Transactional(readOnly = true)
+    override fun findFileByIssueIdAndAttachmentId(issueId: Long, attachmentId: Long): FileModel =
+        findAttachment(issueId, attachmentId).file.toModel()
+
+    @Transactional
+    override fun delete(issueId: Long, attachmentId: Long) {
+        issueAttachmentRepository.delete(findAttachment(issueId, attachmentId))
+    }
+
+    private fun findAttachment(issueId: Long, attachmentId: Long) =
+        issueAttachmentRepository.findByIdAndIssueId(attachmentId, issueId)
+            ?: throw GlobalNotFoundException("attachment id=$attachmentId not found for issue id=$issueId")
 }

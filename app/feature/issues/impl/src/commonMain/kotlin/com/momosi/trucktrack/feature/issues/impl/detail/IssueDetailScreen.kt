@@ -76,6 +76,11 @@ import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import com.momosi.trucktrack.feature.issues.impl.resources.Res
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_assigned
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_comment_placeholder
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_delete_photo
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_delete_photo_confirm_cancel
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_delete_photo_confirm_confirm
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_delete_photo_confirm_message
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_delete_photo_confirm_title
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_description
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_error
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history
@@ -104,6 +109,7 @@ import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerType
 import io.github.vinceglb.filekit.core.PlatformFile
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
@@ -136,6 +142,7 @@ internal fun IssueDetailScreen(
         onResolveIssue = { viewModel.onAction(IssueDetailAction.ResolveIssue) },
         onReassignToMe = { viewModel.onAction(IssueDetailAction.ReassignToMe) },
         onUploadPhoto = { viewModel.onAction(IssueDetailAction.UploadPhoto(it)) },
+        onDeletePhoto = { viewModel.onAction(IssueDetailAction.DeletePhoto(it)) },
         onNavigateToFullScreenPhoto = onNavigateToFullScreenPhoto,
     )
 }
@@ -153,10 +160,27 @@ private fun IssueDetailScreenContent(
     onResolveIssue: () -> Unit,
     onReassignToMe: () -> Unit,
     onUploadPhoto: (PlatformFile) -> Unit,
+    onDeletePhoto: (Long) -> Unit,
     onNavigateToFullScreenPhoto: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showResolveConfirmation by remember { mutableStateOf(false) }
+    var photoPendingDeletion by remember { mutableStateOf<PhotoItem?>(null) }
+
+    photoPendingDeletion?.let { photo ->
+        ConfirmationDialog(
+            title = stringResource(Res.string.issue_detail_delete_photo_confirm_title),
+            message = stringResource(Res.string.issue_detail_delete_photo_confirm_message),
+            confirmText = stringResource(Res.string.issue_detail_delete_photo_confirm_confirm),
+            dismissText = stringResource(Res.string.issue_detail_delete_photo_confirm_cancel),
+            onConfirm = {
+                photoPendingDeletion = null
+                onDeletePhoto(photo.id)
+            },
+            onDismiss = { photoPendingDeletion = null },
+            confirmButtonRole = ButtonRole.Warning,
+        )
+    }
 
     if (showResolveConfirmation) {
         ConfirmationDialog(
@@ -217,6 +241,8 @@ private fun IssueDetailScreenContent(
                         mechanicAction = state.mechanicAction,
                         isMechanicActionLoading = state.isMechanicActionLoading,
                         isUploadingPhoto = state.isUploadingPhoto,
+                        canDeletePhotos = state.canDeletePhotos,
+                        deletingPhotoIds = state.deletingPhotoIds,
                         onUpdateComment = onUpdateComment,
                         onSendComment = onSendComment,
                         onStartWorking = onStartWorking,
@@ -224,6 +250,7 @@ private fun IssueDetailScreenContent(
                         onReassignToMe = onReassignToMe,
                         onUploadPhoto = onUploadPhoto,
                         onPhotoClick = onNavigateToFullScreenPhoto,
+                        onPhotoDeleteClick = { photoPendingDeletion = it },
                     )
                 }
             }
@@ -241,6 +268,8 @@ private fun LoadedContent(
     mechanicAction: MechanicActionType?,
     isMechanicActionLoading: Boolean,
     isUploadingPhoto: Boolean,
+    canDeletePhotos: Boolean,
+    deletingPhotoIds: ImmutableSet<Long>,
     onUpdateComment: (String) -> Unit,
     onSendComment: () -> Unit,
     onStartWorking: () -> Unit,
@@ -248,6 +277,7 @@ private fun LoadedContent(
     onReassignToMe: () -> Unit,
     onUploadPhoto: (PlatformFile) -> Unit,
     onPhotoClick: (String) -> Unit,
+    onPhotoDeleteClick: (PhotoItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val photoPickerLauncher = rememberFilePickerLauncher(
@@ -290,7 +320,10 @@ private fun LoadedContent(
                 PhotosCard(
                     photosContent = photosContent,
                     isUploading = isUploadingPhoto,
+                    canDeletePhotos = canDeletePhotos,
+                    deletingPhotoIds = deletingPhotoIds,
                     onPhotoClick = onPhotoClick,
+                    onPhotoDeleteClick = onPhotoDeleteClick,
                     onAddPhoto = { photoPickerLauncher.launch() },
                 )
             }
@@ -658,7 +691,10 @@ private fun TimelineStep(
 private fun PhotosCard(
     photosContent: IssuePhotosContent,
     isUploading: Boolean,
+    canDeletePhotos: Boolean,
+    deletingPhotoIds: ImmutableSet<Long>,
     onPhotoClick: (String) -> Unit,
+    onPhotoDeleteClick: (PhotoItem) -> Unit,
     onAddPhoto: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -680,6 +716,7 @@ private fun PhotosCard(
             }
             if (photosContent is IssuePhotosContent.Loaded) {
                 photosContent.items.forEachIndexed { index, photo ->
+                    val isDeleting = photo.id in deletingPhotoIds
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -695,6 +732,35 @@ private fun PhotosCard(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.matchParentSize(),
                         )
+                        if (isDeleting) {
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .background(Color.Black.copy(alpha = 0.5f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                LoadingSpinner(size = 24.dp, strokeWidth = 2.dp)
+                            }
+                        } else if (canDeletePhotos) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(4.dp)
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.6f))
+                                    .clickable { onPhotoDeleteClick(photo) }
+                                    .testTag("issue_detail_delete_photo_$index"),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = TruckTrackIcons.Close,
+                                    contentDescription = stringResource(Res.string.issue_detail_delete_photo),
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -928,6 +994,7 @@ private fun IssueDetailLoadedPreview() {
             onResolveIssue = {},
             onReassignToMe = {},
             onUploadPhoto = {},
+            onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
     }
@@ -951,6 +1018,7 @@ private fun IssueDetailHistoryEmptyPreview() {
             onResolveIssue = {},
             onReassignToMe = {},
             onUploadPhoto = {},
+            onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
     }
@@ -970,6 +1038,7 @@ private fun IssueDetailFullLoadingPreview() {
             onResolveIssue = {},
             onReassignToMe = {},
             onUploadPhoto = {},
+            onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
     }

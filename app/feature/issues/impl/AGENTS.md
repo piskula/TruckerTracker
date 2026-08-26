@@ -30,7 +30,7 @@ UI and logic for the issues feature. Three screens: list, detail, create.
 | `IssueDetailSkeleton.kt` | Shimmer skeleton mirroring the loaded layout (people strip, header, history, photos), shown while `content` is `Loading` |
 | `IssueDetailViewModel.kt` | Loads issue + history + attachments, handles status transitions |
 | `IssueDetailState.kt` | Sealed state with loading/error/content variants |
-| `IssueDetailAction.kt` | `StartIssue`, `ResolveIssue`, `AssignIssue`, `AddComment`, `UploadPhoto`, `ResolveConfirmDismiss` |
+| `IssueDetailAction.kt` | `StartIssue`, `ResolveIssue`, `AssignIssue`, `AddComment`, `UploadPhoto`, `DeletePhoto`, `ResolveConfirmDismiss` |
 
 ### Create Issue (`create/`)
 

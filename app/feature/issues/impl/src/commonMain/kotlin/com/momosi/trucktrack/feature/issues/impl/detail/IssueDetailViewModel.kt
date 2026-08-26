@@ -15,6 +15,7 @@ import io.github.vinceglb.filekit.core.PlatformFile
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -48,6 +49,7 @@ class IssueDetailViewModel(
         when (action) {
             is IssueDetailAction.UpdateComment -> _state.update { it.copy(commentText = action.text) }
             is IssueDetailAction.UploadPhoto -> uploadPhoto(action.file)
+            is IssueDetailAction.DeletePhoto -> deletePhoto(action.attachmentId)
             is IssueDetailAction.SendComment -> sendComment()
             is IssueDetailAction.Retry -> loadIssueDetail()
             is IssueDetailAction.StartWorking -> startWorking()
@@ -79,6 +81,7 @@ class IssueDetailViewModel(
                 it.copy(
                     content = IssueDetailContent.Loaded(issue.toUi(), historyDeferred.await()),
                     mechanicAction = computeMechanicAction(issue),
+                    canDeletePhotos = computeCanDeletePhotos(issue),
                 )
             }
         }
@@ -131,6 +134,12 @@ class IssueDetailViewModel(
             issue.status == IssueStatus.InProgress && issue.assignedTo?.id != user.id -> MechanicActionType.Reassign
             else -> null
         }
+    }
+
+    private fun computeCanDeletePhotos(issue: Issue): Boolean {
+        val user = userRepository.user.value ?: return false
+        if (!user.isDriver) return false
+        return issue.status == IssueStatus.Open && issue.reportedBy?.id == user.id
     }
 
     private fun onMechanicActionFailure(error: Throwable) {
@@ -237,9 +246,31 @@ class IssueDetailViewModel(
         }
     }
 
-    private fun mimeTypeFromFileName(fileName: String): String = when (
-        fileName.substringAfterLast('.', "").lowercase()
-    ) {
+    private fun deletePhoto(attachmentId: Long) {
+        if (attachmentId in _state.value.deletingPhotoIds) return
+        _state.update { it.copy(deletingPhotoIds = (it.deletingPhotoIds + attachmentId).toImmutableSet()) }
+        viewModelScope.launch {
+            issueAttachmentRepository.deletePhoto(issueId = issueId, attachmentId = attachmentId)
+                .onSuccess {
+                    _state.update { state ->
+                        val photosContent = state.photosContent
+                        if (photosContent is IssuePhotosContent.Loaded) {
+                            state.copy(
+                                photosContent = photosContent.copy(
+                                    items = photosContent.items.filterNot { it.id == attachmentId }.toImmutableList(),
+                                ),
+                            )
+                        } else {
+                            state
+                        }
+                    }
+                }
+                .onFailure { errorReporter.report(it) }
+            _state.update { it.copy(deletingPhotoIds = (it.deletingPhotoIds - attachmentId).toImmutableSet()) }
+        }
+    }
+
+    private fun mimeTypeFromFileName(fileName: String): String = when (fileName.substringAfterLast('.', "").lowercase()) {
         "jpg", "jpeg" -> "image/jpeg"
         "png" -> "image/png"
         "gif" -> "image/gif"

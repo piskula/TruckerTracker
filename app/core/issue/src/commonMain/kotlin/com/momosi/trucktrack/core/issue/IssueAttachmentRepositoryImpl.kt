@@ -67,4 +67,10 @@ class IssueAttachmentRepositoryImpl(private val issueAttachmentApi: IssueAttachm
     }
         .onNoConnectionFailure { Logger.w(TAG, it, "Failed to download photo $attachmentId for issue $issueId (offline)") }
         .onNetworkFailure { Logger.e(TAG, it, "Failed to download photo $attachmentId for issue $issueId") }
+
+    override suspend fun deletePhoto(issueId: Long, attachmentId: Long): Result<Unit> = runCatchingCancellable {
+        issueAttachmentApi.deletePhoto(issueId, attachmentId)
+    }
+        .onNoConnectionFailure { Logger.w(TAG, it, "Failed to delete photo $attachmentId for issue $issueId (offline)") }
+        .onNetworkFailure { Logger.e(TAG, it, "Failed to delete photo $attachmentId for issue $issueId") }
 }
