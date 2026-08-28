@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 import sk.momosilabs.truckTrack.api.issue.IssueManagementApi
 import sk.momosilabs.truckTrack.issueManagement.service.addComment.AddCommentUseCase
 import sk.momosilabs.truckTrack.issueManagement.service.assignToMe.AssignInProgressIssueToMeUseCase
+import sk.momosilabs.truckTrack.issueManagement.service.cancelIssue.CancelIssueUseCase
 import sk.momosilabs.truckTrack.issueManagement.service.createIssue.CreateIssueCommand
 import sk.momosilabs.truckTrack.issueManagement.service.createIssue.CreateIssueUseCase
 import sk.momosilabs.truckTrack.issueManagement.service.getIssue.GetIssueUseCase
@@ -28,6 +29,7 @@ class IssueManagementController(
     private val startIssue: StartIssueUseCase,
     private val assignInProgressIssueToMe: AssignInProgressIssueToMeUseCase,
     private val resolveIssue: ResolveIssueUseCase,
+    private val cancelIssue: CancelIssueUseCase,
     private val getIssueHistory: GetIssueHistoryUseCase,
     private val addComment: AddCommentUseCase,
 ) : IssueManagementApi {
@@ -60,6 +62,9 @@ class IssueManagementController(
 
     override fun resolveIssue(id: Long): IssueDto =
         resolveIssue.resolve(id).toDto()
+
+    override fun cancelIssue(id: Long): IssueDto =
+        cancelIssue.cancel(id).toDto()
 
     override fun getIssueHistory(id: Long, pageable: PageableDto): PageDto<IssueHistoryDto> =
         getIssueHistory.get(id, pageable.toModel()).toDto { it.toDto() }

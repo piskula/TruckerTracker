@@ -15,6 +15,7 @@
     <string name="issue_status_open">Otvorené</string>
     <string name="issue_status_in_progress">V riešení</string>
     <string name="issue_status_done">Hotové</string>
+    <string name="issue_status_cancelled">Zrušené</string>
     <string name="issue_priority_high">Vysoká</string>
     <string name="issue_priority_medium">Stredná</string>
     <string name="issue_priority_low">Nízka</string>
@@ -52,6 +53,11 @@
     <string name="issue_detail_resolve_issue">Uzavrieť hlásenie</string>
     <string name="issue_detail_reassign_description">Toto hlásenie je pridelené inému mechanikovi. Môžete ho prideliť sebe.</string>
     <string name="issue_detail_reassign_to_me">Prideliť mne</string>
+    <string name="issue_detail_cancel_issue">Zrušiť hlásenie</string>
+    <string name="issue_detail_cancel_confirm_title">Zrušiť hlásenie</string>
+    <string name="issue_detail_cancel_confirm_message">Zrušiť toto hlásenie? Túto akciu nemožno vrátiť späť.</string>
+    <string name="issue_detail_cancel_confirm_confirm">Zrušiť hlásenie</string>
+    <string name="issue_detail_cancel_confirm_cancel">Ponechať hlásenie</string>
 
     <string name="create_issue_title">Nahlásiť problém</string>
     <string name="create_issue_vehicle">Vozidlo</string>

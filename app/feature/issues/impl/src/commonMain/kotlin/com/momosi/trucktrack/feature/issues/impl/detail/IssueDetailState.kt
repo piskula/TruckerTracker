@@ -23,6 +23,8 @@ data class IssueDetailState(
     val canDeletePhotos: Boolean = false,
     val deletingPhotoIds: ImmutableSet<Long> = persistentSetOf(),
     val statusChanged: Boolean = false,
+    val canCancelIssue: Boolean = false,
+    val isCancellingIssue: Boolean = false,
 )
 
 @Immutable

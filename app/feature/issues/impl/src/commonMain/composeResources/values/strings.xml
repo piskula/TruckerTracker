@@ -15,6 +15,7 @@
     <string name="issue_status_open">Open</string>
     <string name="issue_status_in_progress">In Progress</string>
     <string name="issue_status_done">Done</string>
+    <string name="issue_status_cancelled">Cancelled</string>
     <string name="issue_priority_high">High</string>
     <string name="issue_priority_medium">Medium</string>
     <string name="issue_priority_low">Low</string>
@@ -52,6 +53,11 @@
     <string name="issue_detail_resolve_issue">Resolve Issue</string>
     <string name="issue_detail_reassign_description">This issue is assigned to another mechanic. You can reassign it to yourself.</string>
     <string name="issue_detail_reassign_to_me">Reassign to Me</string>
+    <string name="issue_detail_cancel_issue">Cancel Issue</string>
+    <string name="issue_detail_cancel_confirm_title">Cancel Issue</string>
+    <string name="issue_detail_cancel_confirm_message">Cancel this issue? This action cannot be undone.</string>
+    <string name="issue_detail_cancel_confirm_confirm">Cancel Issue</string>
+    <string name="issue_detail_cancel_confirm_cancel">Keep Issue</string>
 
     <string name="create_issue_title">Report Issue</string>
     <string name="create_issue_vehicle">Vehicle</string>

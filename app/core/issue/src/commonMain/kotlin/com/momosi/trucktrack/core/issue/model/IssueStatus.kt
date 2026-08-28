@@ -4,6 +4,7 @@ enum class IssueStatus {
     Open,
     InProgress,
     Done,
+    Cancelled,
     ;
 
     companion object {
@@ -11,6 +12,7 @@ enum class IssueStatus {
             "OPEN" -> Open
             "IN_PROGRESS" -> InProgress
             "DONE" -> Done
+            "CANCELED" -> Cancelled
             else -> Open
         }
     }
@@ -19,5 +21,6 @@ enum class IssueStatus {
         Open -> "OPEN"
         InProgress -> "IN_PROGRESS"
         Done -> "DONE"
+        Cancelled -> "CANCELED"
     }
 }

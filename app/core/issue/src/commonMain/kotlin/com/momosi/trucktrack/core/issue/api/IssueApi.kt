@@ -33,6 +33,9 @@ interface IssueApi {
     @POST("api/v1/issue/{id}/resolve")
     suspend fun resolveIssue(@Path("id") id: Long): IssueDto
 
+    @POST("api/v1/issue/{id}/cancel")
+    suspend fun cancelIssue(@Path("id") id: Long): IssueDto
+
     @POST("api/v1/issue/{id}/assignTome")
     suspend fun assignIssue(@Path("id") id: Long): IssueDto
 

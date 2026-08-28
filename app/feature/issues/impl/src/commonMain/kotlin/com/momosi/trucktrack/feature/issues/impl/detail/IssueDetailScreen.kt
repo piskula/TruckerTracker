@@ -75,6 +75,11 @@ import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import com.momosi.trucktrack.feature.issues.impl.resources.Res
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_assigned
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_cancel_confirm_cancel
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_cancel_confirm_confirm
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_cancel_confirm_message
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_cancel_confirm_title
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_cancel_issue
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_comment_placeholder
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_delete_photo
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_delete_photo_confirm_cancel
@@ -101,6 +106,7 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_title
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_high
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_low
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_medium
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_cancelled
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_done
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_in_progress
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_open
@@ -141,6 +147,7 @@ internal fun IssueDetailScreen(
         onStartWorking = { viewModel.onAction(IssueDetailAction.StartWorking) },
         onResolveIssue = { viewModel.onAction(IssueDetailAction.ResolveIssue) },
         onReassignToMe = { viewModel.onAction(IssueDetailAction.ReassignToMe) },
+        onCancelIssue = { viewModel.onAction(IssueDetailAction.CancelIssue) },
         onUploadPhoto = { viewModel.onAction(IssueDetailAction.UploadPhoto(it)) },
         onDeletePhoto = { viewModel.onAction(IssueDetailAction.DeletePhoto(it)) },
         onNavigateToFullScreenPhoto = onNavigateToFullScreenPhoto,
@@ -159,12 +166,14 @@ private fun IssueDetailScreenContent(
     onStartWorking: () -> Unit,
     onResolveIssue: () -> Unit,
     onReassignToMe: () -> Unit,
+    onCancelIssue: () -> Unit,
     onUploadPhoto: (PlatformFile) -> Unit,
     onDeletePhoto: (Long) -> Unit,
     onNavigateToFullScreenPhoto: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showResolveConfirmation by remember { mutableStateOf(false) }
+    var showCancelConfirmation by remember { mutableStateOf(false) }
     var photoPendingDeletion by remember { mutableStateOf<PhotoItem?>(null) }
 
     photoPendingDeletion?.let { photo ->
@@ -194,6 +203,21 @@ private fun IssueDetailScreenContent(
             },
             onDismiss = { showResolveConfirmation = false },
             confirmButtonRole = ButtonRole.Positive,
+        )
+    }
+
+    if (showCancelConfirmation) {
+        ConfirmationDialog(
+            title = stringResource(Res.string.issue_detail_cancel_confirm_title),
+            message = stringResource(Res.string.issue_detail_cancel_confirm_message),
+            confirmText = stringResource(Res.string.issue_detail_cancel_confirm_confirm),
+            dismissText = stringResource(Res.string.issue_detail_cancel_confirm_cancel),
+            onConfirm = {
+                showCancelConfirmation = false
+                onCancelIssue()
+            },
+            onDismiss = { showCancelConfirmation = false },
+            confirmButtonRole = ButtonRole.Warning,
         )
     }
 
@@ -243,11 +267,14 @@ private fun IssueDetailScreenContent(
                         isUploadingPhoto = state.isUploadingPhoto,
                         canDeletePhotos = state.canDeletePhotos,
                         deletingPhotoIds = state.deletingPhotoIds,
+                        canCancelIssue = state.canCancelIssue,
+                        isCancellingIssue = state.isCancellingIssue,
                         onUpdateComment = onUpdateComment,
                         onSendComment = onSendComment,
                         onStartWorking = onStartWorking,
                         onResolveIssue = { showResolveConfirmation = true },
                         onReassignToMe = onReassignToMe,
+                        onCancelIssue = { showCancelConfirmation = true },
                         onUploadPhoto = onUploadPhoto,
                         onPhotoClick = onNavigateToFullScreenPhoto,
                         onPhotoDeleteClick = { photoPendingDeletion = it },
@@ -270,11 +297,14 @@ private fun LoadedContent(
     isUploadingPhoto: Boolean,
     canDeletePhotos: Boolean,
     deletingPhotoIds: ImmutableSet<Long>,
+    canCancelIssue: Boolean,
+    isCancellingIssue: Boolean,
     onUpdateComment: (String) -> Unit,
     onSendComment: () -> Unit,
     onStartWorking: () -> Unit,
     onResolveIssue: () -> Unit,
     onReassignToMe: () -> Unit,
+    onCancelIssue: () -> Unit,
     onUploadPhoto: (PlatformFile) -> Unit,
     onPhotoClick: (String) -> Unit,
     onPhotoDeleteClick: (PhotoItem) -> Unit,
@@ -341,6 +371,20 @@ private fun LoadedContent(
                     isLoading = isMechanicActionLoading,
                     onStartWorking = onStartWorking,
                     onResolveIssue = onResolveIssue,
+                )
+            }
+        }
+
+        if (canCancelIssue) {
+            val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+            AnimatedVisibility(
+                visible = !isImeVisible,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
+            ) {
+                CancelIssueBar(
+                    isLoading = isCancellingIssue,
+                    onCancelIssue = onCancelIssue,
                 )
             }
         }
@@ -860,6 +904,31 @@ private fun MechanicActionBar(
 }
 
 @Composable
+private fun CancelIssueBar(
+    isLoading: Boolean,
+    onCancelIssue: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(AppTheme.colors.surfaceContainerLowest)
+            .navigationBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Button(
+            text = stringResource(Res.string.issue_detail_cancel_issue),
+            onClick = onCancelIssue,
+            loading = isLoading,
+            icon = TruckTrackIcons.Close,
+            role = ButtonRole.Warning,
+            style = ButtonStyle.Tonal,
+            modifier = Modifier.fillMaxWidth().testTag("issue_detail_cancel_issue_button"),
+        )
+    }
+}
+
+@Composable
 private fun CardContainer(
     title: String,
     modifier: Modifier = Modifier,
@@ -909,6 +978,7 @@ private fun IssueStatus.containerColor(): Color = when (this) {
     IssueStatus.Open -> AppTheme.colors.open
     IssueStatus.InProgress -> AppTheme.colors.warning
     IssueStatus.Done -> AppTheme.colors.positive
+    IssueStatus.Cancelled -> AppTheme.colors.error
 }
 
 @Composable
@@ -916,12 +986,14 @@ private fun IssueStatus.contentColor(): Color = when (this) {
     IssueStatus.Open -> AppTheme.colors.onOpen
     IssueStatus.InProgress -> AppTheme.colors.onWarning
     IssueStatus.Done -> AppTheme.colors.onPositive
+    IssueStatus.Cancelled -> AppTheme.colors.onError
 }
 
 private fun IssueStatus?.icon() = when (this) {
     IssueStatus.Open -> TruckTrackIcons.RadioButtonUnchecked
     IssueStatus.InProgress -> TruckTrackIcons.Build
     IssueStatus.Done -> TruckTrackIcons.Check
+    IssueStatus.Cancelled -> TruckTrackIcons.Close
     null -> TruckTrackIcons.RadioButtonUnchecked
 }
 
@@ -930,6 +1002,7 @@ private fun IssueStatus?.displayName(): String = when (this) {
     IssueStatus.Open -> stringResource(Res.string.issue_status_open)
     IssueStatus.InProgress -> stringResource(Res.string.issue_status_in_progress)
     IssueStatus.Done -> stringResource(Res.string.issue_status_done)
+    IssueStatus.Cancelled -> stringResource(Res.string.issue_status_cancelled)
     null -> ""
 }
 
@@ -938,6 +1011,7 @@ private fun IssueStatus?.dotColor(): Color = when (this) {
     IssueStatus.Open -> AppTheme.colors.open
     IssueStatus.InProgress -> AppTheme.colors.warning
     IssueStatus.Done -> AppTheme.colors.positive
+    IssueStatus.Cancelled -> AppTheme.colors.error
     null -> AppTheme.colors.surfaceVariant
 }
 
@@ -946,6 +1020,7 @@ private fun IssueStatus?.dotIconColor(): Color = when (this) {
     IssueStatus.Open -> AppTheme.colors.onOpen
     IssueStatus.InProgress -> AppTheme.colors.onWarning
     IssueStatus.Done -> AppTheme.colors.onPositive
+    IssueStatus.Cancelled -> AppTheme.colors.onError
     else -> AppTheme.colors.onSurface
 }
 
@@ -993,6 +1068,7 @@ private fun IssueDetailLoadedPreview() {
             onStartWorking = {},
             onResolveIssue = {},
             onReassignToMe = {},
+            onCancelIssue = {},
             onUploadPhoto = {},
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
@@ -1017,6 +1093,7 @@ private fun IssueDetailHistoryEmptyPreview() {
             onStartWorking = {},
             onResolveIssue = {},
             onReassignToMe = {},
+            onCancelIssue = {},
             onUploadPhoto = {},
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
@@ -1037,6 +1114,7 @@ private fun IssueDetailFullLoadingPreview() {
             onStartWorking = {},
             onResolveIssue = {},
             onReassignToMe = {},
+            onCancelIssue = {},
             onUploadPhoto = {},
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},

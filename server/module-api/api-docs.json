@@ -244,6 +244,38 @@
         }
       }
     },
+    "/api/v1/issue/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Cancel issue",
+        "operationId": "cancelIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/issue/{id}/comment": {
       "post": {
         "tags": [
@@ -571,7 +603,8 @@
               "enum": [
                 "OPEN",
                 "IN_PROGRESS",
-                "DONE"
+                "DONE",
+                "CANCELED"
               ]
             }
           },
@@ -627,7 +660,8 @@
             "enum": [
               "OPEN",
               "IN_PROGRESS",
-              "DONE"
+              "DONE",
+              "CANCELED"
             ]
           },
           "priority": {
@@ -766,7 +800,8 @@
             "enum": [
               "OPEN",
               "IN_PROGRESS",
-              "DONE"
+              "DONE",
+              "CANCELED"
             ]
           },
           "statusTo": {
@@ -774,7 +809,8 @@
             "enum": [
               "OPEN",
               "IN_PROGRESS",
-              "DONE"
+              "DONE",
+              "CANCELED"
             ]
           },
           "commentText": {
