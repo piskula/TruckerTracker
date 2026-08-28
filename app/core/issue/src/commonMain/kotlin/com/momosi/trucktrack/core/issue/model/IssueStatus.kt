@@ -12,7 +12,7 @@ enum class IssueStatus {
             "OPEN" -> Open
             "IN_PROGRESS" -> InProgress
             "DONE" -> Done
-            "CANCELLED" -> Cancelled
+            "CANCELED" -> Cancelled
             else -> Open
         }
     }
@@ -21,6 +21,6 @@ enum class IssueStatus {
         Open -> "OPEN"
         InProgress -> "IN_PROGRESS"
         Done -> "DONE"
-        Cancelled -> "CANCELLED"
+        Cancelled -> "CANCELED"
     }
 }

@@ -35,7 +35,7 @@ class CancelIssue(
         }
 
         val now = OffsetDateTime.now(ZoneOffset.UTC)
-        val saved = issuePersistence.updateStatusAndAssignee(issueId, IssueStatus.CANCELLED, issue.assignedTo?.id, now)
+        val saved = issuePersistence.updateStatusAndAssignee(issueId, IssueStatus.CANCELED, issue.assignedTo?.id, now)
         issuePersistence.saveHistory(
             IssueHistoryModel(
                 id = UUID.randomUUID(),
@@ -43,8 +43,8 @@ class CancelIssue(
                 type = IssueHistoryEventType.STATUS_CHANGE,
                 performedBy = currentUser,
                 createdAt = now,
-                statusFrom = IssueStatus.OPEN,
-                statusTo = IssueStatus.CANCELLED,
+                statusFrom = issue.status,
+                statusTo = IssueStatus.CANCELED,
                 commentText = null,
             )
         )
