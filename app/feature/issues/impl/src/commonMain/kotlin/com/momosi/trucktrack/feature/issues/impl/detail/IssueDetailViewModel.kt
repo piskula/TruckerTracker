@@ -6,10 +6,11 @@ import com.momosi.trucktrack.core.common.error.ErrorReporter
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.issue.IssueAttachmentRepository
+import com.momosi.trucktrack.core.issue.IssueCapabilityRepository
 import com.momosi.trucktrack.core.issue.IssueRepository
 import com.momosi.trucktrack.core.issue.model.Issue
+import com.momosi.trucktrack.core.issue.model.IssueCapabilities
 import com.momosi.trucktrack.core.issue.model.IssueHistory
-import com.momosi.trucktrack.core.issue.model.IssueStatus
 import com.momosi.trucktrack.user.UserRepository
 import io.github.vinceglb.filekit.core.PlatformFile
 import kotlinx.collections.immutable.ImmutableList
@@ -28,6 +29,7 @@ class IssueDetailViewModel(
     private val issueId: Long,
     private val issueRepository: IssueRepository,
     private val issueAttachmentRepository: IssueAttachmentRepository,
+    private val issueCapabilityRepository: IssueCapabilityRepository,
     private val userRepository: UserRepository,
     private val dateFormatter: DateFormatter,
     private val errorReporter: ErrorReporter,
@@ -81,9 +83,7 @@ class IssueDetailViewModel(
             _state.update {
                 it.copy(
                     content = IssueDetailContent.Loaded(issue.toUi(), historyDeferred.await()),
-                    mechanicAction = computeMechanicAction(issue),
-                    canDeletePhotos = computeCanDeletePhotos(issue),
-                    canCancelIssue = computeCanCancelIssue(issue),
+                    capabilities = computeCapabilities(issue),
                 )
             }
         }
@@ -127,27 +127,9 @@ class IssueDetailViewModel(
         }
     }
 
-    private fun computeMechanicAction(issue: Issue): MechanicActionType? {
-        val user = userRepository.user.value ?: return null
-        if (!user.isMechanic) return null
-        return when {
-            issue.status == IssueStatus.Open && issue.assignedTo?.id != user.id -> MechanicActionType.StartWorking
-            issue.status == IssueStatus.InProgress && issue.assignedTo?.id == user.id -> MechanicActionType.ResolveIssue
-            issue.status == IssueStatus.InProgress && issue.assignedTo?.id != user.id -> MechanicActionType.Reassign
-            else -> null
-        }
-    }
-
-    private fun computeCanDeletePhotos(issue: Issue): Boolean {
-        val user = userRepository.user.value ?: return false
-        if (!user.isDriver) return false
-        return issue.status == IssueStatus.Open && issue.reportedBy?.id == user.id
-    }
-
-    private fun computeCanCancelIssue(issue: Issue): Boolean {
-        val user = userRepository.user.value ?: return false
-        if (!user.isDriver) return false
-        return issue.status == IssueStatus.Open && issue.reportedBy?.id == user.id
+    private fun computeCapabilities(issue: Issue): IssueCapabilities {
+        val user = userRepository.user.value ?: return IssueCapabilities.None
+        return issueCapabilityRepository.resolve(issue, user)
     }
 
     private fun onMechanicActionFailure(error: Throwable) {
@@ -164,9 +146,9 @@ class IssueDetailViewModel(
                     _state.update {
                         it.copy(
                             content = it.withUpdatedIssue(issue),
-                            mechanicAction = computeMechanicAction(issue),
                             isMechanicActionLoading = false,
                             statusChanged = true,
+                            capabilities = computeCapabilities(issue),
                         )
                     }
                     refreshHistory()
@@ -184,9 +166,9 @@ class IssueDetailViewModel(
                     _state.update {
                         it.copy(
                             content = it.withUpdatedIssue(issue),
-                            mechanicAction = computeMechanicAction(issue),
                             isMechanicActionLoading = false,
                             statusChanged = true,
+                            capabilities = computeCapabilities(issue),
                         )
                     }
                     refreshHistory()
@@ -204,8 +186,8 @@ class IssueDetailViewModel(
                     _state.update {
                         it.copy(
                             content = it.withUpdatedIssue(issue),
-                            mechanicAction = computeMechanicAction(issue),
                             isMechanicActionLoading = false,
+                            capabilities = computeCapabilities(issue),
                         )
                     }
                     refreshHistory()
@@ -223,9 +205,9 @@ class IssueDetailViewModel(
                     _state.update {
                         it.copy(
                             content = it.withUpdatedIssue(issue),
-                            canCancelIssue = computeCanCancelIssue(issue),
                             isCancellingIssue = false,
                             statusChanged = true,
+                            capabilities = computeCapabilities(issue),
                         )
                     }
                     refreshHistory()
@@ -322,12 +304,32 @@ class IssueDetailViewModel(
         createdAtFormatted = dateFormatter.formatDateTime(createdAt),
     )
 
-    private fun IssueHistory.toUi() = IssueHistoryUi(
-        id = id,
-        type = type,
-        statusTo = statusTo,
-        performedByName = performedBy?.fullName,
-        createdAtFormatted = dateFormatter.formatDateTime(createdAt),
-        commentText = commentText,
-    )
+    private fun IssueHistory.toUi(): IssueHistoryUi = when (this) {
+        is IssueHistory.StatusChange -> IssueHistoryUi.StatusChange(
+            id = id,
+            performedByName = performedBy?.fullName,
+            createdAtFormatted = dateFormatter.formatDateTime(createdAt),
+            statusTo = statusTo,
+        )
+
+        is IssueHistory.AssigneeChange -> IssueHistoryUi.AssigneeChange(
+            id = id,
+            performedByName = performedBy?.fullName,
+            createdAtFormatted = dateFormatter.formatDateTime(createdAt),
+        )
+
+        is IssueHistory.Comment -> IssueHistoryUi.Comment(
+            id = id,
+            performedByName = performedBy?.fullName,
+            createdAtFormatted = dateFormatter.formatDateTime(createdAt),
+            commentText = commentText,
+        )
+
+        is IssueHistory.Update -> IssueHistoryUi.Update(
+            id = id,
+            performedByName = performedBy?.fullName,
+            createdAtFormatted = dateFormatter.formatDateTime(createdAt),
+            changedFields = changedFields.toImmutableList(),
+        )
+    }
 }

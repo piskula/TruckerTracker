@@ -38,4 +38,6 @@ class IssueHistoryEntity(
     var statusTo: IssueStatus?,
 
     var commentText: String?,
+
+    var changedFields: String?,
 )

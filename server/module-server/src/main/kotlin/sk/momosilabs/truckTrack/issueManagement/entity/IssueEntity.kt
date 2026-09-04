@@ -35,7 +35,7 @@ class IssueEntity(
 
     @ManyToOne(optional = false)
     @field:NotNull
-    val vehicle: VehicleEntity,
+    var vehicle: VehicleEntity,
 
     @ManyToOne(optional = false)
     @field:NotNull

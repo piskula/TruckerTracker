@@ -12,10 +12,12 @@ import com.momosi.trucktrack.feature.issues.impl.FullScreenPhotoScreen
 import com.momosi.trucktrack.feature.issues.impl.create.CreateIssueScreen
 import com.momosi.trucktrack.feature.issues.impl.detail.IssueDetailScreen
 import com.momosi.trucktrack.feature.issues.impl.detail.PhotoItem
+import com.momosi.trucktrack.feature.issues.impl.edit.EditIssueScreen
 import com.momosi.trucktrack.feature.issues.impl.list.IssuesScreen
 import com.momosi.trucktrack.feature.profile.api.ProfileNavKey
 
 private data object IssueStatusChangedKey : ResultKey
+private data object IssueUpdatedKey : ResultKey
 
 fun EntryProviderScope<NavKey>.issuesEntries(navigator: Navigator, resultStore: ResultStore) {
     entry<IssuesNavKey> {
@@ -43,10 +45,14 @@ fun EntryProviderScope<NavKey>.issuesEntries(navigator: Navigator, resultStore: 
         IssueDetailScreen(
             issueId = key.issueId,
             justCreated = key.justCreated,
+            justUpdated = resultStore[IssueUpdatedKey] ?: false,
+            onAcknowledgeEdit = { resultStore[IssueUpdatedKey] = false },
             onBack = { shouldReload ->
                 resultStore[IssueStatusChangedKey] = shouldReload
+                resultStore[IssueUpdatedKey] = false
                 navigator.goBack()
             },
+            onNavigateToEdit = { navigator.navigate(EditIssueNavKey(key.issueId)) },
             onNavigateToFullScreenPhoto = { photo: PhotoItem ->
                 navigator.navigate(
                     FullScreenPhotoNavKey(
@@ -58,6 +64,19 @@ fun EntryProviderScope<NavKey>.issuesEntries(navigator: Navigator, resultStore: 
                         ),
                     ),
                 )
+            },
+        )
+    }
+    entry<EditIssueNavKey>(metadata = bottomEntryMetadata()) { key ->
+        EditIssueScreen(
+            issueId = key.issueId,
+            onBack = {
+                resultStore[IssueUpdatedKey] = false
+                navigator.goBack()
+            },
+            onIssueUpdate = {
+                resultStore[IssueUpdatedKey] = true
+                navigator.goBack()
             },
         )
     }

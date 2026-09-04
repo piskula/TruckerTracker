@@ -4,9 +4,9 @@ import sk.momosilabs.truckTrack.api.issue.dto.AccountDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueFilterDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryDto
-import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryEventTypeDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssuePriorityDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueStatusDto
+import sk.momosilabs.truckTrack.api.issue.dto.IssueUpdatedFieldDto
 import sk.momosilabs.truckTrack.api.vehicle.dto.VehicleDto
 import sk.momosilabs.truckTrack.api.vehicle.dto.VehicleTypeDto
 import sk.momosilabs.truckTrack.account.model.AccountModel
@@ -33,15 +33,35 @@ fun IssueModel.toDto() = IssueDto(
     updatedAt = updatedAt,
 )
 
-fun IssueHistoryModel.toDto() = IssueHistoryDto(
-    id = id,
-    type = IssueHistoryEventTypeDto.valueOf(type.name),
-    performedBy = performedBy.toDto(),
-    createdAt = createdAt,
-    statusFrom = statusFrom?.let { IssueStatusDto.valueOf(it.name) },
-    statusTo = statusTo?.let { IssueStatusDto.valueOf(it.name) },
-    commentText = commentText,
-)
+fun IssueHistoryModel.toDto(): IssueHistoryDto = when (this) {
+    is IssueHistoryModel.StatusChange -> IssueHistoryDto.StatusChange(
+        id = id,
+        performedBy = performedBy.toDto(),
+        createdAt = createdAt,
+        statusFrom = statusFrom?.let { IssueStatusDto.valueOf(it.name) },
+        statusTo = IssueStatusDto.valueOf(statusTo.name),
+    )
+
+    is IssueHistoryModel.AssigneeChange -> IssueHistoryDto.AssigneeChange(
+        id = id,
+        performedBy = performedBy.toDto(),
+        createdAt = createdAt,
+    )
+
+    is IssueHistoryModel.Comment -> IssueHistoryDto.Comment(
+        id = id,
+        performedBy = performedBy.toDto(),
+        createdAt = createdAt,
+        commentText = commentText,
+    )
+
+    is IssueHistoryModel.Update -> IssueHistoryDto.Update(
+        id = id,
+        performedBy = performedBy.toDto(),
+        createdAt = createdAt,
+        changedFields = changedFields.map { IssueUpdatedFieldDto.valueOf(it.name) },
+    )
+}
 
 fun VehicleModel.toDto() = VehicleDto(
     id = id,

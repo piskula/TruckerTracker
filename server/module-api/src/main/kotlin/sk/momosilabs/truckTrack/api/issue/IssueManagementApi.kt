@@ -6,10 +6,12 @@ import sk.momosilabs.truckTrack.api.issue.dto.IssueCreateDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueFilterDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryDto
+import sk.momosilabs.truckTrack.api.issue.dto.IssueUpdateDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -35,6 +37,10 @@ interface IssueManagementApi {
     @Operation(summary = "Create issue")
     @PostMapping("$ENDPOINT/create")
     fun createIssue(@RequestBody request: IssueCreateDto): IssueDto
+
+    @Operation(summary = "Update issue")
+    @PatchMapping("$ENDPOINT/{id}")
+    fun updateIssue(@PathVariable id: Long, @RequestBody request: IssueUpdateDto): IssueDto
 
     @Operation(summary = "Start issue")
     @PostMapping("$ENDPOINT/{id}/start")

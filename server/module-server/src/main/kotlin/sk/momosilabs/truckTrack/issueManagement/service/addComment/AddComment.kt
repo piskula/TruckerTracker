@@ -3,7 +3,6 @@ package sk.momosilabs.truckTrack.issueManagement.service.addComment
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
-import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEventType
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
 import sk.momosilabs.truckTrack.issueManagement.service.IssuePersistence
@@ -28,14 +27,11 @@ class AddComment(
         }
 
         return issuePersistence.saveHistory(
-            IssueHistoryModel(
+            IssueHistoryModel.Comment(
                 id = UUID.randomUUID(),
                 issueId = issueId,
-                type = IssueHistoryEventType.COMMENT,
                 performedBy = currentUserService.currentUser(),
                 createdAt = OffsetDateTime.now(),
-                statusFrom = null,
-                statusTo = null,
                 commentText = comment,
             )
         )

@@ -5,9 +5,10 @@ import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueAttachment
 import com.momosi.trucktrack.core.issue.model.IssueCreate
 import com.momosi.trucktrack.core.issue.model.IssueHistory
-import com.momosi.trucktrack.core.issue.model.IssueHistoryType
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStatus
+import com.momosi.trucktrack.core.issue.model.IssueUpdate
+import com.momosi.trucktrack.core.issue.model.IssueUpdatedField
 import com.momosi.trucktrack.core.vehicle.dto.toVehicle
 import com.momosi.trucktrack.shared.issue.AccountDto
 import com.momosi.trucktrack.shared.issue.IssueAttachmentDto
@@ -17,6 +18,7 @@ import com.momosi.trucktrack.shared.issue.IssueFilterDto
 import com.momosi.trucktrack.shared.issue.IssueHistoryDto
 import com.momosi.trucktrack.shared.issue.IssuePriorityDto
 import com.momosi.trucktrack.shared.issue.IssueStatusDto
+import com.momosi.trucktrack.shared.issue.IssueUpdateDto
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -48,6 +50,13 @@ internal fun IssueCreate.toDto(): IssueCreateDto = IssueCreateDto(
     priority = IssuePriorityDto.valueOf(priority.toApiValue()),
 )
 
+internal fun IssueUpdate.toDto(): IssueUpdateDto = IssueUpdateDto(
+    vehicleId = vehicleId,
+    title = title,
+    description = description,
+    priority = IssuePriorityDto.valueOf(priority.toApiValue()),
+)
+
 @OptIn(ExperimentalUuidApi::class)
 internal fun List<IssueStatus>.toFilterDto(vehicleIds: List<Long>, accountIds: List<String>): IssueFilterDto = IssueFilterDto(
     statuses = map { IssueStatusDto.valueOf(it.toApiValue()) },
@@ -64,12 +73,32 @@ internal fun IssueAttachmentDto.toIssueAttachment(): IssueAttachment = IssueAtta
     uploadedAt = uploadedAt,
 )
 
-internal fun IssueHistoryDto.toIssueHistory(): IssueHistory = IssueHistory(
-    id = id.toString(),
-    type = IssueHistoryType.fromApiValue(type.name),
-    performedBy = performedBy.toAccount(),
-    createdAt = createdAt,
-    statusFrom = statusFrom?.let { IssueStatus.fromApiValue(it.name) },
-    statusTo = statusTo?.let { IssueStatus.fromApiValue(it.name) },
-    commentText = commentText,
-)
+internal fun IssueHistoryDto.toIssueHistory(): IssueHistory = when (this) {
+    is IssueHistoryDto.StatusChange -> IssueHistory.StatusChange(
+        id = id.toString(),
+        performedBy = performedBy.toAccount(),
+        createdAt = createdAt,
+        statusFrom = statusFrom?.let { IssueStatus.fromApiValue(it.name) },
+        statusTo = IssueStatus.fromApiValue(statusTo.name),
+    )
+
+    is IssueHistoryDto.AssigneeChange -> IssueHistory.AssigneeChange(
+        id = id.toString(),
+        performedBy = performedBy.toAccount(),
+        createdAt = createdAt,
+    )
+
+    is IssueHistoryDto.Comment -> IssueHistory.Comment(
+        id = id.toString(),
+        performedBy = performedBy.toAccount(),
+        createdAt = createdAt,
+        commentText = commentText,
+    )
+
+    is IssueHistoryDto.Update -> IssueHistory.Update(
+        id = id.toString(),
+        performedBy = performedBy.toAccount(),
+        createdAt = createdAt,
+        changedFields = changedFields.map { IssueUpdatedField.fromApiValue(it.name) },
+    )
+}

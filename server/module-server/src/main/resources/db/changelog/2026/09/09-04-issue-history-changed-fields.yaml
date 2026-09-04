@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 09-04-issue-history-changed-fields
+      author: claude
+      changes:
+        - addColumn:
+            tableName: issue_history
+            columns:
+              - column:
+                  name: changed_fields
+                  type: varchar(255)

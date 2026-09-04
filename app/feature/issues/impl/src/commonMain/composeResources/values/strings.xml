@@ -35,6 +35,7 @@
     <string name="issue_detail_history">History</string>
     <string name="issue_detail_history_empty">No history yet</string>
     <string name="issue_detail_history_reassigned">Reassigned</string>
+    <string name="issue_detail_history_updated">Updated: %1$s</string>
     <string name="issue_detail_add_comment">Add Comment</string>
     <string name="issue_detail_comment_placeholder">Write a comment…</string>
     <string name="issue_detail_photos_loading">Photos</string>
@@ -67,14 +68,24 @@
     <string name="create_issue_priority">Priority</string>
     <string name="create_issue_photos">Photos</string>
     <string name="create_issue_submit">Submit Issue</string>
-    <string name="create_issue_select_vehicle">Select a vehicle</string>
     <string name="create_issue_add_photos">Add photos</string>
     <string name="create_issue_camera_or_gallery">From camera or gallery</string>
-    <string name="create_issue_priority_high_hint">Blocks operation, immediate attention needed</string>
-    <string name="create_issue_priority_medium_hint">Should be fixed soon, but not critical</string>
-    <string name="create_issue_priority_low_hint">Minor issue, can wait for scheduled maintenance</string>
-    <string name="create_issue_error_title_required">Title is required</string>
-    <string name="create_issue_error_vehicle_required">Please select a vehicle</string>
     <string name="create_issue_error_submission_failed">We couldn\'t submit your issue. Please try again.</string>
+
+    <string name="issue_select_vehicle">Select a vehicle</string>
+    <string name="issue_priority_high_hint">Blocks operation, immediate attention needed</string>
+    <string name="issue_priority_medium_hint">Should be fixed soon, but not critical</string>
+    <string name="issue_priority_low_hint">Minor issue, can wait for scheduled maintenance</string>
+    <string name="issue_error_title_required">Title is required</string>
+    <string name="issue_error_vehicle_required">Please select a vehicle</string>
+    <string name="issue_field_title">Title</string>
+    <string name="issue_field_description">Description</string>
+    <string name="issue_field_priority">Priority</string>
+    <string name="issue_field_vehicle">Vehicle</string>
+
+    <string name="edit_issue_title">Edit Issue</string>
+    <string name="edit_issue_submit">Save Changes</string>
+    <string name="edit_issue_error">Could not load this issue for editing</string>
+    <string name="edit_issue_error_submission_failed">We couldn\'t save your changes. Please try again.</string>
 </resources>
 
