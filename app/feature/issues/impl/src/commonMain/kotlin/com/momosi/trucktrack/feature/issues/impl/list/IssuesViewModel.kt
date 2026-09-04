@@ -104,10 +104,12 @@ private fun IssueFilter.sort(): String = when (this) {
     IssueFilter.MyResolved,
     -> "updatedAtUtc,desc"
 
+    IssueFilter.All,
+    -> "createdAtUtc,desc"
+
     IssueFilter.MyIssues,
     IssueFilter.MyWork,
     IssueFilter.Open,
-    IssueFilter.All,
     -> DEFAULT_ISSUE_SORT
 }
 
