@@ -342,6 +342,7 @@ private fun LoadedContent(
                     history = history,
                     commentText = commentText,
                     isSending = isSendingComment,
+                    canComment = issue.status != IssueStatus.Done,
                     onUpdateComment = onUpdateComment,
                     onSend = onSendComment,
                 )
@@ -351,6 +352,7 @@ private fun LoadedContent(
                     photosContent = photosContent,
                     isUploading = isUploadingPhoto,
                     canDeletePhotos = canDeletePhotos,
+                    canAddPhoto = issue.status != IssueStatus.Done,
                     deletingPhotoIds = deletingPhotoIds,
                     onPhotoClick = onPhotoClick,
                     onPhotoDeleteClick = onPhotoDeleteClick,
@@ -538,6 +540,7 @@ private fun HistoryCard(
     history: ImmutableList<IssueHistoryUi>,
     commentText: String,
     isSending: Boolean,
+    canComment: Boolean,
     onUpdateComment: (String) -> Unit,
     onSend: () -> Unit,
     modifier: Modifier = Modifier,
@@ -567,57 +570,59 @@ private fun HistoryCard(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(14.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(AppTheme.colors.surfaceVariant),
-        )
-        Spacer(modifier = Modifier.height(14.dp))
-        val sendEnabled = !isSending && commentText.isNotBlank()
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(AppTheme.colors.surfaceContainer, RoundedCornerShape(10.dp))
-                .padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
-        ) {
-            TextField(
-                value = commentText,
-                onValueChange = onUpdateComment,
-                textStyle = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.onSurface),
-                minLines = 2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp)
-                    .testTag("issue_detail_comment_field"),
-                decorationBox = { inner ->
-                    if (commentText.isEmpty()) {
-                        Text(
-                            text = stringResource(Res.string.issue_detail_comment_placeholder),
-                            style = AppTheme.typography.bodyMedium,
-                            color = AppTheme.colors.onSurfaceVariant,
-                        )
-                    }
-                    inner()
-                },
-            )
+        if (canComment) {
+            Spacer(modifier = Modifier.height(14.dp))
             Box(
                 modifier = Modifier
-                    .size(24.dp)
-                    .align(Alignment.BottomEnd)
-                    .clickable(enabled = sendEnabled && !isSending, onClick = onSend)
-                    .testTag("issue_detail_send_comment_button"),
-                contentAlignment = Alignment.Center,
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(AppTheme.colors.surfaceVariant),
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            val sendEnabled = !isSending && commentText.isNotBlank()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AppTheme.colors.surfaceContainer, RoundedCornerShape(10.dp))
+                    .padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
             ) {
-                if (isSending) {
-                    LoadingSpinner(size = 18.dp, strokeWidth = 2.dp)
-                } else {
-                    Icon(
-                        imageVector = TruckTrackIcons.Send,
-                        tint = if (sendEnabled) AppTheme.colors.primary else AppTheme.colors.onSurfaceVariant,
-                        modifier = Modifier.size(22.dp),
-                    )
+                TextField(
+                    value = commentText,
+                    onValueChange = onUpdateComment,
+                    textStyle = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.onSurface),
+                    minLines = 2,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 32.dp)
+                        .testTag("issue_detail_comment_field"),
+                    decorationBox = { inner ->
+                        if (commentText.isEmpty()) {
+                            Text(
+                                text = stringResource(Res.string.issue_detail_comment_placeholder),
+                                style = AppTheme.typography.bodyMedium,
+                                color = AppTheme.colors.onSurfaceVariant,
+                            )
+                        }
+                        inner()
+                    },
+                )
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.BottomEnd)
+                        .clickable(enabled = sendEnabled && !isSending, onClick = onSend)
+                        .testTag("issue_detail_send_comment_button"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (isSending) {
+                        LoadingSpinner(size = 18.dp, strokeWidth = 2.dp)
+                    } else {
+                        Icon(
+                            imageVector = TruckTrackIcons.Send,
+                            tint = if (sendEnabled) AppTheme.colors.primary else AppTheme.colors.onSurfaceVariant,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
                 }
             }
         }
@@ -736,6 +741,7 @@ private fun PhotosCard(
     photosContent: IssuePhotosContent,
     isUploading: Boolean,
     canDeletePhotos: Boolean,
+    canAddPhoto: Boolean,
     deletingPhotoIds: ImmutableSet<Long>,
     onPhotoClick: (String) -> Unit,
     onPhotoDeleteClick: (PhotoItem) -> Unit,
@@ -808,23 +814,25 @@ private fun PhotosCard(
                     }
                 }
             }
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(AppTheme.colors.surfaceVariant)
-                    .clickable(enabled = !isUploading, onClick = onAddPhoto)
-                    .testTag("issue_detail_add_photo_button"),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (isUploading) {
-                    LoadingSpinner(size = 24.dp, strokeWidth = 2.dp)
-                } else {
-                    Icon(
-                        imageVector = TruckTrackIcons.Add,
-                        tint = AppTheme.colors.onSurfaceVariant,
-                        modifier = Modifier.size(28.dp),
-                    )
+            if (canAddPhoto) {
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(AppTheme.colors.surfaceVariant)
+                        .clickable(enabled = !isUploading, onClick = onAddPhoto)
+                        .testTag("issue_detail_add_photo_button"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (isUploading) {
+                        LoadingSpinner(size = 24.dp, strokeWidth = 2.dp)
+                    } else {
+                        Icon(
+                            imageVector = TruckTrackIcons.Add,
+                            tint = AppTheme.colors.onSurfaceVariant,
+                            modifier = Modifier.size(28.dp),
+                        )
+                    }
                 }
             }
         }

@@ -2,12 +2,15 @@ package sk.momosilabs.truckTrack.issueAttachment.service.uploadPhoto
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
 import sk.momosilabs.truckTrack.file.model.FileModel
 import sk.momosilabs.truckTrack.file.model.TruckTrackFile
 import sk.momosilabs.truckTrack.file.service.FilePersistence
 import sk.momosilabs.truckTrack.file.service.FileStorageService
 import sk.momosilabs.truckTrack.issueAttachment.model.IssueAttachmentModel
 import sk.momosilabs.truckTrack.issueAttachment.service.IssueAttachmentPersistence
+import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
+import sk.momosilabs.truckTrack.issueManagement.service.IssuePersistence
 import sk.momosilabs.truckTrack.security.CurrentUserService
 import sk.momosilabs.truckTrack.security.annotation.IsUser
 import java.time.OffsetDateTime
@@ -16,6 +19,7 @@ import java.util.UUID
 @Service
 class UploadPhoto(
     private val issueAttachmentPersistence: IssueAttachmentPersistence,
+    private val issuePersistence: IssuePersistence,
     private val filePersistence: FilePersistence,
     private val fileStorageService: FileStorageService,
     private val currentUserService: CurrentUserService,
@@ -28,6 +32,11 @@ class UploadPhoto(
     @IsUser
     @Transactional
     override fun upload(issueId: Long, file: TruckTrackFile): IssueAttachmentModel {
+        val issue = issuePersistence.findById(issueId)
+        if (issue.status == IssueStatus.DONE) {
+            throw GlobalUnprocessableException("Cannot add a photo to a DONE issue, current status: ${issue.status}")
+        }
+
         val currentUser = currentUserService.currentUser()
         val uuid = UUID.randomUUID()
         val storageLocation = getStorageLocation(issueId, uuid, file.filename)

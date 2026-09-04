@@ -2,7 +2,9 @@ package sk.momosilabs.truckTrack.issueManagement.service.addComment
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEventType
+import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
 import sk.momosilabs.truckTrack.issueManagement.service.IssuePersistence
 import sk.momosilabs.truckTrack.security.CurrentUserService
@@ -19,8 +21,13 @@ class AddComment(
 
     @IsUser
     @Transactional
-    override fun addComment(issueId: Long, comment: String): IssueHistoryModel =
-        issuePersistence.saveHistory(
+    override fun addComment(issueId: Long, comment: String): IssueHistoryModel {
+        val issue = issuePersistence.findById(issueId)
+        if (issue.status == IssueStatus.DONE) {
+            throw GlobalUnprocessableException("Cannot add a comment to a DONE issue, current status: ${issue.status}")
+        }
+
+        return issuePersistence.saveHistory(
             IssueHistoryModel(
                 id = UUID.randomUUID(),
                 issueId = issueId,
@@ -32,4 +39,5 @@ class AddComment(
                 commentText = comment,
             )
         )
+    }
 }
