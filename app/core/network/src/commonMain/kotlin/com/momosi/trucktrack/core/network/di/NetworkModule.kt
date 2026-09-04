@@ -5,6 +5,7 @@ import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.common.network.installApiExceptionMapping
 import com.momosi.trucktrack.core.common.network.isTransientNetworkFailure
 import com.momosi.trucktrack.core.network.httpClientEngineFactory
+import com.momosi.trucktrack.core.network.invalidateAuthTokensOn
 import com.momosi.trucktrack.user.AuthManager
 import com.momosi.trucktrack.user.model.TokenResponse
 import de.jensklingenberg.ktorfit.Ktorfit
@@ -21,6 +22,7 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -36,7 +38,8 @@ val networkModule = module {
     single {
         val json: Json = get()
         val authManager: AuthManager = get()
-        buildHttpClient(authManager) {
+        val appCoroutineScope: CoroutineScope = get()
+        buildHttpClient(authManager, appCoroutineScope) {
             defaultRequest {
                 url(TruckTrackConfig.API_BASE_URL)
                 contentType(ContentType.Application.Json)
@@ -56,7 +59,8 @@ val networkModule = module {
 
     single(named("image")) {
         val authManager: AuthManager = get()
-        buildHttpClient(authManager) {
+        val appCoroutineScope: CoroutineScope = get()
+        buildHttpClient(authManager, appCoroutineScope) {
             defaultRequest {
                 url(TruckTrackConfig.API_BASE_URL)
             }
@@ -64,41 +68,51 @@ val networkModule = module {
     }
 }
 
-private fun buildHttpClient(authManager: AuthManager, block: HttpClientConfig<*>.() -> Unit = {}): HttpClient = HttpClient(httpClientEngineFactory()) {
-    expectSuccess = true
+private fun buildHttpClient(
+    authManager: AuthManager,
+    appCoroutineScope: CoroutineScope,
+    block: HttpClientConfig<*>.() -> Unit = {},
+): HttpClient {
+    val client = HttpClient(httpClientEngineFactory()) {
+        expectSuccess = true
 
-    block()
+        block()
 
-    install(Auth) {
-        bearer {
-            loadTokens {
-                authManager.token().toBearerTokens()
+        install(Auth) {
+            bearer {
+                loadTokens {
+                    authManager.token().toBearerTokens()
+                }
+                refreshTokens {
+                    authManager.token().toBearerTokens()
+                }
             }
-            refreshTokens {
-                authManager.token().toBearerTokens()
+        }
+
+        install(Logging) {
+            level = LogLevel.BODY
+            logger = object : io.ktor.client.plugins.logging.Logger {
+                override fun log(message: String) {
+                    Logger.d("Network", message)
+                }
             }
+        }
+
+        installApiExceptionMapping { cause, request ->
+            val response = (cause as? ResponseException)?.response
+            val durationMs = response?.let { it.responseTime.timestamp - it.requestTime.timestamp }
+
+            Logger.d(
+                "Network",
+                "Request failed: ${request.method.value} ${request.url.encodedPath}" +
+                    (response?.let { " status=${it.status.value} durationMs=$durationMs" } ?: " (no response)"),
+            )
         }
     }
 
-    install(Logging) {
-        level = LogLevel.BODY
-        logger = object : io.ktor.client.plugins.logging.Logger {
-            override fun log(message: String) {
-                Logger.d("Network", message)
-            }
-        }
-    }
+    client.invalidateAuthTokensOn(authManager, appCoroutineScope)
 
-    installApiExceptionMapping { cause, request ->
-        val response = (cause as? ResponseException)?.response
-        val durationMs = response?.let { it.responseTime.timestamp - it.requestTime.timestamp }
-
-        Logger.d(
-            "Network",
-            "Request failed: ${request.method.value} ${request.url.encodedPath}" +
-                (response?.let { " status=${it.status.value} durationMs=$durationMs" } ?: " (no response)"),
-        )
-    }
+    return client
 }
 
 private fun TokenResponse.toBearerTokens(): BearerTokens? = when (this) {
