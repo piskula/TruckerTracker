@@ -190,7 +190,7 @@ private fun CreateIssueContent(
                     PhotoPreviews(
                         photos = state.photos,
                         onRemove = { onAction(CreateIssueAction.RemovePhoto(it)) },
-                        onPhotoClick = { onNavigateToFullScreenPhoto(PhotoSource.Bytes(it.bytes)) },
+                        onPhotoClick = { onNavigateToFullScreenPhoto(PhotoSource.Bytes(it.bytes, it.fileName)) },
                     )
                 }
             }

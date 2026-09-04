@@ -11,6 +11,7 @@ import com.momosi.trucktrack.feature.issues.api.IssuesNavKey
 import com.momosi.trucktrack.feature.issues.impl.FullScreenPhotoScreen
 import com.momosi.trucktrack.feature.issues.impl.create.CreateIssueScreen
 import com.momosi.trucktrack.feature.issues.impl.detail.IssueDetailScreen
+import com.momosi.trucktrack.feature.issues.impl.detail.PhotoItem
 import com.momosi.trucktrack.feature.issues.impl.list.IssuesScreen
 import com.momosi.trucktrack.feature.profile.api.ProfileNavKey
 
@@ -46,8 +47,17 @@ fun EntryProviderScope<NavKey>.issuesEntries(navigator: Navigator, resultStore: 
                 resultStore[IssueStatusChangedKey] = shouldReload
                 navigator.goBack()
             },
-            onNavigateToFullScreenPhoto = { url ->
-                navigator.navigate(FullScreenPhotoNavKey(PhotoSource.Url(url)))
+            onNavigateToFullScreenPhoto = { photo: PhotoItem ->
+                navigator.navigate(
+                    FullScreenPhotoNavKey(
+                        PhotoSource.Attachment(
+                            issueId = key.issueId,
+                            attachmentId = photo.id,
+                            url = photo.url,
+                            fileName = photo.filename,
+                        ),
+                    ),
+                )
             },
         )
     }

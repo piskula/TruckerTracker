@@ -7,13 +7,15 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Stable
 sealed interface PhotoSource {
-    @Serializable
-    data class Url(val url: String) : PhotoSource
+    val fileName: String
 
     @Serializable
-    class Bytes(val bytes: ByteArray) : PhotoSource {
-        override fun equals(other: Any?): Boolean = other is Bytes && bytes.contentEquals(other.bytes)
-        override fun hashCode(): Int = bytes.contentHashCode()
+    data class Attachment(val issueId: Long, val attachmentId: Long, val url: String, override val fileName: String) : PhotoSource
+
+    @Serializable
+    class Bytes(val bytes: ByteArray, override val fileName: String) : PhotoSource {
+        override fun equals(other: Any?): Boolean = other is Bytes && bytes.contentEquals(other.bytes) && fileName == other.fileName
+        override fun hashCode(): Int = 31 * bytes.contentHashCode() + fileName.hashCode()
     }
 }
 

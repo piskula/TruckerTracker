@@ -128,7 +128,7 @@ import org.koin.core.parameter.parametersOf
 internal fun IssueDetailScreen(
     issueId: Long,
     onBack: (shouldReload: Boolean) -> Unit,
-    onNavigateToFullScreenPhoto: (String) -> Unit,
+    onNavigateToFullScreenPhoto: (PhotoItem) -> Unit,
     justCreated: Boolean = false,
     viewModel: IssueDetailViewModel = koinViewModel(parameters = { parametersOf(issueId) }),
 ) {
@@ -169,7 +169,7 @@ private fun IssueDetailScreenContent(
     onCancelIssue: () -> Unit,
     onUploadPhoto: (PlatformFile) -> Unit,
     onDeletePhoto: (Long) -> Unit,
-    onNavigateToFullScreenPhoto: (String) -> Unit,
+    onNavigateToFullScreenPhoto: (PhotoItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showResolveConfirmation by remember { mutableStateOf(false) }
@@ -306,7 +306,7 @@ private fun LoadedContent(
     onReassignToMe: () -> Unit,
     onCancelIssue: () -> Unit,
     onUploadPhoto: (PlatformFile) -> Unit,
-    onPhotoClick: (String) -> Unit,
+    onPhotoClick: (PhotoItem) -> Unit,
     onPhotoDeleteClick: (PhotoItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -743,7 +743,7 @@ private fun PhotosCard(
     canDeletePhotos: Boolean,
     canAddPhoto: Boolean,
     deletingPhotoIds: ImmutableSet<Long>,
-    onPhotoClick: (String) -> Unit,
+    onPhotoClick: (PhotoItem) -> Unit,
     onPhotoDeleteClick: (PhotoItem) -> Unit,
     onAddPhoto: () -> Unit,
     modifier: Modifier = Modifier,
@@ -772,7 +772,7 @@ private fun PhotosCard(
                             .size(80.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(AppTheme.colors.surfaceVariant)
-                            .clickable { onPhotoClick(photo.url) }
+                            .clickable { onPhotoClick(photo) }
                             .testTag("issue_detail_photo_$index"),
                         contentAlignment = Alignment.BottomCenter,
                     ) {

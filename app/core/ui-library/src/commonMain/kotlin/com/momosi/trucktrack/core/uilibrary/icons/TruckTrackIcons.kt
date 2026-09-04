@@ -21,6 +21,7 @@ import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Comment
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.EmojiPeople
 import androidx.compose.material.icons.rounded.GroupAdd
@@ -74,4 +75,5 @@ data object TruckTrackIcons {
     val ChatBubble = Icons.Rounded.ChatBubble
     val Comment = Icons.Rounded.Comment
     val ChatBubbleOutline = Icons.Outlined.ChatBubbleOutline
+    val Download = Icons.Rounded.Download
 }
