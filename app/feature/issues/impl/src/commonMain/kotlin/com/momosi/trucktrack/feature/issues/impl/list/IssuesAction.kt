@@ -23,7 +23,6 @@ val filtersByRole: Map<UserRole, Set<IssueFilter>> = mapOf(
     UserRole.Driver to setOf(
         IssueFilter.MyIssues,
         IssueFilter.MyResolved,
-        IssueFilter.All,
     ),
     UserRole.Mechanic to setOf(
         IssueFilter.MyWork,
