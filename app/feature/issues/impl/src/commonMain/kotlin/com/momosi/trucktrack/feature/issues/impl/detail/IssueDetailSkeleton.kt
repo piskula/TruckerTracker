@@ -45,8 +45,8 @@ internal fun IssueDetailSkeleton(modifier: Modifier = Modifier) {
             ) {
                 HeaderCardSkeleton()
                 DescriptionCardSkeleton()
-                HistoryCardSkeleton()
                 PhotosCardSkeleton()
+                HistoryCardSkeleton()
             }
         }
     }

@@ -338,16 +338,6 @@ private fun LoadedContent(
                 }
             }
             item {
-                HistoryCard(
-                    history = history,
-                    commentText = commentText,
-                    isSending = isSendingComment,
-                    canComment = issue.status != IssueStatus.Done,
-                    onUpdateComment = onUpdateComment,
-                    onSend = onSendComment,
-                )
-            }
-            item {
                 PhotosCard(
                     photosContent = photosContent,
                     isUploading = isUploadingPhoto,
@@ -357,6 +347,16 @@ private fun LoadedContent(
                     onPhotoClick = onPhotoClick,
                     onPhotoDeleteClick = onPhotoDeleteClick,
                     onAddPhoto = { photoPickerLauncher.launch() },
+                )
+            }
+            item {
+                HistoryCard(
+                    history = history,
+                    commentText = commentText,
+                    isSending = isSendingComment,
+                    canComment = issue.status != IssueStatus.Done,
+                    onUpdateComment = onUpdateComment,
+                    onSend = onSendComment,
                 )
             }
         }
