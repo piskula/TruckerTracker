@@ -1,9 +1,10 @@
 package com.momosi.trucktrack.feature.issues.impl.detail
 
 import androidx.compose.runtime.Immutable
-import com.momosi.trucktrack.core.issue.model.IssueHistoryType
+import com.momosi.trucktrack.core.issue.model.IssueCapabilities
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStatus
+import com.momosi.trucktrack.core.issue.model.IssueUpdatedField
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
@@ -17,14 +18,12 @@ data class IssueDetailState(
     val photosContent: IssuePhotosContent = IssuePhotosContent.Loading,
     val commentText: String = "",
     val isSendingComment: Boolean = false,
-    val mechanicAction: MechanicActionType? = null,
     val isMechanicActionLoading: Boolean = false,
     val isUploadingPhoto: Boolean = false,
-    val canDeletePhotos: Boolean = false,
     val deletingPhotoIds: ImmutableSet<Long> = persistentSetOf(),
     val statusChanged: Boolean = false,
-    val canCancelIssue: Boolean = false,
     val isCancellingIssue: Boolean = false,
+    val capabilities: IssueCapabilities = IssueCapabilities.None,
 )
 
 @Immutable
@@ -59,13 +58,23 @@ data class IssueUi(
 )
 
 @Immutable
-data class IssueHistoryUi(val id: String, val type: IssueHistoryType, val statusTo: IssueStatus?, val performedByName: String?, val createdAtFormatted: String, val commentText: String?)
+sealed interface IssueHistoryUi {
+    val id: String
+    val performedByName: String?
+    val createdAtFormatted: String
+
+    @Immutable
+    data class StatusChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val statusTo: IssueStatus) : IssueHistoryUi
+
+    @Immutable
+    data class AssigneeChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String) : IssueHistoryUi
+
+    @Immutable
+    data class Comment(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val commentText: String) : IssueHistoryUi
+
+    @Immutable
+    data class Update(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val changedFields: ImmutableList<IssueUpdatedField>) : IssueHistoryUi
+}
 
 @Immutable
 data class PhotoItem(val id: Long, val filename: String, val url: String)
-
-enum class MechanicActionType {
-    StartWorking,
-    ResolveIssue,
-    Reassign,
-}

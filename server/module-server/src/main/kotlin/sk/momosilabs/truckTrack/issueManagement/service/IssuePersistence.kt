@@ -16,6 +16,8 @@ interface IssuePersistence {
 
     fun create(model: IssueModel): IssueModel
 
+    fun update(model: IssueModel): IssueModel
+
     fun updateStatusAndAssignee(id: Long, status: IssueStatus, newAssignee: UUID?, updatedAt: OffsetDateTime): IssueModel
 
     fun findHistory(issueId: Long, pageable: Pageable): Page<IssueHistoryModel>

@@ -3,7 +3,6 @@ package sk.momosilabs.truckTrack.issueManagement.service.createIssue
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import sk.momosilabs.truckTrack.account.model.AccountModel
-import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEventType
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
 import sk.momosilabs.truckTrack.issueManagement.model.IssueModel
@@ -43,15 +42,13 @@ class CreateIssue(
             )
         )
         issuePersistence.saveHistory(
-            IssueHistoryModel(
+            IssueHistoryModel.StatusChange(
                 id = UUID.randomUUID(),
                 issueId = saved.id,
-                type = IssueHistoryEventType.STATUS_CHANGE,
                 performedBy = reportedBy,
                 createdAt = now,
                 statusFrom = null,
                 statusTo = IssueStatus.OPEN,
-                commentText = null,
             )
         )
         return saved

@@ -6,6 +6,7 @@ import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueCreate
 import com.momosi.trucktrack.core.issue.model.IssueHistory
 import com.momosi.trucktrack.core.issue.model.IssueStatus
+import com.momosi.trucktrack.core.issue.model.IssueUpdate
 
 interface IssueRepository {
 
@@ -20,6 +21,8 @@ interface IssueRepository {
     suspend fun getIssue(id: Long): Result<Issue>
 
     suspend fun createIssue(issueCreate: IssueCreate): Result<Issue>
+
+    suspend fun updateIssue(id: Long, issueUpdate: IssueUpdate): Result<Issue>
 
     suspend fun startIssue(id: Long): Result<Issue>
 

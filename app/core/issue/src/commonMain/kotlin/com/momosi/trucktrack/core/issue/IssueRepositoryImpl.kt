@@ -16,6 +16,7 @@ import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueCreate
 import com.momosi.trucktrack.core.issue.model.IssueHistory
 import com.momosi.trucktrack.core.issue.model.IssueStatus
+import com.momosi.trucktrack.core.issue.model.IssueUpdate
 import com.momosi.trucktrack.core.network.dto.toPage
 
 internal const val TAG = "Issues"
@@ -50,6 +51,12 @@ class IssueRepositoryImpl(private val issueApi: IssueApi, private val issueHisto
     }
         .onNoConnectionFailure { Logger.w(TAG, it, "Failed to create issue (offline)") }
         .onNetworkFailure { Logger.e(TAG, it, "Failed to create issue") }
+
+    override suspend fun updateIssue(id: Long, issueUpdate: IssueUpdate): Result<Issue> = runCatchingCancellable {
+        issueApi.updateIssue(id, issueUpdate.toDto()).toIssue()
+    }
+        .onNoConnectionFailure { Logger.w(TAG, it, "Failed to update issue $id (offline)") }
+        .onNetworkFailure { Logger.e(TAG, it, "Failed to update issue $id") }
 
     override suspend fun startIssue(id: Long): Result<Issue> = runCatchingCancellable {
         issueApi.startIssue(id).toIssue()

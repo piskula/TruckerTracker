@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import sk.momosilabs.truckTrack.account.model.AccountModel
 import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
-import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEventType
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
 import sk.momosilabs.truckTrack.issueManagement.model.IssueModel
@@ -37,15 +36,11 @@ class AssignInProgressIssueToMe(
         val now = OffsetDateTime.now(ZoneOffset.UTC)
         val saved = issuePersistence.updateStatusAndAssignee(issueId, issue.status, mechanic.id, now)
         issuePersistence.saveHistory(
-            IssueHistoryModel(
+            IssueHistoryModel.AssigneeChange(
                 id = UUID.randomUUID(),
                 issueId = saved.id,
-                type = IssueHistoryEventType.ASSIGNEE_CHANGE,
                 performedBy = mechanic,
                 createdAt = now,
-                statusFrom = issue.status,
-                statusTo = issue.status,
-                commentText = null,
             )
         )
         return saved

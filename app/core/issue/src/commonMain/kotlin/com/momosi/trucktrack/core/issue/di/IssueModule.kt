@@ -2,6 +2,8 @@ package com.momosi.trucktrack.core.issue.di
 
 import com.momosi.trucktrack.core.issue.IssueAttachmentRepository
 import com.momosi.trucktrack.core.issue.IssueAttachmentRepositoryImpl
+import com.momosi.trucktrack.core.issue.IssueCapabilityRepository
+import com.momosi.trucktrack.core.issue.IssueCapabilityRepositoryImpl
 import com.momosi.trucktrack.core.issue.IssueRepository
 import com.momosi.trucktrack.core.issue.IssueRepositoryImpl
 import com.momosi.trucktrack.core.issue.api.createIssueApi
@@ -16,4 +18,5 @@ val issueModule = module {
     single { get<Ktorfit>().createIssueAttachmentApi() }
     single<IssueRepository> { IssueRepositoryImpl(get(), get()) }
     single<IssueAttachmentRepository> { IssueAttachmentRepositoryImpl(get()) }
+    single<IssueCapabilityRepository> { IssueCapabilityRepositoryImpl() }
 }

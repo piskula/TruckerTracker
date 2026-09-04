@@ -10,6 +10,7 @@ import sk.momosilabs.truckTrack.account.persistence.repository.AccountRepository
 import sk.momosilabs.truckTrack.config.GlobalNotFoundException
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueEntity
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEntity
+import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEventType
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
 import java.time.OffsetDateTime
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
@@ -77,6 +78,22 @@ class IssuePersistenceProvider(
     }
 
     @Transactional
+    override fun update(model: IssueModel): IssueModel {
+        val entity = issueRepository.findById(model.id)
+            .orElseThrow { GlobalNotFoundException("issue id=${model.id} not found") }
+        entity.updateWith(model)
+        return entity.toModel()
+    }
+
+    private fun IssueEntity.updateWith(toUpdate: IssueModel) {
+        title = toUpdate.title
+        description = toUpdate.description
+        priority = toUpdate.priority
+        vehicle = vehicleRepository.getReferenceById(toUpdate.vehicle.id)
+        updatedAtUtc = toUpdate.updatedAt.toUtcLocalDateTime()
+    }
+
+    @Transactional
     override fun updateStatusAndAssignee(id: Long, status: IssueStatus, newAssignee: UUID?, updatedAt: OffsetDateTime): IssueModel {
         val entity = issueRepository.findById(id)
             .orElseThrow { GlobalNotFoundException("issue id=$id not found") }
@@ -92,17 +109,63 @@ class IssuePersistenceProvider(
 
     @Transactional
     override fun saveHistory(model: IssueHistoryModel): IssueHistoryModel {
-        val entityToSave = IssueHistoryEntity(
-            id = model.id,
-            issue = issueRepository.getReferenceById(model.issueId),
-            type = model.type,
-            performedBy = accountRepository.getReferenceById(model.performedBy.id),
-            createdAtUtc = model.createdAt.toUtcLocalDateTime(),
-            statusFrom = model.statusFrom,
-            statusTo = model.statusTo,
-            commentText = model.commentText,
-        )
+        val entityToSave = model.toEntity()
         return issueHistoryRepository.save(entityToSave).toModel()
+    }
+
+    private fun IssueHistoryModel.toEntity(): IssueHistoryEntity {
+        val issue = issueRepository.getReferenceById(issueId)
+        val performedByEntity = accountRepository.getReferenceById(performedBy.id)
+        val createdAtLocal = createdAt.toUtcLocalDateTime()
+        return when (this) {
+            is IssueHistoryModel.StatusChange -> IssueHistoryEntity(
+                id = id,
+                issue = issue,
+                type = IssueHistoryEventType.STATUS_CHANGE,
+                performedBy = performedByEntity,
+                createdAtUtc = createdAtLocal,
+                statusFrom = statusFrom,
+                statusTo = statusTo,
+                commentText = null,
+                changedFields = null,
+            )
+
+            is IssueHistoryModel.AssigneeChange -> IssueHistoryEntity(
+                id = id,
+                issue = issue,
+                type = IssueHistoryEventType.ASSIGNEE_CHANGE,
+                performedBy = performedByEntity,
+                createdAtUtc = createdAtLocal,
+                statusFrom = null,
+                statusTo = null,
+                commentText = null,
+                changedFields = null,
+            )
+
+            is IssueHistoryModel.Comment -> IssueHistoryEntity(
+                id = id,
+                issue = issue,
+                type = IssueHistoryEventType.COMMENT,
+                performedBy = performedByEntity,
+                createdAtUtc = createdAtLocal,
+                statusFrom = null,
+                statusTo = null,
+                commentText = commentText,
+                changedFields = null,
+            )
+
+            is IssueHistoryModel.Update -> IssueHistoryEntity(
+                id = id,
+                issue = issue,
+                type = IssueHistoryEventType.UPDATE,
+                performedBy = performedByEntity,
+                createdAtUtc = createdAtLocal,
+                statusFrom = null,
+                statusTo = null,
+                commentText = null,
+                changedFields = changedFields.joinToString(",") { it.name },
+            )
+        }
     }
 
 }

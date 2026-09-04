@@ -5,8 +5,10 @@ import com.momosi.trucktrack.shared.issue.IssueCreateDto
 import com.momosi.trucktrack.shared.issue.IssueDto
 import com.momosi.trucktrack.shared.issue.IssueFilterDto
 import com.momosi.trucktrack.shared.issue.IssueHistoryDto
+import com.momosi.trucktrack.shared.issue.IssueUpdateDto
 import de.jensklingenberg.ktorfit.http.Body
 import de.jensklingenberg.ktorfit.http.GET
+import de.jensklingenberg.ktorfit.http.PATCH
 import de.jensklingenberg.ktorfit.http.POST
 import de.jensklingenberg.ktorfit.http.Path
 import de.jensklingenberg.ktorfit.http.Query
@@ -26,6 +28,9 @@ interface IssueApi {
 
     @GET("api/v1/issue/byId/{id}")
     suspend fun getIssue(@Path("id") id: Long): IssueDto
+
+    @PATCH("api/v1/issue/{id}")
+    suspend fun updateIssue(@Path("id") id: Long, @Body body: IssueUpdateDto): IssueDto
 
     @POST("api/v1/issue/{id}/start")
     suspend fun startIssue(@Path("id") id: Long): IssueDto

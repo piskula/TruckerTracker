@@ -45,6 +45,19 @@ interface IssueManagementApi {
 - Pagination input: `@ParameterObject pageable: PageableDto` (from SpringDoc). Do not use individual `page: Int` and `size: Int` params.
 - No DTO wrapper for single-string request bodies — use `@RequestBody text: String` directly.
 
+## Known Drift — `issue` Domain DTOs Are Not Actually Shared
+
+Despite the rule above, `sk.momosilabs.truckTrack.api.issue.dto.*` is a **separate, hand-maintained,
+non-`shared` DTO package** (`java.time.OffsetDateTime`/`java.util.UUID`, no Jackson or kotlinx
+annotations) — `IssueManagementApi` imports from there, not from `com.momosi.trucktrack:shared`.
+There is no `JacksonConfig.kt` bridging `kotlin.time.Instant`/`kotlin.uuid.Uuid` either; it doesn't
+need to exist for this domain because these local DTOs never see those KMP types. The two DTO
+families only stay wire-compatible because they're kept field-for-field identical by hand — this is
+pre-existing drift from the architecture this file describes, not a deliberate design. `IssueHistoryDto`
+is the one exception where this is intentional and documented: see `../../shared/AGENTS.md`'s note on
+it. Don't assume this file's DTO-location guidance holds for the `issue` domain without checking the
+actual imports first; it may hold for other domains (e.g. `vehicle`) that weren't audited here.
+
 ## Adding a new DTO or enum
 
 New DTOs/enums go in `shared/src/commonMain/kotlin/com/momosi/trucktrack/shared/<domain>/`, not in this module:

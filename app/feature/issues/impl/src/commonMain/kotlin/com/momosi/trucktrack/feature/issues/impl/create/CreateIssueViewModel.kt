@@ -12,6 +12,8 @@ import com.momosi.trucktrack.core.issue.model.IssueCreate
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.vehicle.VehicleRepository
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
+import com.momosi.trucktrack.feature.issues.impl.SubmitStatus
+import com.momosi.trucktrack.feature.issues.impl.VehiclesContent
 import io.github.vinceglb.filekit.core.PlatformFile
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf

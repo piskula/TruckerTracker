@@ -53,9 +53,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.momosi.trucktrack.core.issue.model.IssueHistoryType
+import com.momosi.trucktrack.core.issue.model.ActionCapabilities
+import com.momosi.trucktrack.core.issue.model.IssueCapabilities
 import com.momosi.trucktrack.core.issue.model.IssuePriority
+import com.momosi.trucktrack.core.issue.model.IssueStateAction
 import com.momosi.trucktrack.core.issue.model.IssueStatus
+import com.momosi.trucktrack.core.issue.model.IssueUpdatedField
 import com.momosi.trucktrack.core.uilibrary.BackHandler
 import com.momosi.trucktrack.core.uilibrary.components.Button
 import com.momosi.trucktrack.core.uilibrary.components.ButtonRole
@@ -67,6 +70,7 @@ import com.momosi.trucktrack.core.uilibrary.components.SkeletonBox
 import com.momosi.trucktrack.core.uilibrary.components.Text
 import com.momosi.trucktrack.core.uilibrary.components.TextField
 import com.momosi.trucktrack.core.uilibrary.components.Toolbar
+import com.momosi.trucktrack.core.uilibrary.components.TopBarIconButton
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
 import com.momosi.trucktrack.core.uilibrary.modifier.ShimmerGroup
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
@@ -91,6 +95,7 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_error
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_empty
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_reassigned
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_updated
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_photos
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_photos_loading
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_reassign_description
@@ -103,6 +108,10 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_resolve_
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_resolve_issue
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_start_working
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_title
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_field_description
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_field_priority
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_field_title
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_field_vehicle
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_high
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_low
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_medium
@@ -128,20 +137,31 @@ import org.koin.core.parameter.parametersOf
 internal fun IssueDetailScreen(
     issueId: Long,
     onBack: (shouldReload: Boolean) -> Unit,
+    onNavigateToEdit: () -> Unit,
     onNavigateToFullScreenPhoto: (PhotoItem) -> Unit,
     justCreated: Boolean = false,
+    justUpdated: Boolean = false,
+    onAcknowledgeEdit: () -> Unit = {},
     viewModel: IssueDetailViewModel = koinViewModel(parameters = { parametersOf(issueId) }),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val shouldReload = state.statusChanged || justCreated
+    val shouldReload = state.statusChanged || justCreated || justUpdated
     BackHandler(enabled = shouldReload) {
         onBack(true)
+    }
+
+    LaunchedEffect(justUpdated) {
+        if (justUpdated) {
+            viewModel.onAction(IssueDetailAction.Retry)
+            onAcknowledgeEdit()
+        }
     }
 
     IssueDetailScreenContent(
         state = state,
         onBack = { onBack(shouldReload) },
         onRetry = { viewModel.onAction(IssueDetailAction.Retry) },
+        onEdit = onNavigateToEdit,
         onUpdateComment = { viewModel.onAction(IssueDetailAction.UpdateComment(it)) },
         onSendComment = { viewModel.onAction(IssueDetailAction.SendComment) },
         onStartWorking = { viewModel.onAction(IssueDetailAction.StartWorking) },
@@ -161,6 +181,7 @@ private fun IssueDetailScreenContent(
     state: IssueDetailState,
     onBack: () -> Unit,
     onRetry: () -> Unit,
+    onEdit: () -> Unit,
     onUpdateComment: (String) -> Unit,
     onSendComment: () -> Unit,
     onStartWorking: () -> Unit,
@@ -232,7 +253,19 @@ private fun IssueDetailScreenContent(
             .fillMaxSize()
             .background(AppTheme.colors.surfaceContainer),
     ) {
-        Toolbar(title = stringResource(Res.string.issue_detail_title, state.issueId), onBack = onBack)
+        Toolbar(
+            title = stringResource(Res.string.issue_detail_title, state.issueId),
+            onBack = onBack,
+            actions = {
+                if (phase == IssueDetailPhase.Loaded && state.capabilities.editing.canEditAny) {
+                    TopBarIconButton(
+                        icon = TruckTrackIcons.Edit,
+                        onClick = onEdit,
+                        modifier = Modifier.testTag("issue_detail_edit_button"),
+                    )
+                }
+            },
+        )
 
         Crossfade(targetState = phase, modifier = Modifier.weight(1f)) { targetPhase ->
             when (targetPhase) {
@@ -262,12 +295,11 @@ private fun IssueDetailScreenContent(
                         photosContent = state.photosContent,
                         commentText = state.commentText,
                         isSendingComment = state.isSendingComment,
-                        mechanicAction = state.mechanicAction,
+                        nextStateAction = state.capabilities.actions.nextStateAction,
                         isMechanicActionLoading = state.isMechanicActionLoading,
                         isUploadingPhoto = state.isUploadingPhoto,
-                        canDeletePhotos = state.canDeletePhotos,
+                        canDeletePhotos = state.capabilities.actions.canDeletePhotos,
                         deletingPhotoIds = state.deletingPhotoIds,
-                        canCancelIssue = state.canCancelIssue,
                         isCancellingIssue = state.isCancellingIssue,
                         onUpdateComment = onUpdateComment,
                         onSendComment = onSendComment,
@@ -292,12 +324,11 @@ private fun LoadedContent(
     photosContent: IssuePhotosContent,
     commentText: String,
     isSendingComment: Boolean,
-    mechanicAction: MechanicActionType?,
+    nextStateAction: IssueStateAction?,
     isMechanicActionLoading: Boolean,
     isUploadingPhoto: Boolean,
     canDeletePhotos: Boolean,
     deletingPhotoIds: ImmutableSet<Long>,
-    canCancelIssue: Boolean,
     isCancellingIssue: Boolean,
     onUpdateComment: (String) -> Unit,
     onSendComment: () -> Unit,
@@ -328,7 +359,7 @@ private fun LoadedContent(
             if (issue.description.isNotBlank()) {
                 item { DescriptionCard(description = issue.description) }
             }
-            if (mechanicAction == MechanicActionType.Reassign) {
+            if (nextStateAction == IssueStateAction.Reassign) {
                 item {
                     ReassignCard(
                         isLoading = isMechanicActionLoading,
@@ -361,34 +392,38 @@ private fun LoadedContent(
             }
         }
 
-        if (mechanicAction != null) {
-            val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-            AnimatedVisibility(
-                visible = !isImeVisible,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
-            ) {
-                MechanicActionBar(
-                    actionType = mechanicAction,
-                    isLoading = isMechanicActionLoading,
-                    onStartWorking = onStartWorking,
-                    onResolveIssue = onResolveIssue,
-                )
+        when (nextStateAction) {
+            IssueStateAction.StartWorking, IssueStateAction.ResolveIssue -> {
+                val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+                AnimatedVisibility(
+                    visible = !isImeVisible,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically(),
+                ) {
+                    MechanicActionBar(
+                        actionType = nextStateAction,
+                        isLoading = isMechanicActionLoading,
+                        onStartWorking = onStartWorking,
+                        onResolveIssue = onResolveIssue,
+                    )
+                }
             }
-        }
 
-        if (canCancelIssue) {
-            val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-            AnimatedVisibility(
-                visible = !isImeVisible,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
-            ) {
-                CancelIssueBar(
-                    isLoading = isCancellingIssue,
-                    onCancelIssue = onCancelIssue,
-                )
+            IssueStateAction.Cancel -> {
+                val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+                AnimatedVisibility(
+                    visible = !isImeVisible,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically(),
+                ) {
+                    CancelIssueBar(
+                        isLoading = isCancellingIssue,
+                        onCancelIssue = onCancelIssue,
+                    )
+                }
             }
+
+            IssueStateAction.Reassign, null -> Unit
         }
     }
 }
@@ -642,8 +677,8 @@ private fun TimelineStep(
                 .width(32.dp)
                 .fillMaxHeight(),
         ) {
-            when (entry.type) {
-                IssueHistoryType.StatusChange -> {
+            when (entry) {
+                is IssueHistoryUi.StatusChange -> {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -658,7 +693,7 @@ private fun TimelineStep(
                     }
                 }
 
-                IssueHistoryType.Comment -> {
+                is IssueHistoryUi.Comment -> {
                     Box(
                         modifier = Modifier
                             .size(26.dp)
@@ -673,7 +708,7 @@ private fun TimelineStep(
                     }
                 }
 
-                IssueHistoryType.AssigneeChange -> {
+                is IssueHistoryUi.AssigneeChange -> {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -684,6 +719,21 @@ private fun TimelineStep(
                             imageVector = TruckTrackIcons.EmojiPeople,
                             tint = AppTheme.colors.onWarning,
                             modifier = Modifier.size(17.dp),
+                        )
+                    }
+                }
+
+                is IssueHistoryUi.Update -> {
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .background(AppTheme.colors.surfaceContainerHighest, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = TruckTrackIcons.Edit,
+                            tint = AppTheme.colors.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp),
                         )
                     }
                 }
@@ -699,8 +749,8 @@ private fun TimelineStep(
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.padding(bottom = if (isLast) 0.dp else 18.dp)) {
-            when (entry.type) {
-                IssueHistoryType.StatusChange -> {
+            when (entry) {
+                is IssueHistoryUi.StatusChange -> {
                     Text(
                         text = entry.statusTo.displayName(),
                         style = AppTheme.typography.titleSmall,
@@ -708,17 +758,26 @@ private fun TimelineStep(
                     )
                 }
 
-                IssueHistoryType.Comment -> {
+                is IssueHistoryUi.Comment -> {
                     Text(
-                        text = entry.commentText ?: "",
+                        text = entry.commentText,
                         style = AppTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
                         color = AppTheme.colors.onSurface,
                     )
                 }
 
-                IssueHistoryType.AssigneeChange -> {
+                is IssueHistoryUi.AssigneeChange -> {
                     Text(
                         text = stringResource(Res.string.issue_detail_history_reassigned),
+                        style = AppTheme.typography.titleSmall,
+                        color = AppTheme.colors.onSurface,
+                    )
+                }
+
+                is IssueHistoryUi.Update -> {
+                    val fieldNames = entry.changedFields.map { stringResource(it.labelRes()) }
+                    Text(
+                        text = stringResource(Res.string.issue_detail_history_updated, fieldNames.joinToString(", ")),
                         style = AppTheme.typography.titleSmall,
                         color = AppTheme.colors.onSurface,
                     )
@@ -874,7 +933,7 @@ private fun ReassignCard(
 
 @Composable
 private fun MechanicActionBar(
-    actionType: MechanicActionType,
+    actionType: IssueStateAction,
     isLoading: Boolean,
     onStartWorking: () -> Unit,
     onResolveIssue: () -> Unit,
@@ -888,7 +947,7 @@ private fun MechanicActionBar(
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         when (actionType) {
-            MechanicActionType.StartWorking -> Button(
+            IssueStateAction.StartWorking -> Button(
                 text = stringResource(Res.string.issue_detail_start_working),
                 onClick = onStartWorking,
                 loading = isLoading,
@@ -897,7 +956,7 @@ private fun MechanicActionBar(
                 modifier = Modifier.fillMaxWidth().testTag("issue_detail_start_working_button"),
             )
 
-            MechanicActionType.ResolveIssue -> Button(
+            IssueStateAction.ResolveIssue -> Button(
                 text = stringResource(Res.string.issue_detail_resolve_issue),
                 onClick = onResolveIssue,
                 loading = isLoading,
@@ -906,7 +965,7 @@ private fun MechanicActionBar(
                 modifier = Modifier.fillMaxWidth().testTag("issue_detail_resolve_button"),
             )
 
-            MechanicActionType.Reassign -> Unit
+            IssueStateAction.Reassign, IssueStateAction.Cancel -> Unit
         }
     }
 }
@@ -1037,6 +1096,13 @@ private fun VehicleType?.vehicleIcon() = when (this) {
     VehicleType.Truck, null -> TruckTrackIcons.Truck
 }
 
+private fun IssueUpdatedField.labelRes() = when (this) {
+    IssueUpdatedField.Title -> Res.string.issue_field_title
+    IssueUpdatedField.Description -> Res.string.issue_field_description
+    IssueUpdatedField.Priority -> Res.string.issue_field_priority
+    IssueUpdatedField.Vehicle -> Res.string.issue_field_vehicle
+}
+
 private val previewIssue = IssueUi(
     id = 1042,
     title = "Engine warning light — truck won't start",
@@ -1051,11 +1117,17 @@ private val previewIssue = IssueUi(
 )
 
 private val previewHistory = listOf(
-    IssueHistoryUi("1", IssueHistoryType.StatusChange, IssueStatus.Open, "Michael Schumacher", "Jun 17, 08:00", null),
-    IssueHistoryUi("2", IssueHistoryType.StatusChange, IssueStatus.InProgress, "Mattia Binotto", "Jun 17, 09:00", null),
-    IssueHistoryUi("3", IssueHistoryType.AssigneeChange, null, "Lewis Hamilton", "Jun 17, 09:30", null),
-    IssueHistoryUi("4", IssueHistoryType.Comment, null, "Mattia Binotto", "Jun 17, 10:00", "Issue diagnosed, spare parts ordered"),
-    IssueHistoryUi("5", IssueHistoryType.Comment, null, "Mattia Binotto", "Jun 17, 13:00", "Parts order delayed, ETA tomorrow morning"),
+    IssueHistoryUi.StatusChange("1", "Michael Schumacher", "Jun 17, 08:00", IssueStatus.Open),
+    IssueHistoryUi.StatusChange("2", "Mattia Binotto", "Jun 17, 09:00", IssueStatus.InProgress),
+    IssueHistoryUi.AssigneeChange("3", "Lewis Hamilton", "Jun 17, 09:30"),
+    IssueHistoryUi.Comment("4", "Mattia Binotto", "Jun 17, 10:00", "Issue diagnosed, spare parts ordered"),
+    IssueHistoryUi.Comment("5", "Mattia Binotto", "Jun 17, 13:00", "Parts order delayed, ETA tomorrow morning"),
+    IssueHistoryUi.Update(
+        "6",
+        "Lewis Hamilton",
+        "Jun 17, 14:00",
+        persistentListOf(IssueUpdatedField.Description, IssueUpdatedField.Priority),
+    ),
 ).toImmutableList()
 
 @Preview
@@ -1067,10 +1139,13 @@ private fun IssueDetailLoadedPreview() {
                 issueId = previewIssue.id,
                 content = IssueDetailContent.Loaded(issue = previewIssue, history = previewHistory),
                 photosContent = IssuePhotosContent.Loaded(),
-                mechanicAction = MechanicActionType.Reassign,
+                capabilities = IssueCapabilities.None.copy(
+                    actions = ActionCapabilities.None.copy(nextStateAction = IssueStateAction.Reassign),
+                ),
             ),
             onBack = {},
             onRetry = {},
+            onEdit = {},
             onUpdateComment = {},
             onSendComment = {},
             onStartWorking = {},
@@ -1096,6 +1171,7 @@ private fun IssueDetailHistoryEmptyPreview() {
             ),
             onBack = {},
             onRetry = {},
+            onEdit = {},
             onUpdateComment = {},
             onSendComment = {},
             onStartWorking = {},
@@ -1117,6 +1193,7 @@ private fun IssueDetailFullLoadingPreview() {
             state = IssueDetailState(issueId = previewIssue.id),
             onBack = {},
             onRetry = {},
+            onEdit = {},
             onUpdateComment = {},
             onSendComment = {},
             onStartWorking = {},

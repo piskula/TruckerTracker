@@ -180,6 +180,48 @@
         }
       }
     },
+    "/api/v1/issue/{id}": {
+      "patch": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Update issue",
+        "operationId": "updateIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/issue/{id}/start": {
       "post": {
         "tags": [
@@ -775,18 +817,42 @@
       },
       "IssueHistoryDto": {
         "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "STATUS_CHANGE": "#/components/schemas/IssueHistoryDtoStatusChange",
+            "ASSIGNEE_CHANGE": "#/components/schemas/IssueHistoryDtoAssigneeChange",
+            "COMMENT": "#/components/schemas/IssueHistoryDtoComment",
+            "UPDATE": "#/components/schemas/IssueHistoryDtoUpdate"
+          }
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/IssueHistoryDtoStatusChange"
           },
+          {
+            "$ref": "#/components/schemas/IssueHistoryDtoAssigneeChange"
+          },
+          {
+            "$ref": "#/components/schemas/IssueHistoryDtoComment"
+          },
+          {
+            "$ref": "#/components/schemas/IssueHistoryDtoUpdate"
+          }
+        ]
+      },
+      "IssueHistoryDtoStatusChange": {
+        "type": "object",
+        "properties": {
           "type": {
             "type": "string",
             "enum": [
-              "STATUS_CHANGE",
-              "ASSIGNEE_CHANGE",
-              "COMMENT"
+              "STATUS_CHANGE"
             ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
           },
           "performedBy": {
             "$ref": "#/components/schemas/AccountDto"
@@ -812,9 +878,110 @@
               "DONE",
               "CANCELED"
             ]
+          }
+        }
+      },
+      "IssueHistoryDtoAssigneeChange": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ASSIGNEE_CHANGE"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "performedBy": {
+            "$ref": "#/components/schemas/AccountDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "IssueHistoryDtoComment": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "COMMENT"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "performedBy": {
+            "$ref": "#/components/schemas/AccountDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           },
           "commentText": {
             "type": "string"
+          }
+        }
+      },
+      "IssueHistoryDtoUpdate": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "UPDATE"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "performedBy": {
+            "$ref": "#/components/schemas/AccountDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "changedFields": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TITLE",
+                "DESCRIPTION",
+                "PRIORITY",
+                "VEHICLE"
+              ]
+            }
+          }
+        }
+      },
+      "IssueUpdateDto": {
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "P1_HIGH",
+              "P3_MEDIUM",
+              "P5_LOW"
+            ]
           }
         }
       },

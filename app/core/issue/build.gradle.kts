@@ -14,6 +14,7 @@ kotlin {
             api("com.momosi.trucktrack:shared")
             implementation(projects.core.common)
             implementation(projects.core.network)
+            implementation(projects.core.user)
             implementation(projects.core.vehicle)
             implementation(libs.androidx.paging.common)
         }

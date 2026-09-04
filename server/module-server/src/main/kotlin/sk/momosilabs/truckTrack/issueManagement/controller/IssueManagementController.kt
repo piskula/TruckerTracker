@@ -6,6 +6,7 @@ import sk.momosilabs.truckTrack.api.issue.dto.IssueCreateDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueFilterDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryDto
+import sk.momosilabs.truckTrack.api.issue.dto.IssueUpdateDto
 import org.springframework.web.bind.annotation.RestController
 import sk.momosilabs.truckTrack.api.issue.IssueManagementApi
 import sk.momosilabs.truckTrack.issueManagement.service.addComment.AddCommentUseCase
@@ -18,6 +19,8 @@ import sk.momosilabs.truckTrack.issueManagement.service.getIssueHistory.GetIssue
 import sk.momosilabs.truckTrack.issueManagement.service.getIssueList.GetIssueListUseCase
 import sk.momosilabs.truckTrack.issueManagement.service.resolveIssue.ResolveIssueUseCase
 import sk.momosilabs.truckTrack.issueManagement.service.startIssue.StartIssueUseCase
+import sk.momosilabs.truckTrack.issueManagement.service.updateIssue.UpdateIssueCommand
+import sk.momosilabs.truckTrack.issueManagement.service.updateIssue.UpdateIssueUseCase
 import sk.momosilabs.truckTrack.util.toDto
 import sk.momosilabs.truckTrack.util.toModel
 
@@ -26,6 +29,7 @@ class IssueManagementController(
     private val getIssueList: GetIssueListUseCase,
     private val getIssue: GetIssueUseCase,
     private val createIssue: CreateIssueUseCase,
+    private val updateIssue: UpdateIssueUseCase,
     private val startIssue: StartIssueUseCase,
     private val assignInProgressIssueToMe: AssignInProgressIssueToMeUseCase,
     private val resolveIssue: ResolveIssueUseCase,
@@ -47,6 +51,17 @@ class IssueManagementController(
     override fun createIssue(request: IssueCreateDto): IssueDto =
         createIssue.create(
             CreateIssueCommand(
+                vehicleId = request.vehicleId,
+                title = request.title,
+                description = request.description,
+                priority = request.priority.toModel(),
+            )
+        ).toDto()
+
+    override fun updateIssue(id: Long, request: IssueUpdateDto): IssueDto =
+        updateIssue.update(
+            issueId = id,
+            command = UpdateIssueCommand(
                 vehicleId = request.vehicleId,
                 title = request.title,
                 description = request.description,

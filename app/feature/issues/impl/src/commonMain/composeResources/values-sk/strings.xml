@@ -35,6 +35,7 @@
     <string name="issue_detail_history">História</string>
     <string name="issue_detail_history_empty">Zatiaľ bez histórie</string>
     <string name="issue_detail_history_reassigned">Prepriradené</string>
+    <string name="issue_detail_history_updated">Upravené: %1$s</string>
     <string name="issue_detail_add_comment">Pridať komentár</string>
     <string name="issue_detail_comment_placeholder">Napíšte komentár…</string>
     <string name="issue_detail_photos_loading">Fotografie</string>
@@ -67,14 +68,24 @@
     <string name="create_issue_priority">Priorita</string>
     <string name="create_issue_photos">Fotografie</string>
     <string name="create_issue_submit">Odoslať hlásenie</string>
-    <string name="create_issue_select_vehicle">Vyberte vozidlo</string>
     <string name="create_issue_add_photos">Pridať fotografie</string>
     <string name="create_issue_camera_or_gallery">Z fotoaparátu alebo galérie</string>
-    <string name="create_issue_priority_high_hint">Blokuje prevádzku, treba riešiť ihneď</string>
-    <string name="create_issue_priority_medium_hint">Treba opraviť čoskoro, ale nie je to kritické</string>
-    <string name="create_issue_priority_low_hint">Menší problém, môže počkať na plánovanú údržbu</string>
-    <string name="create_issue_error_title_required">Názov je povinný</string>
-    <string name="create_issue_error_vehicle_required">Vyberte prosím vozidlo</string>
     <string name="create_issue_error_submission_failed">Nepodarilo sa odoslať nahlásenie. Skúste to prosím znova.</string>
+
+    <string name="issue_select_vehicle">Vyberte vozidlo</string>
+    <string name="issue_priority_high_hint">Blokuje prevádzku, treba riešiť ihneď</string>
+    <string name="issue_priority_medium_hint">Treba opraviť čoskoro, ale nie je to kritické</string>
+    <string name="issue_priority_low_hint">Menší problém, môže počkať na plánovanú údržbu</string>
+    <string name="issue_error_title_required">Názov je povinný</string>
+    <string name="issue_error_vehicle_required">Vyberte prosím vozidlo</string>
+    <string name="issue_field_title">Názov</string>
+    <string name="issue_field_description">Popis</string>
+    <string name="issue_field_priority">Priorita</string>
+    <string name="issue_field_vehicle">Vozidlo</string>
+
+    <string name="edit_issue_title">Upraviť hlásenie</string>
+    <string name="edit_issue_submit">Uložiť zmeny</string>
+    <string name="edit_issue_error">Nepodarilo sa načítať hlásenie na úpravu</string>
+    <string name="edit_issue_error_submission_failed">Nepodarilo sa uložiť zmeny. Skúste to prosím znova.</string>
 </resources>
 

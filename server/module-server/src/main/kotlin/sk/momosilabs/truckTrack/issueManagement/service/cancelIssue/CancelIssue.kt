@@ -5,7 +5,6 @@ import org.springframework.transaction.annotation.Transactional
 import sk.momosilabs.truckTrack.account.model.AccountModel
 import sk.momosilabs.truckTrack.config.GlobalForbiddenException
 import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
-import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEventType
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
 import sk.momosilabs.truckTrack.issueManagement.model.IssueModel
@@ -37,15 +36,13 @@ class CancelIssue(
         val now = OffsetDateTime.now(ZoneOffset.UTC)
         val saved = issuePersistence.updateStatusAndAssignee(issueId, IssueStatus.CANCELED, issue.assignedTo?.id, now)
         issuePersistence.saveHistory(
-            IssueHistoryModel(
+            IssueHistoryModel.StatusChange(
                 id = UUID.randomUUID(),
                 issueId = saved.id,
-                type = IssueHistoryEventType.STATUS_CHANGE,
                 performedBy = currentUser,
                 createdAt = now,
                 statusFrom = issue.status,
                 statusTo = IssueStatus.CANCELED,
-                commentText = null,
             )
         )
         return saved
