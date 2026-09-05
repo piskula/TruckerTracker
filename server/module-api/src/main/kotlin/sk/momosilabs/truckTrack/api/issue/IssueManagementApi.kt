@@ -6,6 +6,7 @@ import sk.momosilabs.truckTrack.api.issue.dto.IssueCreateDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueFilterDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryDto
+import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryPageDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueUpdateDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -63,7 +64,7 @@ interface IssueManagementApi {
     fun getIssueHistory(
         @PathVariable id: Long,
         @ParameterObject pageable: PageableDto,
-    ): PageDto<IssueHistoryDto>
+    ): IssueHistoryPageDto
 
     @Operation(summary = "Add comment")
     @PostMapping("$ENDPOINT/{id}/comment")

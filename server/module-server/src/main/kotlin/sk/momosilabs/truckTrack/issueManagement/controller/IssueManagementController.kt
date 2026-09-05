@@ -6,6 +6,7 @@ import sk.momosilabs.truckTrack.api.issue.dto.IssueCreateDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueFilterDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryDto
+import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryPageDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueUpdateDto
 import org.springframework.web.bind.annotation.RestController
 import sk.momosilabs.truckTrack.api.issue.IssueManagementApi
@@ -81,8 +82,17 @@ class IssueManagementController(
     override fun cancelIssue(id: Long): IssueDto =
         cancelIssue.cancel(id).toDto()
 
-    override fun getIssueHistory(id: Long, pageable: PageableDto): PageDto<IssueHistoryDto> =
-        getIssueHistory.get(id, pageable.toModel()).toDto { it.toDto() }
+    override fun getIssueHistory(id: Long, pageable: PageableDto): IssueHistoryPageDto {
+        val page = getIssueHistory.get(id, pageable.toModel())
+        return IssueHistoryPageDto(
+            totalElements = page.totalElements,
+            totalPages = page.totalPages,
+            number = page.number,
+            size = page.size,
+            numberOfElements = page.numberOfElements,
+            content = page.content.map { it.toDto() },
+        )
+    }
 
     override fun addComment(id: Long, text: String): IssueHistoryDto =
         addComment.addComment(issueId = id, comment = text).toDto()

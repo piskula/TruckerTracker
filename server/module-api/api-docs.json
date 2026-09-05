@@ -592,7 +592,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PageDtoIssueHistoryDto"
+                  "$ref": "#/components/schemas/IssueHistoryPageDto"
                 }
               }
             }
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "PageDtoIssueHistoryDto": {
+      "IssueHistoryPageDto": {
         "type": "object",
         "properties": {
           "totalElements": {

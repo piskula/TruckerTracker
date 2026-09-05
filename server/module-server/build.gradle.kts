@@ -30,6 +30,10 @@ springBoot {
     buildInfo()
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 dependencies {
     implementation(project(":module-api"))
 
