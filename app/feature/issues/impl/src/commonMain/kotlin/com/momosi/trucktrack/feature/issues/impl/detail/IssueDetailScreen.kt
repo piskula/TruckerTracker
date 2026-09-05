@@ -288,7 +288,9 @@ private fun IssueDetailScreenContent(
                 }
 
                 IssueDetailPhase.Loaded -> {
-                    val content = state.content as IssueDetailContent.Loaded
+                    var lastLoadedContent by remember { mutableStateOf<IssueDetailContent.Loaded?>(null) }
+                    (state.content as? IssueDetailContent.Loaded)?.let { lastLoadedContent = it }
+                    val content = lastLoadedContent ?: return@Crossfade
                     LoadedContent(
                         issue = content.issue,
                         history = content.history,
