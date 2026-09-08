@@ -46,6 +46,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -583,6 +585,8 @@ private fun HistoryCard(
     modifier: Modifier = Modifier,
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     LaunchedEffect(isImeVisible, commentText) {
         if (isImeVisible) {
@@ -647,7 +651,11 @@ private fun HistoryCard(
                     modifier = Modifier
                         .size(24.dp)
                         .align(Alignment.BottomEnd)
-                        .clickable(enabled = sendEnabled && !isSending, onClick = onSend)
+                        .clickable(enabled = sendEnabled && !isSending) {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                            onSend()
+                        }
                         .testTag("issue_detail_send_comment_button"),
                     contentAlignment = Alignment.Center,
                 ) {
