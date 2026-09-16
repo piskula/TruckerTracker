@@ -20,8 +20,7 @@ private class IosPlatformDateFormatter : PlatformDateFormatter {
 
     override fun formatShortDate(instant: Instant): String {
         val formatter = NSDateFormatter()
-        formatter.dateStyle = NSDateFormatterShortStyle
-        formatter.timeStyle = NSDateFormatterMediumStyle
+        formatter.setLocalizedDateFormatFromTemplate("MMM d")
         return formatter.stringFromDate(instant.toNSDate())
     }
 }
