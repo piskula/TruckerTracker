@@ -10,16 +10,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
@@ -177,6 +181,8 @@ internal fun IssueCard(
     }
 }
 
+private const val COMPACT_STATUS_CHIP_FONT_SCALE_THRESHOLD = 1.3f
+
 @Composable
 private fun StatusChip(
     label: String,
@@ -185,25 +191,41 @@ private fun StatusChip(
     icon: ImageVector,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = modifier
-            .background(color = containerColor, shape = Shapes.CardShape)
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-    ) {
-        Icon(
-            imageVector = icon,
-            tint = contentColor,
-            modifier = Modifier.size(13.dp),
-        )
-        Text(
-            text = label.uppercase(),
-            style = AppTheme.typography.labelSmall,
-            color = contentColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+    if (LocalDensity.current.fontScale >= COMPACT_STATUS_CHIP_FONT_SCALE_THRESHOLD) {
+        Box(
+            modifier = modifier
+                .size(32.dp)
+                .background(color = containerColor, shape = CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = contentColor,
+                modifier = Modifier.size(17.dp),
+            )
+        }
+    } else {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = modifier
+                .background(color = containerColor, shape = Shapes.CardShape)
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+        ) {
+            Icon(
+                imageVector = icon,
+                tint = contentColor,
+                modifier = Modifier.size(13.dp),
+            )
+            Text(
+                text = label.uppercase(),
+                style = AppTheme.typography.labelSmall,
+                color = contentColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
@@ -397,5 +419,21 @@ private fun IssueCardAllPreview() {
             onClick = {},
             modifier = Modifier.padding(12.dp),
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun IssueCardLargeFontScalePreview() {
+    TruckTrackTheme {
+        CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.6f)) {
+            IssueCard(
+                issue = sampleIssue,
+                filter = IssueFilter.MyIssues,
+                dateFormatter = DateFormatter(),
+                onClick = {},
+                modifier = Modifier.padding(12.dp),
+            )
+        }
     }
 }
