@@ -1,4 +1,4 @@
-﻿package com.momosi.trucktrack.core.uilibrary.components
+package com.momosi.trucktrack.core.uilibrary.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -10,9 +10,9 @@ import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 enum class IconButtonStyle {
     Standard,
