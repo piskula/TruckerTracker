@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -34,6 +35,7 @@ import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,7 +52,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -508,25 +512,34 @@ private fun HeaderCard(issue: IssueUi, modifier: Modifier = Modifier) {
                 StatusChip(status = issue.status)
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                PriorityIndicator(priority = issue.priority)
-                if (issue.vehicleLabel.isNotEmpty()) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                    ) {
-                        Icon(imageVector = issue.vehicleType.vehicleIcon(), tint = AppTheme.colors.onSurfaceVariant, modifier = Modifier.size(15.dp))
-                        Text(text = issue.vehicleLabel, style = AppTheme.typography.bodySmall, color = AppTheme.colors.onSurfaceVariant)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    PriorityIndicator(priority = issue.priority)
+                    if (issue.vehicleLabel.isNotEmpty()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                        ) {
+                            Icon(imageVector = issue.vehicleType.vehicleIcon(), tint = AppTheme.colors.onSurfaceVariant, modifier = Modifier.size(15.dp))
+                            Text(text = issue.vehicleLabel, style = AppTheme.typography.bodySmall, color = AppTheme.colors.onSurfaceVariant)
+                        }
                     }
                 }
-                Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = issue.createdAtFormatted,
                     style = AppTheme.typography.labelSmall,
                     color = AppTheme.colors.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -1206,5 +1219,36 @@ private fun IssueDetailFullLoadingPreview() {
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
+    }
+}
+
+@Preview
+@Composable
+private fun IssueDetailLoadedLargeFontScalePreview() {
+    TruckTrackTheme {
+        CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.6f)) {
+            IssueDetailScreenContent(
+                state = IssueDetailState(
+                    issueId = previewIssue.id,
+                    content = IssueDetailContent.Loaded(issue = previewIssue, history = previewHistory),
+                    photosContent = IssuePhotosContent.Loaded(),
+                    capabilities = IssueCapabilities.None.copy(
+                        actions = ActionCapabilities.None.copy(nextStateAction = IssueStateAction.Reassign),
+                    ),
+                ),
+                onBack = {},
+                onRetry = {},
+                onEdit = {},
+                onUpdateComment = {},
+                onSendComment = {},
+                onStartWorking = {},
+                onResolveIssue = {},
+                onReassignToMe = {},
+                onCancelIssue = {},
+                onUploadPhoto = {},
+                onDeletePhoto = {},
+                onNavigateToFullScreenPhoto = {},
+            )
+        }
     }
 }

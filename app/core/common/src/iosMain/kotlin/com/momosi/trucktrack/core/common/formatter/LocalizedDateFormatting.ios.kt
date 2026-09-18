@@ -2,8 +2,6 @@ package com.momosi.trucktrack.core.common.formatter
 
 import platform.Foundation.NSDate
 import platform.Foundation.NSDateFormatter
-import platform.Foundation.NSDateFormatterMediumStyle
-import platform.Foundation.NSDateFormatterShortStyle
 import platform.Foundation.dateWithTimeIntervalSince1970
 import kotlin.time.Instant
 
@@ -13,8 +11,7 @@ private class IosPlatformDateFormatter : PlatformDateFormatter {
 
     override fun formatDateTime(instant: Instant): String {
         val formatter = NSDateFormatter()
-        formatter.dateStyle = NSDateFormatterMediumStyle
-        formatter.timeStyle = NSDateFormatterShortStyle
+        formatter.setLocalizedDateFormatFromTemplate("MMM d, j:mm")
         return formatter.stringFromDate(instant.toNSDate())
     }
 
