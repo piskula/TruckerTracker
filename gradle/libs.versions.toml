@@ -1,20 +1,20 @@
 [versions]
 # Kotlin
-kotlin = "2.4.0"
-kotlinx-collections-immutable = "0.5.1"
+kotlin = "2.4.10"
+kotlinx-collections-immutable = "0.5.2"
 kotlinx-datetime = "0.8.0"
 
 # Android
-agp = "9.2.1"
+agp = "9.4.0"
 activity = "1.13.0"
-appcompat = "1.7.1"
+appcompat = "1.8.0"
 
 # Compose
-compose-multiplatform = "1.11.1"
-compose-foundation = "1.11.4"
+compose-multiplatform = "1.12.0"
+compose-foundation = "1.12.1"
 
 # Navigation
-navigation3 = "1.1.4"
+navigation3 = "1.1.7"
 navigation3-ui-multiplatform = "1.1.1"
 lifecycle-viewmodel-nav3 = "2.11.0"
 
@@ -23,23 +23,23 @@ koin = "4.2.2"
 
 # Third-party
 filekit = "0.8.8"
-kermit = "2.1.0"
-coil = "3.5.0"
-oidc = "0.16.5"
-ktor = "3.5.1"
+kermit = "2.2.0"
+coil = "3.6.2"
+oidc = "0.18.2"
+ktor = "3.6.0"
 ktorfit = "2.7.5"
 ksp = "2.3.10"
 kotlinx-serialization-json = "1.11.0"
-spotless = "8.8.0"
-compose-rules-ktlint = "0.6.2"
-detekt = "2.0.0-alpha.5"
-paging = "3.5.0"
+spotless = "8.10.2"
+compose-rules-ktlint = "0.6.6"
+detekt = "2.0.0-alpha.6"
+paging = "3.5.1"
 
 # Firebase
 google-services = "4.5.0"
-firebase-crashlytics-gradle = "3.0.7"
-firebase-kotlin-sdk = "2.4.0"
-firebase-bom = "34.15.0"
+firebase-crashlytics-gradle = "3.0.8"
+firebase-kotlin-sdk = "2.7.0"
+firebase-bom = "34.19.0"
 
 # Server (Spring Boot)
 springBoot = "4.0.6"
@@ -59,6 +59,7 @@ androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "compose-multiplatform" }
 
 # Compose (version-pinned)
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose-foundation" }

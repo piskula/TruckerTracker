@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.momosi.trucktrack.core.uilibrary.components.SkeletonBox
@@ -29,7 +30,6 @@ import com.momosi.trucktrack.core.uilibrary.modifier.ShimmerGroup
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.Shapes
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun IssueDetailSkeleton(modifier: Modifier = Modifier) {

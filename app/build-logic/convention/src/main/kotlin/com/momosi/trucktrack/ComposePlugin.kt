@@ -30,7 +30,7 @@ class ComposePlugin : Plugin<Project> {
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.findLibrary("compose-ui-tooling-preview").get())
             implementation(libs.findBundle("navigation3").get())
         }
 
