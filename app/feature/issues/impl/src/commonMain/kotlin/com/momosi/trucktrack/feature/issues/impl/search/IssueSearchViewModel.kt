@@ -63,8 +63,8 @@ class IssueSearchViewModel(private val issueRepository: IssueRepository) : ViewM
     )
 }
 
-private fun String.toIssueIdQuery(): String = filter { it.isDigit() }.take(MAX_QUERY_LENGTH)
+private fun String.toIssueIdQuery(): String = filter { it.isDigit() }.take(MAX_ISSUE_ID_DIGITS)
 
 private const val SEARCH_DEBOUNCE_MILLIS = 300L
-private const val MAX_QUERY_LENGTH = 18
+private const val MAX_ISSUE_ID_DIGITS = 18
 private const val HTTP_NOT_FOUND = 404
