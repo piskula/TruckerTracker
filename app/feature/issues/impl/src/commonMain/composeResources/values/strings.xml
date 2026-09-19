@@ -19,7 +19,6 @@
     <string name="issue_priority_high">High</string>
     <string name="issue_priority_medium">Medium</string>
     <string name="issue_priority_low">Low</string>
-    <string name="issue_unassigned">Unassigned</string>
     <string name="issue_card_id">#%1$d</string>
 
     <string name="time_ago_just_now">Just now</string>

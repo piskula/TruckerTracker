@@ -50,7 +50,6 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_cancelle
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_done
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_in_progress
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_open
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_unassigned
 import com.momosi.trucktrack.feature.issues.impl.resources.time_ago_days
 import com.momosi.trucktrack.feature.issues.impl.resources.time_ago_hours
 import com.momosi.trucktrack.feature.issues.impl.resources.time_ago_just_now
@@ -153,7 +152,7 @@ internal fun IssueCard(
                         IssueFilter.MyResolved,
                         -> MetaItem(
                             icon = TruckTrackIcons.AssignmentInd,
-                            text = issue.assignedTo?.fullName ?: stringResource(Res.string.issue_unassigned),
+                            text = issue.assignedTo?.fullName ?: "—",
                             maxLines = 2,
                         )
 
