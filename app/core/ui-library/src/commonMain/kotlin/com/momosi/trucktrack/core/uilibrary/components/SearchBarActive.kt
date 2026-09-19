@@ -8,10 +8,15 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
@@ -24,8 +29,18 @@ fun SearchBarActive(
     query: String,
     placeholder: String,
     modifier: Modifier = Modifier,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    autoFocus: Boolean = false,
     onQueryChange: (String) -> Unit = {},
 ) {
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(autoFocus) {
+        if (autoFocus) {
+            focusRequester.requestFocus()
+        }
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -64,7 +79,8 @@ fun SearchBarActive(
                 onValueChange = onQueryChange,
                 textStyle = textStyle,
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = keyboardOptions,
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             )
         }
         if (query.isNotEmpty()) {

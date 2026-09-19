@@ -40,7 +40,7 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `SectionLabel` | Section header label |
 | `Switch`, `Checkbox` | Form controls |
 | `TextField` | Themed `BasicTextField` wrapper — always sets `cursorBrush` to `AppTheme.colors.onSurface` so callers can't forget it (and get an invisible black cursor in dark mode); `decorationBox` slot for per-screen chrome (labels, underlines, placeholders) |
-| `SearchBarActive`, `SearchBarInactive` | Search UI |
+| `SearchBarActive`, `SearchBarInactive` | Search UI — `SearchBarActive` takes `keyboardOptions` (e.g. a numeric-only keyboard) and `autoFocus` to open the keyboard as soon as the search screen appears |
 | `DateRangePickerDialog` | Date range picker |
 | `NavigationBar` | Bottom navigation bar |
 
