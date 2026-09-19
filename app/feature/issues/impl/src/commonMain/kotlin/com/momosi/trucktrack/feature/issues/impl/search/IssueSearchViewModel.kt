@@ -27,11 +27,7 @@ class IssueSearchViewModel(private val issueRepository: IssueRepository) : ViewM
         if (issueId == null) {
             flowOf(IssueSearchContent.Blank)
         } else {
-            flow {
-                emit(IssueSearchContent.Loading)
-                delay(SEARCH_DEBOUNCE_MILLIS)
-                emit(searchIssue(issueId))
-            }
+            debouncedSearch(issueId)
         }
     }
 
@@ -48,6 +44,12 @@ class IssueSearchViewModel(private val issueRepository: IssueRepository) : ViewM
         when (action) {
             is IssueSearchAction.ChangeQuery -> query.value = action.query.toIssueIdQuery()
         }
+    }
+
+    private fun debouncedSearch(issueId: Long): Flow<IssueSearchContent> = flow {
+        emit(IssueSearchContent.Loading)
+        delay(SEARCH_DEBOUNCE_MILLIS)
+        emit(searchIssue(issueId))
     }
 
     private suspend fun searchIssue(issueId: Long): IssueSearchContent = issueRepository.getIssue(issueId).fold(
