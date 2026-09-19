@@ -41,17 +41,12 @@ class VehicleRepositoryImpl(private val vehicleApi: VehicleApi, private val pref
         val preferredTrailer = userId?.let { preferredVehicleStorage.getPreferredVehicleId(it, VehicleType.Trailer) }
             ?.let { id -> vehicles.firstOrNull { it.id == id } }
         val preferredIds = setOfNotNull(preferredTruck?.id, preferredTrailer?.id)
-        val mostRecentlyUsedType = userId?.let { preferredVehicleStorage.getMostRecentlyUsedType(it) }
 
         return CategorizedVehicles(
             preferredTruck = preferredTruck,
             preferredTrailer = preferredTrailer,
             otherVehicles = vehicles.filterNot { it.id in preferredIds },
-            defaultVehicle = when (mostRecentlyUsedType) {
-                VehicleType.Truck -> preferredTruck
-                VehicleType.Trailer -> preferredTrailer
-                null -> null
-            },
+            defaultVehicle = preferredTruck ?: preferredTrailer,
         )
     }
 }

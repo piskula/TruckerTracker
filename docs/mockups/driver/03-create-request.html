@@ -113,13 +113,16 @@
       flex-direction: column;
     }
     /* SectionLabel — shown above the driver's remembered truck/trailer, and again
-       above the rest of the fleet, only when at least one is remembered */
+       above the rest of the fleet, only when at least one is remembered. Uses primary
+       (not onSurfaceVariant) so the section titles stand out from the vehicle rows,
+       which are all the same onSurface color. */
     .vehicle-section-label {
       font-size: 14px;
       font-weight: 500;
-      color: var(--tt-on-surface-variant);
+      color: var(--tt-primary);
       padding: 4px;
     }
+    .vehicle-section-label.all { margin-top: 8px; }
     .vehicle-option {
       display: flex;
       align-items: center;
@@ -274,8 +277,10 @@
 
     <div class="content">
 
-      <!-- Vehicle: expandable dropdown, preselected to the driver's most-recently-used
-           truck (VehicleRepository.getVehicles()'s preferredTruck/preferredTrailer) -->
+      <!-- Vehicle: expandable dropdown, preselected to the driver's remembered truck
+           (VehicleRepository.getVehicles()'s defaultVehicle) — truck always wins over
+           trailer here, even if the trailer was the more recently used vehicle. Falls
+           back to the remembered trailer only when no truck is remembered. -->
       <div class="card">
         <div class="card-title">Vehicle</div>
         <div class="vehicle-selector">
@@ -287,7 +292,7 @@
           <div class="vehicle-section-label">Recently used</div>
           <div class="vehicle-option"><span class="material-symbols-rounded filled">local_shipping</span>MA-204-TT · Volvo FH16</div>
           <div class="vehicle-option"><span class="material-symbols-rounded filled">rv_hookup</span>MA-330-CD · Schmitz S.KO</div>
-          <div class="vehicle-section-label">All vehicles</div>
+          <div class="vehicle-section-label all">All vehicles</div>
           <div class="vehicle-option"><span class="material-symbols-rounded filled">local_shipping</span>MA-118-AB · DAF XF</div>
           <div class="vehicle-option"><span class="material-symbols-rounded filled">local_shipping</span>MA-337-PK · Scania R450</div>
         </div>

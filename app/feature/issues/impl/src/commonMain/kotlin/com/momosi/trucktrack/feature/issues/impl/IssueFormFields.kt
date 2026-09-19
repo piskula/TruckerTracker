@@ -207,6 +207,7 @@ internal fun VehicleSelector(
                 if (preferredVehicles.isNotEmpty()) {
                     SectionLabel(
                         text = stringResource(Res.string.issue_vehicle_section_recent),
+                        color = AppTheme.colors.primary,
                         modifier = Modifier.testTag("${testTagPrefix}_vehicle_section_recent"),
                     )
                 }
@@ -220,7 +221,8 @@ internal fun VehicleSelector(
                 if (preferredVehicles.isNotEmpty() && vehicles.otherVehicles.isNotEmpty()) {
                     SectionLabel(
                         text = stringResource(Res.string.issue_vehicle_section_all),
-                        modifier = Modifier.testTag("${testTagPrefix}_vehicle_section_all"),
+                        color = AppTheme.colors.primary,
+                        modifier = Modifier.padding(top = 8.dp).testTag("${testTagPrefix}_vehicle_section_all"),
                     )
                 }
                 vehicles.otherVehicles.forEach { vehicle ->

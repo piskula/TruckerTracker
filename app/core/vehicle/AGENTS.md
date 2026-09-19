@@ -9,7 +9,7 @@ Domain models and repository for the vehicle domain. Fully KMP — all code in `
 | `VehicleRepository` | `suspend fun getVehicles(): Result<CategorizedVehicles>`; `fun recordVehicleUsage(vehicle: Vehicle)` — both resolve the current user internally via `UserRepository`, callers never pass a userId |
 | `Vehicle` | Domain model: id, licensePlate, make, model, type |
 | `VehicleType` | `Truck`, `Trailer` |
-| `CategorizedVehicles` | `getVehicles()`'s result: `preferredTruck`, `preferredTrailer`, `otherVehicles`, `defaultVehicle` (the one to preselect, based on which type was used most recently) — the driver's remembered truck/trailer folded directly into the vehicle list, local-only (no backend API) |
+| `CategorizedVehicles` | `getVehicles()`'s result: `preferredTruck`, `preferredTrailer`, `otherVehicles`, `defaultVehicle` (the one to preselect — always `preferredTruck` when remembered, falling back to `preferredTrailer` only if there's no remembered truck; recency of use is not a factor) — the driver's remembered truck/trailer folded directly into the vehicle list, local-only (no backend API) |
 
 ## Key Files
 
