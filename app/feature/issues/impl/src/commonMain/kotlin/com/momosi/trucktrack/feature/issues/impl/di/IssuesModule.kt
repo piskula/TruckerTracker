@@ -6,6 +6,7 @@ import com.momosi.trucktrack.feature.issues.impl.detail.IssueDetailViewModel
 import com.momosi.trucktrack.feature.issues.impl.detail.startworking.StartWorkingViewModel
 import com.momosi.trucktrack.feature.issues.impl.edit.EditIssueViewModel
 import com.momosi.trucktrack.feature.issues.impl.list.IssuesViewModel
+import com.momosi.trucktrack.feature.issues.impl.search.IssueSearchViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -16,4 +17,5 @@ val issuesModule = module {
     viewModel { CreateIssueViewModel(get(), get(), get(), get()) }
     viewModel { params -> EditIssueViewModel(params.get(), get(), get(), get(), get(), get()) }
     viewModel { params -> FullScreenPhotoViewModel(params.get(), get(), get()) }
+    viewModel { IssueSearchViewModel(get()) }
 }
