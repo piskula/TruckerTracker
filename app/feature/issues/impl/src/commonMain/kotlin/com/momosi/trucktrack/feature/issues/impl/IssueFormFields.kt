@@ -373,22 +373,22 @@ private fun PriorityDescription(priority: IssuePriority, modifier: Modifier = Mo
 @Composable
 private fun IssuePriority.accentColor() = when (this) {
     IssuePriority.High -> AppTheme.colors.error
-    IssuePriority.Medium -> AppTheme.colors.warning
-    IssuePriority.Low -> AppTheme.colors.primary
+    IssuePriority.Medium -> AppTheme.colors.primary
+    IssuePriority.Low -> AppTheme.colors.outline
 }
 
 @Composable
 private fun IssuePriority.containerColor() = when (this) {
     IssuePriority.High -> AppTheme.colors.errorContainer
-    IssuePriority.Medium -> AppTheme.colors.warningContainer
-    IssuePriority.Low -> AppTheme.colors.primaryContainer
+    IssuePriority.Medium -> AppTheme.colors.primaryContainer
+    IssuePriority.Low -> AppTheme.colors.surfaceVariant
 }
 
 @Composable
 private fun IssuePriority.onContainerColor() = when (this) {
     IssuePriority.High -> AppTheme.colors.onErrorContainer
-    IssuePriority.Medium -> AppTheme.colors.onWarningContainer
-    IssuePriority.Low -> AppTheme.colors.onPrimaryContainer
+    IssuePriority.Medium -> AppTheme.colors.onPrimaryContainer
+    IssuePriority.Low -> AppTheme.colors.outline
 }
 
 private fun IssuePriority.icon() = when (this) {

@@ -160,9 +160,11 @@
           flex-shrink: 0;
         }
         .priority-indicator .material-symbols-rounded { font-size: 15px; }
+        /* Issue #36: Medium reuses Low's old primary color; Low drops to plain gray
+           (outline) — no new color tokens, only reassigned existing roles. */
         .priority-indicator.high   { color: var(--tt-error); }
-        .priority-indicator.medium { color: var(--tt-warning); }
-        .priority-indicator.low    { color: var(--tt-primary); }
+        .priority-indicator.medium { color: var(--tt-primary); }
+        .priority-indicator.low    { color: var(--tt-outline); }
 
         .meta-item {
           display: flex;
@@ -332,8 +334,8 @@
             </div>
         </div>
 
-        <!-- Medium / Open, no assignee — reporter only -->
-        <div class="card priority-medium">
+        <!-- Low / Open, no assignee — reporter only -->
+        <div class="card priority-low">
             <div class="card-top">
                 <div class="card-title-row">
                     <span class="card-id">#1061</span>
@@ -345,9 +347,9 @@
                 </div>
             </div>
             <div class="card-meta">
-                <div class="priority-indicator medium">
-                    <span class="material-symbols-rounded">remove</span>
-                    Medium
+                <div class="priority-indicator low">
+                    <span class="material-symbols-rounded">arrow_downward</span>
+                    Low
                 </div>
                 <div class="meta-item">
                     <span class="material-symbols-rounded filled">local_shipping</span>
