@@ -15,8 +15,8 @@ import com.momosi.trucktrack.core.vehicle.VehicleRepository
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.feature.issues.impl.SubmitStatus
 import com.momosi.trucktrack.feature.issues.impl.VehiclesContent
+import com.momosi.trucktrack.feature.issues.impl.toVehiclesContent
 import com.momosi.trucktrack.user.UserRepository
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -118,7 +118,7 @@ class EditIssueViewModel(
     private fun loadVehicles() {
         viewModelScope.launch {
             vehicleRepository.getVehicles()
-                .onSuccess { vehicles -> vehiclesContent.value = VehiclesContent.Loaded(vehicles.toImmutableList()) }
+                .onSuccess { categorized -> vehiclesContent.value = categorized.toVehiclesContent() }
                 .onFailure {
                     vehiclesContent.value = VehiclesContent.Error
                     errorReporter.report(it)

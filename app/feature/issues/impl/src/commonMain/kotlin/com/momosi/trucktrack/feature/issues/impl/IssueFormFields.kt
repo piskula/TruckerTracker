@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.uilibrary.components.Icon
 import com.momosi.trucktrack.core.uilibrary.components.LoadingSpinner
+import com.momosi.trucktrack.core.uilibrary.components.SectionLabel
 import com.momosi.trucktrack.core.uilibrary.components.Text
 import com.momosi.trucktrack.core.uilibrary.components.TextField
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
@@ -44,6 +45,8 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_low_hi
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_medium
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_medium_hint
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_select_vehicle
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_vehicle_section_all
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_vehicle_section_recent
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -199,31 +202,65 @@ internal fun VehicleSelector(
             }
         }
         if (expanded && vehicles is VehiclesContent.Loaded) {
+            val preferredVehicles = listOfNotNull(vehicles.preferredTruck, vehicles.preferredTrailer)
             Column {
-                vehicles.vehicles.forEach { vehicle ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(vehicle) }
-                            .padding(vertical = 10.dp, horizontal = 4.dp)
-                            .testTag("${testTagPrefix}_vehicle_option_${vehicle.id}"),
-                    ) {
-                        Icon(
-                            imageVector = vehicle.type.vehicleIcon(),
-                            tint = AppTheme.colors.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "${vehicle.licensePlate} · ${vehicle.make} ${vehicle.model}",
-                            style = AppTheme.typography.bodyMedium,
-                            color = AppTheme.colors.onSurface,
-                        )
-                    }
+                if (preferredVehicles.isNotEmpty()) {
+                    SectionLabel(
+                        text = stringResource(Res.string.issue_vehicle_section_recent),
+                        modifier = Modifier.testTag("${testTagPrefix}_vehicle_section_recent"),
+                    )
+                }
+                preferredVehicles.forEach { vehicle ->
+                    VehicleOption(
+                        vehicle = vehicle,
+                        onSelect = onSelect,
+                        testTag = "${testTagPrefix}_vehicle_preferred_${vehicle.id}",
+                    )
+                }
+                if (preferredVehicles.isNotEmpty() && vehicles.otherVehicles.isNotEmpty()) {
+                    SectionLabel(
+                        text = stringResource(Res.string.issue_vehicle_section_all),
+                        modifier = Modifier.testTag("${testTagPrefix}_vehicle_section_all"),
+                    )
+                }
+                vehicles.otherVehicles.forEach { vehicle ->
+                    VehicleOption(
+                        vehicle = vehicle,
+                        onSelect = onSelect,
+                        testTag = "${testTagPrefix}_vehicle_option_${vehicle.id}",
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun VehicleOption(
+    vehicle: Vehicle,
+    onSelect: (Vehicle) -> Unit,
+    testTag: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onSelect(vehicle) }
+            .padding(vertical = 10.dp, horizontal = 4.dp)
+            .testTag(testTag),
+    ) {
+        Icon(
+            imageVector = vehicle.type.vehicleIcon(),
+            tint = AppTheme.colors.onSurfaceVariant,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "${vehicle.licensePlate} · ${vehicle.make} ${vehicle.model}",
+            style = AppTheme.typography.bodyMedium,
+            color = AppTheme.colors.onSurface,
+        )
     }
 }
 

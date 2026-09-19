@@ -10,7 +10,7 @@ sealed interface VehiclesContent {
     data object Loading : VehiclesContent
 
     @Immutable
-    data class Loaded(val vehicles: ImmutableList<Vehicle> = persistentListOf()) : VehiclesContent
+    data class Loaded(val preferredTruck: Vehicle? = null, val preferredTrailer: Vehicle? = null, val otherVehicles: ImmutableList<Vehicle> = persistentListOf()) : VehiclesContent
     data object Error : VehiclesContent
 }
 

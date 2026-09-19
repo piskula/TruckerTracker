@@ -73,6 +73,8 @@
     <string name="create_issue_error_submission_failed">We couldn\'t submit your issue. Please try again.</string>
 
     <string name="issue_select_vehicle">Select a vehicle</string>
+    <string name="issue_vehicle_section_recent">Recently used</string>
+    <string name="issue_vehicle_section_all">All vehicles</string>
     <string name="issue_priority_high_hint">Blocks operation, immediate attention needed</string>
     <string name="issue_priority_medium_hint">Should be fixed soon, but not critical</string>
     <string name="issue_priority_low_hint">Minor issue, can wait for scheduled maintenance</string>

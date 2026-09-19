@@ -73,6 +73,8 @@
     <string name="create_issue_error_submission_failed">Nepodarilo sa odoslať nahlásenie. Skúste to prosím znova.</string>
 
     <string name="issue_select_vehicle">Vyberte vozidlo</string>
+    <string name="issue_vehicle_section_recent">Nedávno použité</string>
+    <string name="issue_vehicle_section_all">Všetky vozidlá</string>
     <string name="issue_priority_high_hint">Blokuje prevádzku, treba riešiť ihneď</string>
     <string name="issue_priority_medium_hint">Treba opraviť čoskoro, ale nie je to kritické</string>
     <string name="issue_priority_low_hint">Menší problém, môže počkať na plánovanú údržbu</string>

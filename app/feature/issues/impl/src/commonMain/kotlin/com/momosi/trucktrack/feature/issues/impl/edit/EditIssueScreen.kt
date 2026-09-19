@@ -242,7 +242,7 @@ private fun EditIssuePreview() {
                     ),
                 ),
                 vehicles = VehiclesContent.Loaded(
-                    persistentListOf(
+                    otherVehicles = persistentListOf(
                         Vehicle(1, "MA-204-TT", "Volvo", "FH16", VehicleType.Truck),
                         Vehicle(2, "MA-118-AB", "DAF", "XF", VehicleType.Truck),
                     ),
@@ -273,7 +273,7 @@ private fun EditIssueVehicleOnlyPreview() {
                     ),
                 ),
                 vehicles = VehiclesContent.Loaded(
-                    persistentListOf(
+                    otherVehicles = persistentListOf(
                         Vehicle(1, "MA-204-TT", "Volvo", "FH16", VehicleType.Truck),
                     ),
                 ),
