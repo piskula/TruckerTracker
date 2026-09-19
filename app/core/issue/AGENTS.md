@@ -17,7 +17,7 @@ Domain models, repositories, and DTOs for the issue (maintenance request) domain
 getIssues(statuses, vehicleIds, accountIds, page, size): Result<Page<Issue>>
 getIssue(id: Long): Result<Issue>
 createIssue(issueCreate: IssueCreate): Result<Issue>
-startIssue(id: Long): Result<Issue>
+startIssue(id: Long, repairType: RepairType, vehicleSystem: VehicleSystem): Result<Issue>
 resolveIssue(id: Long): Result<Issue>
 assignIssue(id: Long): Result<Issue>
 addComment(issueId: Long, comment: String): Result<IssueHistory>
@@ -65,7 +65,9 @@ for what the current user may edit and do on an issue; feature modules should re
 
 | Model | Description |
 |-------|-------------|
-| `Issue` | Core entity: id, title, description, status, priority, vehicle, reportedBy, assignedTo, createdAt, updatedAt |
+| `Issue` | Core entity: id, title, description, status, priority, vehicle, reportedBy, assignedTo, repairType, vehicleSystem, createdAt, updatedAt |
+| `RepairType` | Fixed enum set by the mechanic on start (`Damage`, `Fault`, `Installation`) — same shape as `IssueStatus`/`IssuePriority`, localized via compose string resources, not fetched from the server |
+| `VehicleSystem` | Fixed enum, same shape/localization as `RepairType` (`Electrical`, `Tires`, `Body`, `Engine`, `Drivetrain`, `Brakes`, `Air`, `Tarp`, `Cooling`, `Other`) |
 | `IssueStatus` | `Open`, `InProgress`, `Done` |
 | `IssuePriority` | `High`, `Medium`, `Low` |
 | `Account` | Minimal user reference: id, username, firstName, lastName. Has `fullName` computed property. |

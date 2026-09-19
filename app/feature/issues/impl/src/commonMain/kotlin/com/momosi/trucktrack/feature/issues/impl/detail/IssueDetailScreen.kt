@@ -40,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,11 +60,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.momosi.trucktrack.core.issue.model.ActionCapabilities
+import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueCapabilities
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStateAction
 import com.momosi.trucktrack.core.issue.model.IssueStatus
 import com.momosi.trucktrack.core.issue.model.IssueUpdatedField
+import com.momosi.trucktrack.core.issue.model.RepairType
+import com.momosi.trucktrack.core.issue.model.VehicleSystem
 import com.momosi.trucktrack.core.uilibrary.BackHandler
 import com.momosi.trucktrack.core.uilibrary.components.Button
 import com.momosi.trucktrack.core.uilibrary.components.ButtonRole
@@ -82,6 +86,7 @@ import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.Shapes
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
+import com.momosi.trucktrack.feature.issues.impl.detail.startworking.StartWorkingSheet
 import com.momosi.trucktrack.feature.issues.impl.resources.Res
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_assigned
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_cancel_confirm_cancel
@@ -125,6 +130,19 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_done
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_in_progress
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_open
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_retry
+import com.momosi.trucktrack.feature.issues.impl.resources.repair_type_damage
+import com.momosi.trucktrack.feature.issues.impl.resources.repair_type_fault
+import com.momosi.trucktrack.feature.issues.impl.resources.repair_type_installation
+import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_air
+import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_body
+import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_brakes
+import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_cooling
+import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_drivetrain
+import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_electrical
+import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_engine
+import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_other
+import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_tarp
+import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_tires
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerType
 import io.github.vinceglb.filekit.core.PlatformFile
@@ -168,7 +186,7 @@ internal fun IssueDetailScreen(
         onEdit = onNavigateToEdit,
         onUpdateComment = { viewModel.onAction(IssueDetailAction.UpdateComment(it)) },
         onSendComment = { viewModel.onAction(IssueDetailAction.SendComment) },
-        onStartWorking = { viewModel.onAction(IssueDetailAction.StartWorking) },
+        onIssueStart = { viewModel.onAction(IssueDetailAction.IssueStarted(it)) },
         onResolveIssue = { viewModel.onAction(IssueDetailAction.ResolveIssue) },
         onReassignToMe = { viewModel.onAction(IssueDetailAction.ReassignToMe) },
         onCancelIssue = { viewModel.onAction(IssueDetailAction.CancelIssue) },
@@ -188,7 +206,7 @@ private fun IssueDetailScreenContent(
     onEdit: () -> Unit,
     onUpdateComment: (String) -> Unit,
     onSendComment: () -> Unit,
-    onStartWorking: () -> Unit,
+    onIssueStart: (Issue) -> Unit,
     onResolveIssue: () -> Unit,
     onReassignToMe: () -> Unit,
     onCancelIssue: () -> Unit,
@@ -197,9 +215,21 @@ private fun IssueDetailScreenContent(
     onNavigateToFullScreenPhoto: (PhotoItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var showResolveConfirmation by remember { mutableStateOf(false) }
-    var showCancelConfirmation by remember { mutableStateOf(false) }
+    var showResolveConfirmation by rememberSaveable { mutableStateOf(false) }
+    var showCancelConfirmation by rememberSaveable { mutableStateOf(false) }
+    var showStartWorkingDialog by rememberSaveable { mutableStateOf(false) }
     var photoPendingDeletion by remember { mutableStateOf<PhotoItem?>(null) }
+
+    if (showStartWorkingDialog) {
+        StartWorkingSheet(
+            issueId = state.issueId,
+            onIssueStart = {
+                showStartWorkingDialog = false
+                onIssueStart(it)
+            },
+            onDismiss = { showStartWorkingDialog = false },
+        )
+    }
 
     photoPendingDeletion?.let { photo ->
         ConfirmationDialog(
@@ -309,7 +339,7 @@ private fun IssueDetailScreenContent(
                         isCancellingIssue = state.isCancellingIssue,
                         onUpdateComment = onUpdateComment,
                         onSendComment = onSendComment,
-                        onStartWorking = onStartWorking,
+                        onStartWorking = { showStartWorkingDialog = true },
                         onResolveIssue = { showResolveConfirmation = true },
                         onReassignToMe = onReassignToMe,
                         onCancelIssue = { showCancelConfirmation = true },
@@ -540,6 +570,16 @@ private fun HeaderCard(issue: IssueUi, modifier: Modifier = Modifier) {
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.End,
                     modifier = Modifier.weight(1f),
+                )
+            }
+            val repairType = issue.repairType
+            val vehicleSystem = issue.vehicleSystem
+            if (repairType != null && vehicleSystem != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "${repairType.displayName()} · ${vehicleSystem.displayName()}",
+                    style = AppTheme.typography.bodySmall,
+                    color = AppTheme.colors.onSurfaceVariant,
                 )
             }
         }
@@ -1049,6 +1089,31 @@ private fun IssuePriority.displayName(): String = stringResource(
     },
 )
 
+@Composable
+private fun RepairType.displayName(): String = stringResource(
+    when (this) {
+        RepairType.Damage -> Res.string.repair_type_damage
+        RepairType.Fault -> Res.string.repair_type_fault
+        RepairType.Installation -> Res.string.repair_type_installation
+    },
+)
+
+@Composable
+private fun VehicleSystem.displayName(): String = stringResource(
+    when (this) {
+        VehicleSystem.Electrical -> Res.string.vehicle_system_electrical
+        VehicleSystem.Tires -> Res.string.vehicle_system_tires
+        VehicleSystem.Body -> Res.string.vehicle_system_body
+        VehicleSystem.Engine -> Res.string.vehicle_system_engine
+        VehicleSystem.Drivetrain -> Res.string.vehicle_system_drivetrain
+        VehicleSystem.Brakes -> Res.string.vehicle_system_brakes
+        VehicleSystem.Air -> Res.string.vehicle_system_air
+        VehicleSystem.Tarp -> Res.string.vehicle_system_tarp
+        VehicleSystem.Cooling -> Res.string.vehicle_system_cooling
+        VehicleSystem.Other -> Res.string.vehicle_system_other
+    },
+)
+
 private fun IssuePriority.indicatorIcon() = when (this) {
     IssuePriority.High -> TruckTrackIcons.Stat2
     IssuePriority.Medium -> TruckTrackIcons.Equal
@@ -1128,6 +1193,8 @@ private val previewIssue = IssueUi(
     vehicleType = VehicleType.Truck,
     reportedByName = "Michael Schumacher",
     assignedToName = "Mattia Binotto",
+    repairType = RepairType.Fault,
+    vehicleSystem = VehicleSystem.Engine,
     createdAtFormatted = "Jun 17, 08:00",
 )
 
@@ -1163,7 +1230,7 @@ private fun IssueDetailLoadedPreview() {
             onEdit = {},
             onUpdateComment = {},
             onSendComment = {},
-            onStartWorking = {},
+            onIssueStart = {},
             onResolveIssue = {},
             onReassignToMe = {},
             onCancelIssue = {},
@@ -1189,7 +1256,7 @@ private fun IssueDetailHistoryEmptyPreview() {
             onEdit = {},
             onUpdateComment = {},
             onSendComment = {},
-            onStartWorking = {},
+            onIssueStart = {},
             onResolveIssue = {},
             onReassignToMe = {},
             onCancelIssue = {},
@@ -1211,7 +1278,7 @@ private fun IssueDetailFullLoadingPreview() {
             onEdit = {},
             onUpdateComment = {},
             onSendComment = {},
-            onStartWorking = {},
+            onIssueStart = {},
             onResolveIssue = {},
             onReassignToMe = {},
             onCancelIssue = {},
@@ -1241,7 +1308,7 @@ private fun IssueDetailLoadedLargeFontScalePreview() {
                 onEdit = {},
                 onUpdateComment = {},
                 onSendComment = {},
-                onStartWorking = {},
+                onIssueStart = {},
                 onResolveIssue = {},
                 onReassignToMe = {},
                 onCancelIssue = {},

@@ -9,6 +9,8 @@ import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStatus
 import com.momosi.trucktrack.core.issue.model.IssueUpdate
 import com.momosi.trucktrack.core.issue.model.IssueUpdatedField
+import com.momosi.trucktrack.core.issue.model.RepairType
+import com.momosi.trucktrack.core.issue.model.VehicleSystem
 import com.momosi.trucktrack.core.vehicle.dto.toVehicle
 import com.momosi.trucktrack.shared.issue.AccountDto
 import com.momosi.trucktrack.shared.issue.IssueAttachmentDto
@@ -39,6 +41,8 @@ internal fun IssueDto.toIssue(): Issue = Issue(
     vehicle = vehicle.toVehicle(),
     reportedBy = reportedBy.toAccount(),
     assignedTo = assignedTo?.toAccount(),
+    repairType = repairType?.let { RepairType.fromApiValue(it.name) },
+    vehicleSystem = vehicleSystem?.let { VehicleSystem.fromApiValue(it.name) },
     createdAt = createdAt,
     updatedAt = updatedAt,
 )

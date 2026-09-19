@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 09-17-repair-type-and-vehicle-system
+      author: claude
+      changes:
+
+        - addColumn:
+            tableName: issue
+            columns:
+              - column:
+                  name: repair_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: vehicle_system
+                  type: varchar(50)
+                  constraints:
+                    nullable: true

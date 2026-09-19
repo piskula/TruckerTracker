@@ -14,6 +14,8 @@ data class IssueDto(
     val vehicle: VehicleDto,
     val reportedBy: AccountDto,
     val assignedTo: AccountDto?,
+    val repairType: RepairTypeDto?,
+    val vehicleSystem: VehicleSystemDto?,
     val createdAt: Instant,
     val updatedAt: Instant,
 )

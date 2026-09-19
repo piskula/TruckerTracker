@@ -78,10 +78,27 @@
     <string name="issue_priority_low_hint">Menší problém, môže počkať na plánovanú údržbu</string>
     <string name="issue_error_title_required">Názov je povinný</string>
     <string name="issue_error_vehicle_required">Vyberte prosím vozidlo</string>
+    <string name="issue_error_repair_type_required">Vyberte prosím typ práce</string>
+    <string name="issue_error_vehicle_system_required">Vyberte prosím oblasť</string>
     <string name="issue_field_title">Názov</string>
     <string name="issue_field_description">Popis</string>
     <string name="issue_field_priority">Priorita</string>
     <string name="issue_field_vehicle">Vozidlo</string>
+    <string name="issue_field_repair_type">Typ práce</string>
+    <string name="issue_field_vehicle_system">Oblasť</string>
+    <string name="repair_type_damage">Škoda</string>
+    <string name="repair_type_fault">Porucha</string>
+    <string name="repair_type_installation">Domontáž</string>
+    <string name="vehicle_system_electrical">Elektroinštalácia</string>
+    <string name="vehicle_system_tires">Pneumatiky</string>
+    <string name="vehicle_system_body">Karoséria</string>
+    <string name="vehicle_system_engine">Motor</string>
+    <string name="vehicle_system_drivetrain">Pohonné ústrojenstvo (prevodovka/nápravy)</string>
+    <string name="vehicle_system_brakes">Brzdy</string>
+    <string name="vehicle_system_air">Vzduch</string>
+    <string name="vehicle_system_tarp">Plachta</string>
+    <string name="vehicle_system_cooling">Chladenie</string>
+    <string name="vehicle_system_other">Iné</string>
 
     <string name="edit_issue_title">Upraviť hlásenie</string>
     <string name="edit_issue_submit">Uložiť zmeny</string>

@@ -78,10 +78,27 @@
     <string name="issue_priority_low_hint">Minor issue, can wait for scheduled maintenance</string>
     <string name="issue_error_title_required">Title is required</string>
     <string name="issue_error_vehicle_required">Please select a vehicle</string>
+    <string name="issue_error_repair_type_required">Please select a repair type</string>
+    <string name="issue_error_vehicle_system_required">Please select a vehicle system</string>
     <string name="issue_field_title">Title</string>
     <string name="issue_field_description">Description</string>
     <string name="issue_field_priority">Priority</string>
     <string name="issue_field_vehicle">Vehicle</string>
+    <string name="issue_field_repair_type">Repair Type</string>
+    <string name="issue_field_vehicle_system">Vehicle System</string>
+    <string name="repair_type_damage">Damage</string>
+    <string name="repair_type_fault">Fault</string>
+    <string name="repair_type_installation">Installation</string>
+    <string name="vehicle_system_electrical">Electrical</string>
+    <string name="vehicle_system_tires">Tires</string>
+    <string name="vehicle_system_body">Body</string>
+    <string name="vehicle_system_engine">Engine</string>
+    <string name="vehicle_system_drivetrain">Drivetrain (transmission/axles)</string>
+    <string name="vehicle_system_brakes">Brakes</string>
+    <string name="vehicle_system_air">Air</string>
+    <string name="vehicle_system_tarp">Tarp</string>
+    <string name="vehicle_system_cooling">Cooling</string>
+    <string name="vehicle_system_other">Other</string>
 
     <string name="edit_issue_title">Edit Issue</string>
     <string name="edit_issue_submit">Save Changes</string>

@@ -7,11 +7,15 @@ import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssuePriorityDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueStatusDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueUpdatedFieldDto
+import sk.momosilabs.truckTrack.api.issue.dto.RepairTypeDto
+import sk.momosilabs.truckTrack.api.issue.dto.VehicleSystemDto
 import sk.momosilabs.truckTrack.api.vehicle.dto.VehicleDto
 import sk.momosilabs.truckTrack.api.vehicle.dto.VehicleTypeDto
 import sk.momosilabs.truckTrack.account.model.AccountModel
 import sk.momosilabs.truckTrack.issueManagement.entity.IssuePriority
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
+import sk.momosilabs.truckTrack.issueManagement.entity.RepairType
+import sk.momosilabs.truckTrack.issueManagement.entity.VehicleSystem
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
 import sk.momosilabs.truckTrack.issueManagement.model.IssueModel
 import sk.momosilabs.truckTrack.issueManagement.service.IssueListFilter
@@ -19,6 +23,8 @@ import sk.momosilabs.truckTrack.vehicle.model.VehicleModel
 
 fun IssueStatusDto.toModel() = IssueStatus.valueOf(name)
 fun IssuePriorityDto.toModel() = IssuePriority.valueOf(name)
+fun RepairTypeDto.toModel() = RepairType.valueOf(name)
+fun VehicleSystemDto.toModel() = VehicleSystem.valueOf(name)
 
 fun IssueModel.toDto() = IssueDto(
     id = id,
@@ -29,6 +35,8 @@ fun IssueModel.toDto() = IssueDto(
     vehicle = vehicle.toDto(),
     reportedBy = reportedBy.toDto(),
     assignedTo = assignedTo?.toDto(),
+    repairType = repairType?.let { RepairTypeDto.valueOf(it.name) },
+    vehicleSystem = vehicleSystem?.let { VehicleSystemDto.valueOf(it.name) },
     createdAt = createdAt,
     updatedAt = updatedAt,
 )

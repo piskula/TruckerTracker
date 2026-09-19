@@ -32,6 +32,28 @@ UI and logic for the issues feature. Three screens: list, detail, create.
 | `IssueDetailState.kt` | Sealed state with loading/error/content variants |
 | `IssueDetailAction.kt` | `StartIssue`, `ResolveIssue`, `AssignIssue`, `AddComment`, `UploadPhoto`, `DeletePhoto`, `ResolveConfirmDismiss` |
 
+#### Start Working (`detail/startworking/`)
+
+A `BottomSheet` for picking the mandatory repair type + vehicle system, shown from `IssueDetailScreen`
+when the mechanic taps "Start Working" — decomposed into its own screen-shaped unit (own ViewModel,
+State, Action, Event) rather than folded into `IssueDetailViewModel`, since it owns its own submit
+call independent of the rest of the issue detail screen's concerns. `RepairType`/`VehicleSystem` are
+fixed enums (`core:issue/model`), so the sheet has no options to fetch — it renders `RepairType.entries`/
+`VehicleSystem.entries` directly and only makes one network call, on confirm.
+
+| File | Description |
+|------|-------------|
+| `StartWorkingSheet.kt` | `BottomSheet` content + a generic `RadioOptionList<T>` (always-visible vertical list, `CheckCircle`/`RadioButtonUnchecked` per row — explicit single-choice semantics, unlike a chip row) and the `displayName()` string-resource mapping (all private to this file) |
+| `StartWorkingViewModel.kt` | Holds the two selections, calls `IssueRepository.startIssue(...)` on confirm |
+| `StartWorkingState.kt` | `StartWorkingState` (selections, `isSubmitting`, `canConfirm`) |
+| `StartWorkingAction.kt` | `SelectRepairType`, `SelectVehicleSystem`, `Confirm` |
+| `StartWorkingEvent.kt` | `Started(issue: Issue)` — one-shot event `IssueDetailScreen` collects to dismiss the sheet and forward the updated `Issue` to `IssueDetailViewModel` via `IssueDetailAction.IssueStarted` |
+
+Note: `koinViewModel()` scopes `StartWorkingViewModel` to the issue detail screen's own
+`ViewModelStoreOwner`, so the same instance (and its last selections) persists across dismiss/reopen
+within one visit to the issue — intentional, not a bug, since nothing about the issue changes between
+opens.
+
 ### Create Issue (`create/`)
 
 | File | Description |

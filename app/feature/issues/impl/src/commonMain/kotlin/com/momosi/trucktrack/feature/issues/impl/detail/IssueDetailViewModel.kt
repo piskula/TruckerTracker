@@ -54,7 +54,7 @@ class IssueDetailViewModel(
             is IssueDetailAction.DeletePhoto -> deletePhoto(action.attachmentId)
             is IssueDetailAction.SendComment -> sendComment()
             is IssueDetailAction.Retry -> loadIssueDetail()
-            is IssueDetailAction.StartWorking -> startWorking()
+            is IssueDetailAction.IssueStarted -> onIssueStarted(action.issue)
             is IssueDetailAction.ResolveIssue -> resolveIssue()
             is IssueDetailAction.ReassignToMe -> reassignToMe()
             is IssueDetailAction.CancelIssue -> cancelIssue()
@@ -137,24 +137,15 @@ class IssueDetailViewModel(
         errorReporter.report(error)
     }
 
-    private fun startWorking() {
-        if (_state.value.isMechanicActionLoading) return
-        _state.update { it.copy(isMechanicActionLoading = true) }
-        viewModelScope.launch {
-            issueRepository.startIssue(issueId)
-                .onSuccess { issue ->
-                    _state.update {
-                        it.copy(
-                            content = it.withUpdatedIssue(issue),
-                            isMechanicActionLoading = false,
-                            statusChanged = true,
-                            capabilities = computeCapabilities(issue),
-                        )
-                    }
-                    refreshHistory()
-                }
-                .onFailure(::onMechanicActionFailure)
+    private fun onIssueStarted(issue: Issue) {
+        _state.update {
+            it.copy(
+                content = it.withUpdatedIssue(issue),
+                statusChanged = true,
+                capabilities = computeCapabilities(issue),
+            )
         }
+        refreshHistory()
     }
 
     private fun resolveIssue() {
@@ -301,6 +292,8 @@ class IssueDetailViewModel(
         vehicleType = vehicle?.type,
         reportedByName = reportedBy?.fullName ?: "—",
         assignedToName = assignedTo?.fullName ?: "—",
+        repairType = repairType,
+        vehicleSystem = vehicleSystem,
         createdAtFormatted = dateFormatter.formatDateTime(createdAt),
     )
 

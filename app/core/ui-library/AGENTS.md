@@ -27,7 +27,7 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `Icon` | Wraps `androidx.compose.foundation` icon |
 | `Button`, `IconButton`, `TopBarIconButton` | Styled buttons |
 | `FloatingActionButton` | FAB with icon |
-| `Chip`, `FilterChipRow` | Filter chips for list screens |
+| `Chip`, `FilterChipRow` | Filter chips for list screens — `FilterChipRow` scrolls horizontally in a single line (`LazyRow`), always has a non-null `selectedItem` |
 | `DashboardTopBar` | Top bar with title + subtitle + actions slot |
 | `Toolbar` | Standard back-arrow toolbar |
 | `BottomSheet` | Styled modal bottom sheet |

@@ -17,7 +17,12 @@ import com.momosi.trucktrack.core.issue.model.IssueCreate
 import com.momosi.trucktrack.core.issue.model.IssueHistory
 import com.momosi.trucktrack.core.issue.model.IssueStatus
 import com.momosi.trucktrack.core.issue.model.IssueUpdate
+import com.momosi.trucktrack.core.issue.model.RepairType
+import com.momosi.trucktrack.core.issue.model.VehicleSystem
 import com.momosi.trucktrack.core.network.dto.toPage
+import com.momosi.trucktrack.shared.issue.RepairTypeDto
+import com.momosi.trucktrack.shared.issue.StartIssueDto
+import com.momosi.trucktrack.shared.issue.VehicleSystemDto
 
 internal const val TAG = "Issues"
 
@@ -58,8 +63,18 @@ class IssueRepositoryImpl(private val issueApi: IssueApi, private val issueHisto
         .onNoConnectionFailure { Logger.w(TAG, it, "Failed to update issue $id (offline)") }
         .onNetworkFailure { Logger.e(TAG, it, "Failed to update issue $id") }
 
-    override suspend fun startIssue(id: Long): Result<Issue> = runCatchingCancellable {
-        issueApi.startIssue(id).toIssue()
+    override suspend fun startIssue(
+        id: Long,
+        repairType: RepairType,
+        vehicleSystem: VehicleSystem,
+    ): Result<Issue> = runCatchingCancellable {
+        issueApi.startIssue(
+            id,
+            StartIssueDto(
+                repairType = RepairTypeDto.valueOf(repairType.toApiValue()),
+                vehicleSystem = VehicleSystemDto.valueOf(vehicleSystem.toApiValue()),
+            ),
+        ).toIssue()
     }
         .onNoConnectionFailure { Logger.w(TAG, it, "Failed to start issue $id (offline)") }
         .onNetworkFailure { Logger.e(TAG, it, "Failed to start issue $id") }
