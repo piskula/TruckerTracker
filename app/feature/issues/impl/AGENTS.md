@@ -59,7 +59,7 @@ opens.
 | File | Description |
 |------|-------------|
 | `CreateIssueScreen.kt` | Form for title, description, vehicle, priority, photos |
-| `CreateIssueViewModel.kt` | Validates + submits new issue; preselects `VehicleRepository.getVehicles()`'s `defaultVehicle` (the driver's more-recently-used remembered truck/trailer) and records the used vehicle on successful submit (`recordVehicleUsage`) |
+| `CreateIssueViewModel.kt` | Validates + submits new issue; preselects `VehicleRepository.getVehicles()`'s `defaultVehicle` (the driver's remembered truck, or trailer if no truck is remembered) and records the used vehicle on successful submit (`recordVehicleUsage`) |
 | `CreateIssueState.kt` | Form state with field values and validation. `vehicles` is the shared `VehiclesContent` |
 | `CreateIssueAction.kt` | Field changes + submit |
 | `CreateIssueEvent.kt` | `NavigateBack(issueId)` on success |

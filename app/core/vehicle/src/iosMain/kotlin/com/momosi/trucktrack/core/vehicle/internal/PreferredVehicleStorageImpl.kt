@@ -13,22 +13,12 @@ class PreferredVehicleStorageImpl(private val defaults: NSUserDefaults) : Prefer
         vehicleId: Long,
     ) {
         defaults.setObject(vehicleId.toString(), vehicleIdKey(userId, type))
-        defaults.setObject(type.toStorageKey(), mostRecentTypeKey(userId))
     }
-
-    override fun getMostRecentlyUsedType(userId: String): VehicleType? = defaults.stringForKey(mostRecentTypeKey(userId))?.toVehicleTypeFromStorageKey()
 }
 
 private fun vehicleIdKey(userId: String, type: VehicleType) = "${userId}_${type.toStorageKey()}_vehicle_id"
-private fun mostRecentTypeKey(userId: String) = "${userId}_most_recent_vehicle_type"
 
 private fun VehicleType.toStorageKey(): String = when (this) {
     VehicleType.Truck -> "TRUCK"
     VehicleType.Trailer -> "TRAILER"
-}
-
-private fun String.toVehicleTypeFromStorageKey(): VehicleType? = when (this) {
-    "TRUCK" -> VehicleType.Truck
-    "TRAILER" -> VehicleType.Trailer
-    else -> null
 }

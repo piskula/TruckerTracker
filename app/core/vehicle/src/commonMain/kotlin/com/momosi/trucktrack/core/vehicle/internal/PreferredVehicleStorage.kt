@@ -11,5 +11,4 @@ interface PreferredVehicleStorage {
         type: VehicleType,
         vehicleId: Long,
     )
-    fun getMostRecentlyUsedType(userId: String): VehicleType?
 }
