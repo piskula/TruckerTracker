@@ -44,6 +44,12 @@ class IssueEntity(
     @ManyToOne
     var assignedTo: AccountEntity?,
 
+    @Enumerated(EnumType.STRING)
+    var repairType: RepairType?,
+
+    @Enumerated(EnumType.STRING)
+    var vehicleSystem: VehicleSystem?,
+
     @field:NotNull
     val createdAtUtc: LocalDateTime,
 

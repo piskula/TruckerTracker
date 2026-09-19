@@ -15,6 +15,8 @@ fun IssueEntity.toModel() = IssueModel(
     vehicle = vehicle.toModel(),
     reportedBy = reportedBy.toModel(),
     assignedTo = assignedTo?.toModel(),
+    repairType = repairType,
+    vehicleSystem = vehicleSystem,
     createdAt = createdAtUtc.toUtcOffsetDateTime(),
     updatedAt = updatedAtUtc.toUtcOffsetDateTime(),
 )

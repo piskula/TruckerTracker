@@ -37,6 +37,8 @@ class CreateIssue(
                 vehicle = vehicle,
                 reportedBy = reportedBy,
                 assignedTo = null,
+                repairType = null,
+                vehicleSystem = null,
                 createdAt = now,
                 updatedAt = now,
             )

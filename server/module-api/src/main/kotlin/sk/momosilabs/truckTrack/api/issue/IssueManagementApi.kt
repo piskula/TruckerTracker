@@ -8,6 +8,7 @@ import sk.momosilabs.truckTrack.api.issue.dto.IssueFilterDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryPageDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueUpdateDto
+import sk.momosilabs.truckTrack.api.issue.dto.StartIssueDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springdoc.core.annotations.ParameterObject
@@ -45,7 +46,7 @@ interface IssueManagementApi {
 
     @Operation(summary = "Start issue")
     @PostMapping("$ENDPOINT/{id}/start")
-    fun startIssue(@PathVariable id: Long): IssueDto
+    fun startIssue(@PathVariable id: Long, @RequestBody request: StartIssueDto): IssueDto
 
     @Operation(summary = "Assign in-progress issue to me")
     @PostMapping("$ENDPOINT/{id}/assignTome")

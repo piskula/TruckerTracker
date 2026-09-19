@@ -8,6 +8,7 @@ import sk.momosilabs.truckTrack.api.issue.dto.IssueFilterDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryPageDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueUpdateDto
+import sk.momosilabs.truckTrack.api.issue.dto.StartIssueDto
 import org.springframework.web.bind.annotation.RestController
 import sk.momosilabs.truckTrack.api.issue.IssueManagementApi
 import sk.momosilabs.truckTrack.issueManagement.service.addComment.AddCommentUseCase
@@ -70,8 +71,8 @@ class IssueManagementController(
             )
         ).toDto()
 
-    override fun startIssue(id: Long): IssueDto =
-        startIssue.start(id).toDto()
+    override fun startIssue(id: Long, request: StartIssueDto): IssueDto =
+        startIssue.start(id, request.repairType.toModel(), request.vehicleSystem.toModel()).toDto()
 
     override fun assignToMe(id: Long): IssueDto =
         assignInProgressIssueToMe.reassign(issueId = id).toDto()

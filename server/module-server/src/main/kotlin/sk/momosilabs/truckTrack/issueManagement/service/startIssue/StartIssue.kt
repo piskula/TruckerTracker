@@ -5,6 +5,8 @@ import org.springframework.transaction.annotation.Transactional
 import sk.momosilabs.truckTrack.account.model.AccountModel
 import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
+import sk.momosilabs.truckTrack.issueManagement.entity.RepairType
+import sk.momosilabs.truckTrack.issueManagement.entity.VehicleSystem
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
 import sk.momosilabs.truckTrack.issueManagement.model.IssueModel
 import sk.momosilabs.truckTrack.issueManagement.service.IssuePersistence
@@ -22,7 +24,7 @@ class StartIssue(
 
     @IsMechanic
     @Transactional
-    override fun start(issueId: Long): IssueModel {
+    override fun start(issueId: Long, repairType: RepairType, vehicleSystem: VehicleSystem): IssueModel {
         val issue = issuePersistence.findById(issueId)
         if (issue.status != IssueStatus.OPEN) {
             throw GlobalUnprocessableException("Issue must be OPEN to start, current status: ${issue.status}")
@@ -31,7 +33,7 @@ class StartIssue(
         val mechanic: AccountModel = currentUserService.currentUser()
 
         val now = OffsetDateTime.now(ZoneOffset.UTC)
-        val saved = issuePersistence.updateStatusAndAssignee(issueId, IssueStatus.IN_PROGRESS, mechanic.id, now)
+        val saved = issuePersistence.start(issueId, mechanic.id, repairType, vehicleSystem, now)
         issuePersistence.saveHistory(
             IssueHistoryModel.StatusChange(
                 id = UUID.randomUUID(),

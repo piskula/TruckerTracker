@@ -5,6 +5,8 @@ import com.momosi.trucktrack.core.issue.model.IssueCapabilities
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStatus
 import com.momosi.trucktrack.core.issue.model.IssueUpdatedField
+import com.momosi.trucktrack.core.issue.model.RepairType
+import com.momosi.trucktrack.core.issue.model.VehicleSystem
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
@@ -54,6 +56,8 @@ data class IssueUi(
     val vehicleType: VehicleType?,
     val reportedByName: String,
     val assignedToName: String,
+    val repairType: RepairType?,
+    val vehicleSystem: VehicleSystem?,
     val createdAtFormatted: String,
 )
 

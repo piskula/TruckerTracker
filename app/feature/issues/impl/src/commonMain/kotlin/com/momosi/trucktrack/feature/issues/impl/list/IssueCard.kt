@@ -374,6 +374,8 @@ private val sampleIssue = Issue(
         lastName = "Schumacher",
     ),
     assignedTo = null,
+    repairType = null,
+    vehicleSystem = null,
     createdAt = Clock.System.now().minus(kotlin.time.Duration.parse("2h")),
     updatedAt = Clock.System.now().minus(kotlin.time.Duration.parse("1h")),
 )

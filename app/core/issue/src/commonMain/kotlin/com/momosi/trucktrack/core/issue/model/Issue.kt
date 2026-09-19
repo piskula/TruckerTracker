@@ -12,6 +12,8 @@ data class Issue(
     val vehicle: Vehicle?,
     val reportedBy: Account?,
     val assignedTo: Account?,
+    val repairType: RepairType?,
+    val vehicleSystem: VehicleSystem?,
     val createdAt: Instant,
     val updatedAt: Instant,
 )

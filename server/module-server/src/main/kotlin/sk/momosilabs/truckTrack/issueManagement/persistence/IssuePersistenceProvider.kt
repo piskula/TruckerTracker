@@ -16,6 +16,8 @@ import java.time.OffsetDateTime
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
 import sk.momosilabs.truckTrack.issueManagement.model.IssueModel
 import sk.momosilabs.truckTrack.issueManagement.persistence.mapper.toModel
+import sk.momosilabs.truckTrack.issueManagement.entity.RepairType
+import sk.momosilabs.truckTrack.issueManagement.entity.VehicleSystem
 import sk.momosilabs.truckTrack.issueManagement.persistence.repository.IssueHistoryRepository
 import sk.momosilabs.truckTrack.issueManagement.persistence.repository.IssueRepository
 import sk.momosilabs.truckTrack.issueManagement.service.IssuePersistence
@@ -71,6 +73,8 @@ class IssuePersistenceProvider(
             vehicle = vehicleRepository.getReferenceById(model.vehicle.id),
             reportedBy = accountRepository.getReferenceById(model.reportedBy.id),
             assignedTo = model.assignedTo?.let { accountRepository.getReferenceById(it.id) },
+            repairType = model.repairType,
+            vehicleSystem = model.vehicleSystem,
             createdAtUtc = model.createdAt.toUtcLocalDateTime(),
             updatedAtUtc = model.updatedAt.toUtcLocalDateTime(),
         )
@@ -99,6 +103,18 @@ class IssuePersistenceProvider(
             .orElseThrow { GlobalNotFoundException("issue id=$id not found") }
         entity.status = status
         entity.assignedTo = newAssignee?.let { accountRepository.getReferenceById(it) }
+        entity.updatedAtUtc = updatedAt.toUtcLocalDateTime()
+        return entity.toModel()
+    }
+
+    @Transactional
+    override fun start(id: Long, mechanicId: UUID, repairType: RepairType, vehicleSystem: VehicleSystem, updatedAt: OffsetDateTime): IssueModel {
+        val entity = issueRepository.findById(id)
+            .orElseThrow { GlobalNotFoundException("issue id=$id not found") }
+        entity.status = IssueStatus.IN_PROGRESS
+        entity.assignedTo = accountRepository.getReferenceById(mechanicId)
+        entity.repairType = repairType
+        entity.vehicleSystem = vehicleSystem
         entity.updatedAtUtc = updatedAt.toUtcLocalDateTime()
         return entity.toModel()
     }
