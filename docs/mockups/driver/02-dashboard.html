@@ -161,9 +161,11 @@
           flex-shrink: 0;
         }
         .priority-indicator .material-symbols-rounded { font-size: 15px; }
+        /* Issue #36: Medium reuses Low's old primary color; Low drops to plain gray
+           (outline) — no new color tokens, only reassigned existing roles. */
         .priority-indicator.high   { color: var(--tt-error); }
-        .priority-indicator.medium { color: var(--tt-warning); }
-        .priority-indicator.low    { color: var(--tt-primary); }
+        .priority-indicator.medium { color: var(--tt-primary); }
+        .priority-indicator.low    { color: var(--tt-outline); }
 
         .meta-item {
           display: flex;

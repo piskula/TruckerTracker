@@ -142,7 +142,8 @@
       letter-spacing: 0.3px;
     }
     .priority-indicator .material-symbols-rounded { font-size: 15px; }
-    .priority-indicator.medium { color: var(--tt-warning); }
+    /* Issue #36: Medium reuses Low's old primary color — see driver/03-create-request.html for the full rationale */
+    .priority-indicator.medium { color: var(--tt-primary); }
     .meta-item {
       display: flex;
       align-items: center;

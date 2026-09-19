@@ -154,17 +154,21 @@
     .priority-segment + .priority-segment { border-left: 1.5px solid var(--tt-outline-variant); }
     .priority-segment .material-symbols-rounded { font-size: 18px; }
 
+    /* Issue #36: Medium's old warning color read too close to High's error at this size —
+       Medium now reuses Low's old primary color; Low drops to a plain gray (outline /
+       surfaceVariant), the existing neutral-container pairing used elsewhere (e.g. photo tiles).
+       No new color tokens introduced — only existing AppTheme.colors roles are reassigned. */
     .priority-segment[data-k="high"]   .material-symbols-rounded { color: var(--tt-error); }
-    .priority-segment[data-k="medium"] .material-symbols-rounded { color: var(--tt-warning); }
-    .priority-segment[data-k="low"]    .material-symbols-rounded { color: var(--tt-primary); }
+    .priority-segment[data-k="medium"] .material-symbols-rounded { color: var(--tt-primary); }
+    .priority-segment[data-k="low"]    .material-symbols-rounded { color: var(--tt-outline); }
 
     .priority-segment.selected[data-k="high"]   { background: var(--tt-error-container);   color: var(--tt-on-error-container); }
-    .priority-segment.selected[data-k="medium"] { background: var(--tt-warning-container); color: var(--tt-on-warning-container); }
-    .priority-segment.selected[data-k="low"]    { background: var(--tt-primary-container); color: var(--tt-on-primary-container); }
+    .priority-segment.selected[data-k="medium"] { background: var(--tt-primary-container);  color: var(--tt-on-primary-container); }
+    .priority-segment.selected[data-k="low"]    { background: var(--tt-surface-variant);    color: var(--tt-outline); }
 
     .priority-segment.selected[data-k="high"]   .material-symbols-rounded { color: var(--tt-on-error-container); }
-    .priority-segment.selected[data-k="medium"] .material-symbols-rounded { color: var(--tt-on-warning-container); }
-    .priority-segment.selected[data-k="low"]    .material-symbols-rounded { color: var(--tt-on-primary-container); }
+    .priority-segment.selected[data-k="medium"] .material-symbols-rounded { color: var(--tt-on-primary-container); }
+    .priority-segment.selected[data-k="low"]    .material-symbols-rounded { color: var(--tt-outline); }
 
     .priority-desc {
       margin-top: 12px;
@@ -175,18 +179,18 @@
       gap: 10px;
     }
     .priority-desc.high   { background: var(--tt-error-container); }
-    .priority-desc.medium { background: var(--tt-warning-container); }
-    .priority-desc.low    { background: var(--tt-primary-container); }
+    .priority-desc.medium { background: var(--tt-primary-container); }
+    .priority-desc.low    { background: var(--tt-surface-variant); }
 
     .priority-desc .material-symbols-rounded { font-size: 20px; flex-shrink: 0; }
     .priority-desc.high   .material-symbols-rounded { color: var(--tt-on-error-container); }
-    .priority-desc.medium .material-symbols-rounded { color: var(--tt-on-warning-container); }
-    .priority-desc.low    .material-symbols-rounded { color: var(--tt-on-primary-container); }
+    .priority-desc.medium .material-symbols-rounded { color: var(--tt-on-primary-container); }
+    .priority-desc.low    .material-symbols-rounded { color: var(--tt-outline); }
 
     .priority-desc-text { font-size: 12px; }
     .priority-desc.high   .priority-desc-text { color: var(--tt-on-error-container); }
-    .priority-desc.medium .priority-desc-text { color: var(--tt-on-warning-container); }
-    .priority-desc.low    .priority-desc-text { color: var(--tt-on-primary-container); }
+    .priority-desc.medium .priority-desc-text { color: var(--tt-on-primary-container); }
+    .priority-desc.low    .priority-desc-text { color: var(--tt-outline); }
 
     .photo-upload {
       border: 2px solid var(--tt-surface-variant);

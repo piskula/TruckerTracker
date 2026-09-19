@@ -1076,8 +1076,8 @@ private fun CardContainer(
 @Composable
 private fun IssuePriority.indicatorColor(): Color = when (this) {
     IssuePriority.High -> AppTheme.colors.error
-    IssuePriority.Medium -> AppTheme.colors.warning
-    IssuePriority.Low -> AppTheme.colors.primary
+    IssuePriority.Medium -> AppTheme.colors.primary
+    IssuePriority.Low -> AppTheme.colors.outline
 }
 
 @Composable
