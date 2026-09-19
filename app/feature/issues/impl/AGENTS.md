@@ -59,10 +59,18 @@ opens.
 | File | Description |
 |------|-------------|
 | `CreateIssueScreen.kt` | Form for title, description, vehicle, priority, photos |
-| `CreateIssueViewModel.kt` | Validates + submits new issue |
-| `CreateIssueState.kt` | Form state with field values and validation |
+| `CreateIssueViewModel.kt` | Validates + submits new issue; preselects `VehicleRepository.getVehicles()`'s `defaultVehicle` (the driver's more-recently-used remembered truck/trailer) and records the used vehicle on successful submit (`recordVehicleUsage`) |
+| `CreateIssueState.kt` | Form state with field values and validation. `vehicles` is the shared `VehiclesContent` |
 | `CreateIssueAction.kt` | Field changes + submit |
 | `CreateIssueEvent.kt` | `NavigateBack(issueId)` on success |
+
+### Shared Form Building Blocks
+
+| File | Description |
+|------|-------------|
+| `IssueFormState.kt` | `VehiclesContent` (`Loading`/`Error`/`Loaded(preferredTruck, preferredTrailer, otherVehicles)`) and `SubmitStatus` state definitions, shared by create and edit |
+| `VehiclesContentMapper.kt` | `CategorizedVehicles.toVehiclesContent()` — maps `VehicleRepository`'s result straight into `VehiclesContent.Loaded`. Both `CreateIssueViewModel` and `EditIssueViewModel` call it, so the truck/trailer split happens once per load, never in the UI layer |
+| `IssueFormFields.kt` | `VehicleSelector` — the shared vehicle picker composable for both create and edit. When `vehicles` is `Loaded`, it lists `preferredTruck`/`preferredTrailer` (in that fixed order) with dividers above and below the pair whenever at least one is remembered, then `otherVehicles` (already sorted by plate ASC). It only composes the already-split fields — no filtering/searching at render time. Also `Card`, `InputField`, `PrioritySelector` |
 
 ### Full Screen Photo (`FullScreenPhoto.kt`)
 

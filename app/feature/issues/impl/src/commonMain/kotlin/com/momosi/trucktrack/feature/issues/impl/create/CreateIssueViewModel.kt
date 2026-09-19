@@ -14,6 +14,7 @@ import com.momosi.trucktrack.core.vehicle.VehicleRepository
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.feature.issues.impl.SubmitStatus
 import com.momosi.trucktrack.feature.issues.impl.VehiclesContent
+import com.momosi.trucktrack.feature.issues.impl.toVehiclesContent
 import io.github.vinceglb.filekit.core.PlatformFile
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -90,8 +91,9 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
     private fun loadVehicles() {
         viewModelScope.launch {
             vehicleRepository.getVehicles()
-                .onSuccess { vehicles ->
-                    vehiclesContent.value = VehiclesContent.Loaded(vehicles.toImmutableList())
+                .onSuccess { categorized ->
+                    vehiclesContent.value = categorized.toVehiclesContent()
+                    categorized.defaultVehicle?.let { selectedVehicle.value = it }
                 }
                 .onFailure {
                     vehiclesContent.value = VehiclesContent.Error
@@ -146,6 +148,7 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
                 ),
             )
                 .onSuccess { issue ->
+                    vehicleRepository.recordVehicleUsage(vehicle)
                     uploadPhotos(issue.id, photos.value)
                     _events.send(CreateIssueEvent.IssueCreated(issue.id))
                 }

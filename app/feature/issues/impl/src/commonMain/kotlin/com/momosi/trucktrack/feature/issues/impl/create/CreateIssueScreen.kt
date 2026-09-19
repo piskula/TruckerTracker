@@ -303,7 +303,7 @@ private fun CreateIssuePreview() {
         CreateIssueContent(
             state = CreateIssueState(
                 vehicles = VehiclesContent.Loaded(
-                    persistentListOf(
+                    otherVehicles = persistentListOf(
                         Vehicle(1, "MA-204-TT", "Volvo", "FH16", VehicleType.Truck),
                         Vehicle(2, "MA-118-AB", "DAF", "XF", VehicleType.Truck),
                     ),
@@ -312,6 +312,32 @@ private fun CreateIssuePreview() {
                 title = "Engine warning light — won't start",
                 description = "Tried to start the engine this morning and the warning light came on.",
                 selectedPriority = IssuePriority.High,
+            ),
+            onAction = {},
+            onBack = {},
+            onNavigateToFullScreenPhoto = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CreateIssuePreferredVehiclesPreview() {
+    TruckTrackTheme {
+        CreateIssueContent(
+            state = CreateIssueState(
+                vehicles = VehiclesContent.Loaded(
+                    preferredTruck = Vehicle(1, "MA-204-TT", "Volvo", "FH16", VehicleType.Truck),
+                    preferredTrailer = Vehicle(3, "MA-330-CD", "Schmitz", "S.KO", VehicleType.Trailer),
+                    otherVehicles = persistentListOf(
+                        Vehicle(2, "MA-118-AB", "DAF", "XF", VehicleType.Truck),
+                        Vehicle(4, "MA-402-EF", "Krone", "SD", VehicleType.Trailer),
+                    ),
+                ),
+                selectedVehicle = Vehicle(3, "MA-330-CD", "Schmitz", "S.KO", VehicleType.Trailer),
+                vehicleDropdownExpanded = true,
+                title = "Trailer door won't latch",
+                selectedPriority = IssuePriority.Medium,
             ),
             onAction = {},
             onBack = {},
@@ -340,7 +366,7 @@ private fun CreateIssueValidationErrorPreview() {
         CreateIssueContent(
             state = CreateIssueState(
                 vehicles = VehiclesContent.Loaded(
-                    persistentListOf(
+                    otherVehicles = persistentListOf(
                         Vehicle(1, "MA-204-TT", "Volvo", "FH16", VehicleType.Truck),
                     ),
                 ),
