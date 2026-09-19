@@ -153,13 +153,17 @@
     .meta-item .material-symbols-rounded { font-size: 15px; }
     .card-time { margin-left: auto; font-size: 12px; color: var(--tt-on-surface-variant); }
 
+    /* Repair Type · Vehicle System line — set once StartWorkingSheet was confirmed */
+    .repair-meta { font-size: 13px; color: var(--tt-on-surface-variant); margin-top: 4px; }
+
     .description-text {
       font-size: 14px;
       color: #424242;
       line-height: 1.5;
     }
 
-    /* Reassign card — only shown when mechanicAction == Reassign */
+    /* Reassign card — an inline card in the scrolling content, shown only when nextStateAction == Reassign
+       (viewer is an eligible mechanic but the issue is assigned to someone else) */
     .reassign-card {
       background: var(--tt-surface-container-lowest);
       border-radius: 16px;
@@ -187,6 +191,22 @@
       gap: 8px;
     }
     .btn-reassign .material-symbols-rounded { font-size: 18px; }
+
+    .photo-row { display: flex; gap: 8px; overflow-x: auto; }
+    .photo-thumb {
+      width: 80px; height: 80px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #CFD8DC, #B0BEC5);
+      flex-shrink: 0;
+    }
+    .photo-add-tile {
+      width: 80px; height: 80px;
+      border-radius: 8px;
+      background: var(--tt-surface-variant);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .photo-add-tile .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 28px; }
 
     .timeline { display: flex; flex-direction: column; }
     .timeline-step { display: flex; gap: 12px; }
@@ -222,6 +242,37 @@
     .timeline-right-row .step-footer { margin-top: 0; }
     .step-status { font-size: 14px; font-weight: 700; color: var(--tt-on-surface); }
     .step-footer { font-size: 11px; color: var(--tt-outline); text-align: right; margin-top: 3px; }
+
+    .comment-input-area {
+      position: relative;
+      background: var(--tt-surface-container);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .comment-input-area textarea {
+      border: none;
+      width: 100%;
+      background: transparent;
+      font-size: 14px;
+      font-family: 'Roboto', sans-serif;
+      color: var(--tt-on-surface);
+      resize: none;
+      outline: none;
+      line-height: 1.4;
+      display: block;
+      padding-bottom: 32px;
+    }
+    .send-btn {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      line-height: 0;
+    }
+    .send-btn .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 22px; }
 
     .note {
       text-align: center;
@@ -284,6 +335,7 @@
           </div>
           <span class="card-time">Jun 20, 08:10</span>
         </div>
+        <div class="repair-meta">Fault · Air</div>
       </div>
 
       <div class="card">
@@ -291,12 +343,21 @@
         <div class="description-text">Right-side air suspension bag isn't inflating on startup. Truck sits noticeably lower on that corner.</div>
       </div>
 
+      <!-- Reassign card lives inline in the content, not in a bottom bar -->
       <div class="reassign-card">
         <div class="reassign-text">This issue is assigned to another mechanic. You can reassign it to yourself.</div>
         <button class="btn-reassign">
           <span class="material-symbols-rounded">emoji_people</span>
           Reassign to Me
         </button>
+      </div>
+
+      <div class="card">
+        <div class="card-section-title">Photos (1)</div>
+        <div class="photo-row">
+          <div class="photo-thumb"></div>
+          <div class="photo-add-tile"><span class="material-symbols-rounded">add</span></div>
+        </div>
       </div>
 
       <div class="card">
@@ -337,11 +398,18 @@
           </div>
 
         </div>
+        <!-- canComment is still true here (status != Done) even though the reassign card is showing -->
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--tt-surface-variant);">
+          <div class="comment-input-area">
+            <textarea placeholder="Write a comment…" rows="3"></textarea>
+            <button class="send-btn"><span class="material-symbols-rounded">send</span></button>
+          </div>
+        </div>
       </div>
 
     </div>
 
-    <div class="note">mechanicAction = Reassign — the button lives inside the scrolling content, not in a bottom bar</div>
+    <div class="note">nextStateAction = Reassign — the button lives inside the scrolling content, not in a bottom bar</div>
   </div>
 </body>
 </html>

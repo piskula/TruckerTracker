@@ -106,6 +106,18 @@
           gap: 8px;
           margin-bottom: 8px;
         }
+        .card-title-row {
+          display: flex;
+          align-items: baseline;
+          gap: 4px;
+          flex: 1;
+        }
+        .card-id {
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--tt-on-surface-variant);
+          white-space: nowrap;
+        }
         .card-title {
           font-size: 14px;
           font-weight: 500;
@@ -182,7 +194,9 @@
         }
 
         /* NOTE: no FAB here — only Driver / dual-role can create issues.
-           NOTE: no bottom navigation bar in the real app. */
+           NOTE: no bottom navigation bar in the real app.
+           NOTE: at large system font scale (>=1.3x) the status chip collapses to an
+           icon-only circle badge — not shown here since this mockup is fixed-scale. */
       .card, .header-card { box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.06); }
   </style>
 </head>
@@ -216,7 +230,10 @@
         <!-- High / In Progress, assigned — reporter + assignee both shown -->
         <div class="card priority-high">
             <div class="card-top">
-                <div class="card-title">Engine warning light — truck won't start</div>
+                <div class="card-title-row">
+                    <span class="card-id">#1042</span>
+                    <div class="card-title">Engine warning light — truck won't start</div>
+                </div>
                 <div class="status-chip status-progress">
                     <span class="material-symbols-rounded filled">build</span>
                     In Progress
@@ -250,7 +267,10 @@
         <!-- High / Open, no assignee — reporter only -->
         <div class="card priority-high">
             <div class="card-top">
-                <div class="card-title">Brake fluid leak — front axle</div>
+                <div class="card-title-row">
+                    <span class="card-id">#1087</span>
+                    <div class="card-title">Brake fluid leak — front axle</div>
+                </div>
                 <div class="status-chip status-open">
                     <span class="material-symbols-rounded">radio_button_unchecked</span>
                     Open
@@ -278,7 +298,10 @@
         <!-- Medium / In Progress, assigned — reporter + assignee both shown -->
         <div class="card priority-medium">
             <div class="card-top">
-                <div class="card-title">Air suspension — right side not inflating</div>
+                <div class="card-title-row">
+                    <span class="card-id">#1066</span>
+                    <div class="card-title">Air suspension — right side not inflating</div>
+                </div>
                 <div class="status-chip status-progress">
                     <span class="material-symbols-rounded filled">build</span>
                     In Progress
@@ -312,7 +335,10 @@
         <!-- Medium / Open, no assignee — reporter only -->
         <div class="card priority-medium">
             <div class="card-top">
-                <div class="card-title">Windshield wiper blade broken</div>
+                <div class="card-title-row">
+                    <span class="card-id">#1061</span>
+                    <div class="card-title">Windshield wiper blade broken</div>
+                </div>
                 <div class="status-chip status-open">
                     <span class="material-symbols-rounded">radio_button_unchecked</span>
                     Open

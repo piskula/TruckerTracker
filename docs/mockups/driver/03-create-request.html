@@ -112,6 +112,14 @@
       display: flex;
       flex-direction: column;
     }
+    /* SectionLabel — shown above the driver's remembered truck/trailer, and again
+       above the rest of the fleet, only when at least one is remembered */
+    .vehicle-section-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--tt-on-surface-variant);
+      padding: 4px;
+    }
     .vehicle-option {
       display: flex;
       align-items: center;
@@ -262,7 +270,8 @@
 
     <div class="content">
 
-      <!-- Vehicle: expandable dropdown, not a "Change" link -->
+      <!-- Vehicle: expandable dropdown, preselected to the driver's most-recently-used
+           truck (VehicleRepository.getVehicles()'s preferredTruck/preferredTrailer) -->
       <div class="card">
         <div class="card-title">Vehicle</div>
         <div class="vehicle-selector">
@@ -271,6 +280,10 @@
           <span class="material-symbols-rounded chevron">arrow_drop_down</span>
         </div>
         <div class="vehicle-dropdown">
+          <div class="vehicle-section-label">Recently used</div>
+          <div class="vehicle-option"><span class="material-symbols-rounded filled">local_shipping</span>MA-204-TT · Volvo FH16</div>
+          <div class="vehicle-option"><span class="material-symbols-rounded filled">rv_hookup</span>MA-330-CD · Schmitz S.KO</div>
+          <div class="vehicle-section-label">All vehicles</div>
           <div class="vehicle-option"><span class="material-symbols-rounded filled">local_shipping</span>MA-118-AB · DAF XF</div>
           <div class="vehicle-option"><span class="material-symbols-rounded filled">local_shipping</span>MA-337-PK · Scania R450</div>
         </div>
@@ -305,7 +318,7 @@
         </div>
         <div class="priority-desc high" id="priority-desc">
           <span class="material-symbols-rounded" id="priority-icon">keyboard_double_arrow_up</span>
-          <div class="priority-desc-text" id="priority-text">Blocks operation, immediate attention needed.</div>
+          <div class="priority-desc-text" id="priority-text">Blocks operation, immediate attention needed</div>
         </div>
       </div>
 
@@ -338,9 +351,9 @@
   </div>
   <script>
     const priorityData = {
-      low:    { icon: 'arrow_downward', desc: 'Minor issue, can wait for scheduled maintenance.' },
-      medium: { icon: 'equal',          desc: 'Should be fixed soon, but not critical.' },
-      high:   { icon: 'keyboard_double_arrow_up',         desc: 'Blocks operation, immediate attention needed.' },
+      low:    { icon: 'arrow_downward', desc: 'Minor issue, can wait for scheduled maintenance' },
+      medium: { icon: 'equal',          desc: 'Should be fixed soon, but not critical' },
+      high:   { icon: 'keyboard_double_arrow_up',         desc: 'Blocks operation, immediate attention needed' },
     };
     document.querySelectorAll('.priority-segment').forEach(btn => {
       btn.addEventListener('click', () => {

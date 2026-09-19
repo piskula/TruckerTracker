@@ -102,6 +102,11 @@
       color: var(--tt-on-surface-variant);
       font-size: 14px;
     }
+    .user-username {
+      margin-top: 4px;
+      color: var(--tt-on-surface-variant);
+      font-size: 12px;
+    }
     .user-roles {
       margin-top: 8px;
       color: var(--tt-on-surface-variant);
@@ -178,6 +183,19 @@
       width: 100%;
       border-radius: 4px;
     }
+
+    /* ── Language selector dialog (InfoDialog + LanguageRow) ──── */
+    .language-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .language-row .material-symbols-rounded { font-size: 24px; color: var(--tt-on-surface-variant); }
+    .language-row.selected .material-symbols-rounded { color: var(--tt-primary); }
+    .language-row span.label { font-size: 16px; color: var(--tt-on-surface); }
+    .language-row + .language-row { margin-top: 12px; }
   </style>
 </head>
 <body>
@@ -194,6 +212,9 @@
     <div class="top-bar">
       <div class="icon-btn"><span class="material-symbols-rounded">arrow_back</span></div>
       <span class="top-bar-title">Profile</span>
+      <div class="icon-btn" onclick="document.getElementById('lang-dialog').classList.remove('hidden')">
+        <span class="material-symbols-rounded">language</span>
+      </div>
       <div class="icon-btn" onclick="document.getElementById('ver-dialog').classList.remove('hidden')">
         <span class="material-symbols-rounded">info</span>
       </div>
@@ -205,11 +226,29 @@
       </div>
       <div class="user-name">Michael Schumacher</div>
       <div class="user-email">michael@example.com</div>
+      <div class="user-username">Login name: mschumacher</div>
       <div class="user-roles">Driver</div>
     </div>
 
     <div class="bottom-action">
       <button class="btn-filled">Sign Out</button>
+    </div>
+
+    <div class="dialog-overlay hidden" id="lang-dialog">
+      <div class="dialog">
+        <div class="dialog-title">Language</div>
+        <div class="language-row selected" onclick="selectLanguage(this)">
+          <span class="material-symbols-rounded filled">check_circle</span>
+          <span class="label">English</span>
+        </div>
+        <div class="language-row" onclick="selectLanguage(this)">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Slovak</span>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn-text" onclick="document.getElementById('lang-dialog').classList.add('hidden')">OK</button>
+        </div>
+      </div>
     </div>
 
     <div class="dialog-overlay hidden" id="ver-dialog">
@@ -243,6 +282,9 @@
     <div class="top-bar">
       <div class="icon-btn"><span class="material-symbols-rounded">arrow_back</span></div>
       <span class="top-bar-title">Profile</span>
+      <div class="icon-btn" onclick="document.getElementById('lang-dialog-2').classList.remove('hidden')">
+        <span class="material-symbols-rounded">language</span>
+      </div>
       <div class="icon-btn" onclick="document.getElementById('ver-dialog-2').classList.remove('hidden')">
         <span class="material-symbols-rounded">info</span>
       </div>
@@ -254,11 +296,29 @@
       </div>
       <div class="user-name">Lewis Hamilton</div>
       <div class="user-email">lewis@hamilton.com</div>
+      <div class="user-username">Login name: lhamilton</div>
       <div class="user-roles">Driver · Mechanic</div>
     </div>
 
     <div class="bottom-action">
       <button class="btn-filled">Sign Out</button>
+    </div>
+
+    <div class="dialog-overlay hidden" id="lang-dialog-2">
+      <div class="dialog">
+        <div class="dialog-title">Language</div>
+        <div class="language-row" onclick="selectLanguage(this)">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">English</span>
+        </div>
+        <div class="language-row selected" onclick="selectLanguage(this)">
+          <span class="material-symbols-rounded filled">check_circle</span>
+          <span class="label">Slovak</span>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn-text" onclick="document.getElementById('lang-dialog-2').classList.add('hidden')">OK</button>
+        </div>
+      </div>
     </div>
 
     <div class="dialog-overlay hidden" id="ver-dialog-2">
@@ -282,6 +342,19 @@
     const h = window.location.hash;
     if (h === '#driver') document.getElementById('phone-mechanic').style.display = 'none';
     else if (h === '#mechanic') document.getElementById('phone-driver').style.display = 'none';
+
+    function selectLanguage(row) {
+      row.parentElement.querySelectorAll('.language-row').forEach(r => {
+        r.classList.remove('selected');
+        const icon = r.querySelector('.material-symbols-rounded');
+        icon.textContent = 'radio_button_unchecked';
+        icon.classList.remove('filled');
+      });
+      row.classList.add('selected');
+      const icon = row.querySelector('.material-symbols-rounded');
+      icon.textContent = 'check_circle';
+      icon.classList.add('filled');
+    }
   </script>
 </body>
 </html>

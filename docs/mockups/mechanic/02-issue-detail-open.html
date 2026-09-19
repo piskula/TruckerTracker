@@ -26,6 +26,7 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
     .status-bar {
       background: var(--tt-surface-dim);
@@ -164,6 +165,22 @@
       line-height: 1.5;
     }
 
+    .photo-row { display: flex; gap: 8px; overflow-x: auto; }
+    .photo-thumb {
+      width: 80px; height: 80px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #CFD8DC, #B0BEC5);
+      flex-shrink: 0;
+    }
+    .photo-add-tile {
+      width: 80px; height: 80px;
+      border-radius: 8px;
+      background: var(--tt-surface-variant);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .photo-add-tile .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 28px; }
+
     .timeline { display: flex; flex-direction: column; }
     .timeline-step { display: flex; gap: 12px; }
     .timeline-left {
@@ -182,14 +199,6 @@
     .step-dot.status-open { background: var(--tt-open); }
     .step-dot.status-open .material-symbols-rounded { color: var(--tt-on-open); }
     .step-dot .material-symbols-rounded { font-size: 17px; color: var(--tt-on-primary); }
-    .step-dot-comment {
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      background: var(--tt-surface-container-highest);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .step-dot-comment .material-symbols-rounded { font-size: 14px; color: var(--tt-on-surface-variant); }
     .step-line {
       width: 2px;
       height: 24px;
@@ -202,22 +211,6 @@
     .timeline-right-row .step-footer { margin-top: 0; }
     .step-status { font-size: 14px; font-weight: 700; color: var(--tt-on-surface); }
     .step-footer { font-size: 11px; color: var(--tt-outline); text-align: right; margin-top: 3px; }
-
-    .photo-row { display: flex; gap: 8px; overflow-x: auto; }
-    .photo-thumb {
-      width: 80px; height: 80px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #CFD8DC, #B0BEC5);
-      flex-shrink: 0;
-    }
-    .photo-add-tile {
-      width: 80px; height: 80px;
-      border-radius: 8px;
-      background: var(--tt-surface-variant);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .photo-add-tile .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 28px; }
 
     .comment-input-area {
       position: relative;
@@ -250,7 +243,7 @@
     }
     .send-btn .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 22px; }
 
-    /* mechanicAction = StartWorking (issue Open, not assigned to viewer) */
+    /* nextStateAction = StartWorking (issue Open, viewer is an eligible mechanic, not yet assigned) */
     .bottom-action {
       padding: 12px 16px 20px;
       background: var(--tt-surface-container-lowest);
@@ -274,6 +267,63 @@
       gap: 8px;
     }
     .btn-warning .material-symbols-rounded { font-size: 20px; }
+
+    /* Start Working sheet — BottomSheet.kt: surfaceContainerLowest, centered onSurfaceVariant drag
+       handle, rounded top corners. Opened by tapping "Start Working" (StartWorkingSheet.kt) — the
+       mechanic must pick a Repair Type and a Vehicle System before the issue can move to In Progress. */
+    .sheet-scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.32);
+      z-index: 5;
+    }
+    .sheet {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      background: var(--tt-surface-container-lowest);
+      border-radius: 28px 28px 0 0;
+      z-index: 6;
+      padding-bottom: 20px;
+      max-height: 78%;
+      display: flex;
+      flex-direction: column;
+    }
+    .sheet-drag-handle {
+      width: 32px; height: 4px;
+      border-radius: 2px;
+      background: var(--tt-on-surface-variant);
+      opacity: 0.4;
+      margin: 12px auto 4px;
+      flex-shrink: 0;
+    }
+    .sheet-content { padding: 8px 16px 0; overflow-y: auto; }
+    .sheet-section-title { font-size: 16px; font-weight: 500; color: var(--tt-on-surface); margin: 8px 0 4px; }
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+    }
+    .radio-option .material-symbols-rounded { font-size: 20px; color: var(--tt-on-surface-variant); }
+    .radio-option.selected .material-symbols-rounded { color: var(--tt-primary); }
+    .radio-option span.label { font-size: 14px; color: var(--tt-on-surface); }
+    .sheet-confirm-btn {
+      margin: 12px 16px 0;
+      background: var(--tt-warning);
+      color: var(--tt-on-warning);
+      border: none;
+      border-radius: 28px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 500;
+      font-family: 'Roboto', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .sheet-confirm-btn .material-symbols-rounded { font-size: 20px; }
   </style>
 </head>
 <body>
@@ -329,12 +379,23 @@
           </div>
           <span class="card-time">May 25, 07:15</span>
         </div>
+        <!-- No Repair Type / Vehicle System line yet — those are only set once StartWorkingSheet is confirmed -->
       </div>
 
       <div class="card">
         <div class="card-section-title">Description</div>
         <div class="description-text">
           Noticed a puddle under the front axle after parking overnight. Brake pedal feels slightly soft. Vehicle is currently at depot bay 2.
+        </div>
+      </div>
+
+      <!-- Photos card now comes before History (previously History was first) -->
+      <div class="card">
+        <div class="card-section-title">Photos (2)</div>
+        <div class="photo-row">
+          <div class="photo-thumb"></div>
+          <div class="photo-thumb"></div>
+          <div class="photo-add-tile"><span class="material-symbols-rounded">add</span></div>
         </div>
       </div>
 
@@ -359,19 +420,77 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-section-title">Photos (2)</div>
-        <div class="photo-row">
-          <div class="photo-thumb"></div>
-          <div class="photo-thumb"></div>
-          <div class="photo-add-tile"><span class="material-symbols-rounded">add</span></div>
-        </div>
-      </div>
-
     </div>
 
     <div class="bottom-action">
       <button class="btn-warning">
+        <span class="material-symbols-rounded filled">build</span>
+        Start Working
+      </button>
+    </div>
+
+    <!-- Overlay: StartWorkingSheet, shown after tapping "Start Working" above -->
+    <div class="sheet-scrim"></div>
+    <div class="sheet">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-content">
+        <div class="sheet-section-title">Repair Type</div>
+        <div class="radio-option selected">
+          <span class="material-symbols-rounded filled">check_circle</span>
+          <span class="label">Damage</span>
+        </div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Fault</span>
+        </div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Installation</span>
+        </div>
+
+        <div class="sheet-section-title">Vehicle System</div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Electrical</span>
+        </div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Tires</span>
+        </div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Body</span>
+        </div>
+        <div class="radio-option selected">
+          <span class="material-symbols-rounded filled">check_circle</span>
+          <span class="label">Engine</span>
+        </div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Drivetrain (transmission/axles)</span>
+        </div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Brakes</span>
+        </div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Air</span>
+        </div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Tarp</span>
+        </div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Cooling</span>
+        </div>
+        <div class="radio-option">
+          <span class="material-symbols-rounded">radio_button_unchecked</span>
+          <span class="label">Other</span>
+        </div>
+      </div>
+      <button class="sheet-confirm-btn">
         <span class="material-symbols-rounded filled">build</span>
         Start Working
       </button>

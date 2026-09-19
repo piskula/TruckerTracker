@@ -59,7 +59,7 @@
         }
         .icon-btn .material-symbols-rounded { color: var(--tt-on-surface); font-size: 24px; }
 
-        /* FilterChipRow: Driver = My Issues / My Resolved / All */
+        /* FilterChipRow: Driver = My Issues / My Resolved (no "All" tab — driver-only, mechanic gets My Work/My Completed/Open/All) */
         .filter-row {
           background: var(--tt-surface-dim);
           padding: 0 16px 12px;
@@ -106,6 +106,18 @@
           justify-content: space-between;
           gap: 8px;
           margin-bottom: 8px;
+        }
+        .card-title-row {
+          display: flex;
+          align-items: baseline;
+          gap: 4px;
+          flex: 1;
+        }
+        .card-id {
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--tt-on-surface-variant);
+          white-space: nowrap;
         }
         .card-title {
           font-size: 14px;
@@ -216,7 +228,6 @@
     <div class="filter-row">
         <div class="filter-chip active">My Issues</div>
         <div class="filter-chip">My Resolved</div>
-        <div class="filter-chip">All</div>
     </div>
 
     <div class="content">
@@ -224,7 +235,10 @@
         <!-- High / In Progress -->
         <div class="card priority-high">
             <div class="card-top">
-                <div class="card-title">Engine warning light — truck won't start</div>
+                <div class="card-title-row">
+                    <span class="card-id">#1042</span>
+                    <div class="card-title">Engine warning light — truck won't start</div>
+                </div>
                 <div class="status-chip status-progress">
                     <span class="material-symbols-rounded filled">build</span>
                     In Progress
@@ -249,19 +263,22 @@
             </div>
         </div>
 
-        <!-- High / Open, unassigned -->
-        <div class="card priority-high">
+        <!-- Low / Open, unassigned -->
+        <div class="card priority-low">
             <div class="card-top">
-                <div class="card-title">Left rear tire pressure critically low</div>
+                <div class="card-title-row">
+                    <span class="card-id">#1055</span>
+                    <div class="card-title">Cabin dome light flickering</div>
+                </div>
                 <div class="status-chip status-open">
                     <span class="material-symbols-rounded">radio_button_unchecked</span>
                     Open
                 </div>
             </div>
             <div class="card-meta">
-                <div class="priority-indicator high">
-                    <span class="material-symbols-rounded">keyboard_double_arrow_up</span>
-                    High
+                <div class="priority-indicator low">
+                    <span class="material-symbols-rounded">arrow_downward</span>
+                    Low
                 </div>
                 <div class="meta-item">
                     <span class="material-symbols-rounded filled">local_shipping</span>
@@ -280,7 +297,10 @@
         <!-- Medium / Open -->
         <div class="card priority-medium">
             <div class="card-top">
-                <div class="card-title">Windshield wiper blade broken</div>
+                <div class="card-title-row">
+                    <span class="card-id">#1061</span>
+                    <div class="card-title">Windshield wiper blade broken</div>
+                </div>
                 <div class="status-chip status-open">
                     <span class="material-symbols-rounded">radio_button_unchecked</span>
                     Open

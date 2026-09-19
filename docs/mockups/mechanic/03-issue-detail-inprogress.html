@@ -53,6 +53,12 @@
     }
     .back-btn .material-symbols-rounded { color: var(--tt-on-surface); font-size: 24px; }
     .top-bar h2 { color: var(--tt-on-surface); font-size: 20px; font-weight: 700; flex: 1; }
+    /* Edit button — shown because the assigned mechanic can edit the vehicle on an in-progress issue */
+    .edit-btn {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .edit-btn .material-symbols-rounded { color: var(--tt-on-surface); font-size: 22px; }
 
     .people-strip {
       background: var(--tt-surface-container-highest);
@@ -153,11 +159,30 @@
     .meta-item .material-symbols-rounded { font-size: 15px; }
     .card-time { margin-left: auto; font-size: 12px; color: var(--tt-on-surface-variant); }
 
+    /* Repair Type · Vehicle System line — set once StartWorkingSheet was confirmed */
+    .repair-meta { font-size: 13px; color: var(--tt-on-surface-variant); margin-top: 4px; }
+
     .description-text {
       font-size: 14px;
       color: #424242;
       line-height: 1.5;
     }
+
+    .photo-row { display: flex; gap: 8px; overflow-x: auto; }
+    .photo-thumb {
+      width: 80px; height: 80px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #CFD8DC, #B0BEC5);
+      flex-shrink: 0;
+    }
+    .photo-add-tile {
+      width: 80px; height: 80px;
+      border-radius: 8px;
+      background: var(--tt-surface-variant);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .photo-add-tile .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 28px; }
 
     .timeline { display: flex; flex-direction: column; }
     .timeline-step { display: flex; gap: 12px; }
@@ -201,22 +226,6 @@
     .step-footer { font-size: 11px; color: var(--tt-outline); text-align: right; margin-top: 3px; }
     .comment-label { font-size: 13px; font-weight: 400; font-style: italic; color: var(--tt-on-surface); line-height: 1.35; }
 
-    .photo-row { display: flex; gap: 8px; overflow-x: auto; }
-    .photo-thumb {
-      width: 80px; height: 80px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #CFD8DC, #B0BEC5);
-      flex-shrink: 0;
-    }
-    .photo-add-tile {
-      width: 80px; height: 80px;
-      border-radius: 8px;
-      background: var(--tt-surface-variant);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .photo-add-tile .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 28px; }
-
     .comment-input-area {
       position: relative;
       background: var(--tt-surface-container);
@@ -248,7 +257,7 @@
     }
     .send-btn .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 22px; }
 
-    /* mechanicAction = ResolveIssue (issue In Progress, assigned to the viewer) */
+    /* nextStateAction = ResolveIssue (issue In Progress, assigned to the viewer) */
     .bottom-action {
       padding: 12px 16px 20px;
       background: var(--tt-surface-container-lowest);
@@ -287,6 +296,7 @@
     <div class="top-bar">
       <div class="back-btn"><span class="material-symbols-rounded">arrow_back</span></div>
       <h2>Issue #1042</h2>
+      <div class="edit-btn"><span class="material-symbols-rounded">edit</span></div>
     </div>
 
     <div class="people-strip">
@@ -326,6 +336,17 @@
             <span>MA-204-TT · Volvo FH16</span>
           </div>
           <span class="card-time">May 25, 09:32</span>
+        </div>
+        <div class="repair-meta">Fault · Engine</div>
+      </div>
+
+      <div class="card">
+        <div class="card-section-title">Photos (3)</div>
+        <div class="photo-row">
+          <div class="photo-thumb"></div>
+          <div class="photo-thumb"></div>
+          <div class="photo-thumb"></div>
+          <div class="photo-add-tile"><span class="material-symbols-rounded">add</span></div>
         </div>
       </div>
 
@@ -382,16 +403,6 @@
             <textarea placeholder="Write a comment…" rows="3"></textarea>
             <button class="send-btn"><span class="material-symbols-rounded">send</span></button>
           </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-section-title">Photos (3)</div>
-        <div class="photo-row">
-          <div class="photo-thumb"></div>
-          <div class="photo-thumb"></div>
-          <div class="photo-thumb"></div>
-          <div class="photo-add-tile"><span class="material-symbols-rounded">add</span></div>
         </div>
       </div>
 

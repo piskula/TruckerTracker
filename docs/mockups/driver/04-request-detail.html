@@ -39,7 +39,8 @@
       font-weight: 500;
       flex-shrink: 0;
     }
-    /* Toolbar: back arrow + "Issue #{id}" only — no vehicle subtitle, no ⋮ menu */
+    /* Toolbar: back arrow + "Issue #{id}" + Edit icon when the reporting driver can still edit
+       (description/priority stay editable through In Progress; title/vehicle only while Open) */
     .top-bar {
       background: var(--tt-surface-dim);
       padding: 12px 8px 12px 4px;
@@ -54,6 +55,11 @@
     }
     .back-btn .material-symbols-rounded { color: var(--tt-on-surface); font-size: 24px; }
     .top-bar h2 { color: var(--tt-on-surface); font-size: 20px; font-weight: 700; flex: 1; }
+    .edit-btn {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .edit-btn .material-symbols-rounded { color: var(--tt-on-surface); font-size: 22px; }
 
     /* People strip — always visible, background = surfaceContainerHighest */
     .people-strip {
@@ -159,13 +165,34 @@
       color: var(--tt-on-surface-variant);
     }
 
+    /* Repair Type · Vehicle System line — set once the mechanic confirmed StartWorkingSheet */
+    .repair-meta { font-size: 13px; color: var(--tt-on-surface-variant); margin-top: 4px; }
+
     .description-text {
       font-size: 14px;
       color: #424242;
       line-height: 1.5;
     }
 
-    /* Timeline — real history has 3 entry kinds: StatusChange, Comment, AssigneeChange */
+    /* Photos card now comes before History (previously History was first) */
+    .photo-row { display: flex; gap: 8px; overflow-x: auto; }
+    .photo-thumb {
+      width: 80px; height: 80px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #CFD8DC, #B0BEC5);
+      flex-shrink: 0;
+    }
+    .photo-add-tile {
+      width: 80px; height: 80px;
+      border-radius: 8px;
+      background: var(--tt-surface-variant);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .photo-add-tile .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 28px; }
+
+    /* Timeline — real history has 4 entry kinds: StatusChange, Comment, AssigneeChange, Update */
     .timeline { display: flex; flex-direction: column; }
     .timeline-step { display: flex; gap: 12px; }
     .timeline-left {
@@ -247,24 +274,6 @@
     }
     .send-btn .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 22px; }
 
-    /* Photos — a "+" tile to upload is always present, driver included */
-    .photo-row { display: flex; gap: 8px; overflow-x: auto; }
-    .photo-thumb {
-      width: 80px; height: 80px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #CFD8DC, #B0BEC5);
-      flex-shrink: 0;
-    }
-    .photo-add-tile {
-      width: 80px; height: 80px;
-      border-radius: 8px;
-      background: var(--tt-surface-variant);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      cursor: pointer;
-    }
-    .photo-add-tile .material-symbols-rounded { color: var(--tt-on-surface-variant); font-size: 28px; }
-
     .note {
       text-align: center;
       font-size: 11px;
@@ -286,6 +295,7 @@
     <div class="top-bar">
       <div class="back-btn"><span class="material-symbols-rounded">arrow_back</span></div>
       <h2>Issue #1042</h2>
+      <div class="edit-btn"><span class="material-symbols-rounded">edit</span></div>
     </div>
 
     <div class="people-strip">
@@ -326,11 +336,21 @@
           </div>
           <span class="card-time">Jun 17, 08:00</span>
         </div>
+        <div class="repair-meta">Fault · Engine</div>
       </div>
 
       <div class="card">
         <div class="card-section-title">Description</div>
         <div class="description-text">Tried to start the engine this morning and the warning light came on. The truck won't start at all. Located at depot gate 3.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-section-title">Photos (2)</div>
+        <div class="photo-row">
+          <div class="photo-thumb"></div>
+          <div class="photo-thumb"></div>
+          <div class="photo-add-tile"><span class="material-symbols-rounded">add</span></div>
+        </div>
       </div>
 
       <div class="card">
@@ -378,18 +398,9 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-section-title">Photos (2)</div>
-        <div class="photo-row">
-          <div class="photo-thumb"></div>
-          <div class="photo-thumb"></div>
-          <div class="photo-add-tile"><span class="material-symbols-rounded">add</span></div>
-        </div>
-      </div>
-
     </div>
 
-    <div class="note">Driver view — no bottom action bar (start/resolve/reassign are mechanic-only actions)</div>
+    <div class="note">Driver view — no bottom action bar (Start Working / Resolve / Reassign are mechanic-only). A "Cancel Issue" bar appears instead, only while the issue is still Open.</div>
   </div>
 </body>
 </html>
