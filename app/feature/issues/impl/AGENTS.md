@@ -26,12 +26,14 @@ UI and logic for the issues feature. Screens: list, search, detail, create, edit
 
 Opened from the search button in the issues list toolbar (left of the profile icon), with the same
 slide-from-end transition as the issue detail. Issues are looked up by their running number through
-the existing `IssueRepository.getIssue(id)` call — there is no search endpoint.
+the existing `IssueRepository.getIssue(id)` call — there is no search endpoint. A 404 is distinguished
+from other failures via `ApiException.isNotFound()` (`core:common/network`), not a raw status-code
+check, so the ViewModel never has to know the underlying HTTP status.
 
 | File | Description |
 |------|-------------|
 | `IssueSearchScreen.kt` | Toolbar with a back button + `SearchBarActive` (numeric keyboard, auto-focused), plus the blank/skeleton/result/not-found/failed content states |
-| `IssueSearchViewModel.kt` | Filters the query down to digits, debounces it by 300 ms and looks the issue up; `flatMapLatest` cancels an in-flight lookup whenever the query changes |
+| `IssueSearchViewModel.kt` | Filters the query down to digits, debounces it by 300 ms and looks the issue up; `flatMapLatest` cancels an in-flight lookup whenever the query changes. Caches `Found`/`NotFound` results per issue id in-memory for the ViewModel's lifetime, so re-typing an id already resolved this visit (e.g. backspacing then retyping) skips the network call; `Error` results are never cached, so a failed lookup is retried on the next visit |
 | `IssueSearchState.kt` | `IssueSearchState(query, content)` + `IssueSearchContent` (`Blank`, `Loading`, `NotFound`, `Error`, `Found`) |
 | `IssueSearchAction.kt` | `ChangeQuery` |
 

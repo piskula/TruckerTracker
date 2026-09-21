@@ -183,8 +183,6 @@ private fun MessageContent(
 
 private val searchResultPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp)
 
-// region Previews
-
 private val previewIssue = Issue(
     id = 42,
     title = "Engine warning light — truck won't start",
@@ -252,5 +250,3 @@ private fun IssueSearchNotFoundPreview() {
         )
     }
 }
-
-// endregion
