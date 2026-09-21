@@ -40,7 +40,7 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `SectionLabel` | Section header label |
 | `Switch`, `Checkbox` | Form controls |
 | `TextField` | Themed `BasicTextField` wrapper — always sets `cursorBrush` to `AppTheme.colors.onSurface` so callers can't forget it (and get an invisible black cursor in dark mode); `decorationBox` slot for per-screen chrome (labels, underlines, placeholders) |
-| `SearchBarActive`, `SearchBarInactive` | Search UI |
+| `SearchBarActive`, `SearchBarInactive` | Search UI — `SearchBarActive` takes `keyboardOptions` (e.g. a numeric-only keyboard) and `autoFocus` to open the keyboard as soon as the search screen appears. Tracks cursor position internally via `TextFieldValue`, resynced from `query` whenever it diverges from the field's own last-typed text (e.g. the screen is recomposed fresh after returning from a pushed destination, the caller clears `query` externally, or the caller filters/truncates what was typed) — the cursor always lands at the end of the resulting text rather than jumping to the start |
 | `DateRangePickerDialog` | Date range picker |
 | `NavigationBar` | Bottom navigation bar |
 

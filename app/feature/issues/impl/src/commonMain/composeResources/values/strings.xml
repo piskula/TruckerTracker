@@ -27,6 +27,10 @@
     <string name="time_ago_yesterday">Yesterday</string>
     <string name="time_ago_days">%1$d days ago</string>
 
+    <string name="issue_search_placeholder">Search by issue number</string>
+    <string name="issue_search_not_found">No issue found</string>
+    <string name="issue_search_error">Search failed. Please try again.</string>
+
     <string name="issue_detail_title">Issue #%1$d</string>
     <string name="issue_detail_reporter">Reporter</string>
     <string name="issue_detail_assigned">Assigned</string>

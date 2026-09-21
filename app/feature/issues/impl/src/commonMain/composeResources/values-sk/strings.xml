@@ -27,6 +27,10 @@
     <string name="time_ago_yesterday">Včera</string>
     <string name="time_ago_days">pred %1$d dňami</string>
 
+    <string name="issue_search_placeholder">Hľadať podľa čísla hlásenia</string>
+    <string name="issue_search_not_found">Hlásenie sa nenašlo</string>
+    <string name="issue_search_error">Vyhľadávanie zlyhalo. Skúste to znova.</string>
+
     <string name="issue_detail_title">Hlásenie č. %1$d</string>
     <string name="issue_detail_reporter">Nahlásil</string>
     <string name="issue_detail_assigned">Priradené</string>
