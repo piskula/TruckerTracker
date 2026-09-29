@@ -46,7 +46,8 @@ dependencies {
     implementation(libs.kotlin.logging)
 
     implementation(libs.spring.boot.starter.liquibase)
-    implementation(libs.minio)
+    implementation(platform(libs.awssdk.bom))
+    implementation(libs.awssdk.s3)
 
     runtimeOnly(libs.postgresql)
 

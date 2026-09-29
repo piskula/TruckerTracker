@@ -149,15 +149,32 @@ Spring Data JPA sees a non-null UUID and calls `merge()` instead of `persist()`.
 
 **Rule:** If the UUID is assigned by the caller (e.g. `UUID.randomUUID()` in a use case), declare the entity `@Id val id: UUID` with **no** `@GeneratedValue`. This tells Hibernate the caller owns the ID, and `merge()` correctly inserts a new row when no row exists.
 
-## MinIO File Storage
+## S3 File Storage
 
-`MinioFileStorageService.upload()` checks for bucket existence before uploading and creates it if missing:
+File storage goes through the provider-agnostic `FileStorageService` interface
+(`file/service/FileStorageService.kt`) — application code (use cases) depends only on that
+interface, never on `S3Client` directly. `S3FileStorageService` is the only implementation,
+backed by the AWS SDK v2 `S3Client` (`software.amazon.awssdk:s3`), configured via `S3Properties`
+(`s3.*` in `application.yml` / `S3_*` env vars — endpoint, region, credentials).
+`S3Config` builds the `S3Client` bean with `endpointOverride(...)` and `forcePathStyle(true)`, so
+the same code works against AWS S3 or any S3-compatible provider (MinIO locally, Hetzner Object
+Storage in production) — switching providers is a configuration change only, never an application
+code change. Object keys stored in `FileModel`/`FileEntity` are provider-independent (bucket +
+key), never a provider-specific URL. The bucket name itself stays a plain constant per caller
+(e.g. `UploadPhoto.BUCKET`), not a configuration property — `FileStorageService` already takes
+`bucket` as a parameter and `FileModel`/`FileEntity` persist it per file, so a future caller needing
+a different bucket (e.g. a separate one for a different file type) can already pass its own without
+any interface change.
+
+`S3FileStorageService.upload()` checks for bucket existence before uploading and creates it if missing:
 ```kotlin
-if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())) {
-    minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build())
+try {
+    s3Client.headBucket(HeadBucketRequest.builder().bucket(bucket).build())
+} catch (_: NoSuchBucketException) {
+    s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build())
 }
 ```
-Download and delete do not check — a missing bucket/object should surface as a MinIO exception.
+Download and delete do not check — a missing bucket/object should surface as an `S3Exception`.
 
 ## See Also
 

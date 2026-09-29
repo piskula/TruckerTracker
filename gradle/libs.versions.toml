@@ -45,7 +45,7 @@ firebase-bom = "34.19.0"
 springBoot = "4.0.6"
 springDependencyManagement = "1.1.7"
 springdocOpenapi = "2.7.0"
-minio = "8.5.17"
+awssdk = "2.55.7"
 kotlin-logging = "7.0.7"
 
 [libraries]
@@ -119,7 +119,8 @@ spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-star
 spring-boot-starter-liquibase = { module = "org.springframework.boot:spring-boot-starter-liquibase" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 postgresql = { module = "org.postgresql:postgresql" }
-minio = { module = "io.minio:minio", version.ref = "minio" }
+awssdk-bom = { module = "software.amazon.awssdk:bom", version.ref = "awssdk" }
+awssdk-s3 = { module = "software.amazon.awssdk:s3" }
 springdoc-openapi-webmvc-api = { module = "org.springdoc:springdoc-openapi-starter-webmvc-api", version.ref = "springdocOpenapi" }
 springdoc-openapi-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdocOpenapi" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }

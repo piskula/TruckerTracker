@@ -93,7 +93,7 @@ flowchart TD
         direction LR
         API["REST API<br/>Spring Boot / Kotlin"]
         DB[("PostgreSQL")]
-        Files["File Storage<br/>MinIO"]
+        Files["File Storage<br/>S3-compatible"]
     end
 
     subgraph AuthServer["Authorization Server"]

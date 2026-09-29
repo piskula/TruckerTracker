@@ -34,8 +34,9 @@ docker-compose up -d
 **Local environment variables needed:**
 - `POSTGRES_DB_URL` — defaults to `jdbc:postgresql://localhost:5435/truckTrack?stringtype=unspecified`
 - `POSTGRES_DB_PASSWORD` — defaults to `truckTrack-password`
-- `MINIO_URL` — defaults to `http://localhost:9000`
-- `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` — default to `minioadmin`
+- `S3_ENDPOINT` — defaults to `http://localhost:9000`
+- `S3_REGION` — defaults to `us-east-1`
+- `S3_ACCESS_KEY` / `S3_SECRET_KEY` — default to `minioadmin`
 - `KEYCLOAK_URL` — defaults to `https://sso.momosi.org`
 - `KEYCLOAK_REALM` — defaults to `trucktrack`
 
