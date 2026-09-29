@@ -14,6 +14,10 @@ class CurrentUserService(
 
     fun currentUserId(): UUID = jwt().subject.let(UUID::fromString)
 
+    fun isMechanic(): Boolean =
+        (SecurityContextHolder.getContext().authentication as JwtAuthenticationToken).authorities
+            .any { it.authority == "ROLE_MECHANIC" }
+
     fun currentUser(): AccountModel {
         val token = jwt()
         val account = AccountModel(

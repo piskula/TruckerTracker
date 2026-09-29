@@ -60,7 +60,7 @@ class IssuePersistenceProvider(
     }
 
     @Transactional(readOnly = true)
-    override fun findById(id: Long): IssueModel =
+    override fun findByIdOrThrow(id: Long): IssueModel =
         issueRepository.findById(id)
             .orElseThrow { GlobalNotFoundException("issue id=$id not found") }
             .toModel()

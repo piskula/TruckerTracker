@@ -27,7 +27,7 @@ class UpdateIssue(
     @IsUser
     @Transactional
     override fun update(issueId: Long, command: UpdateIssueCommand): IssueModel {
-        val issue = issuePersistence.findById(issueId)
+        val issue = issuePersistence.findByIdOrThrow(issueId)
         val currentUser: AccountModel = currentUserService.currentUser()
 
         if (issue.reportedBy.id != currentUser.id && issue.assignedTo?.id != currentUser.id) {
