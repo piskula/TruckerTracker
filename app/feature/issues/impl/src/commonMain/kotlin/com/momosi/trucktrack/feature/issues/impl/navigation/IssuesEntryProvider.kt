@@ -14,6 +14,7 @@ import com.momosi.trucktrack.feature.issues.impl.detail.IssueDetailScreen
 import com.momosi.trucktrack.feature.issues.impl.detail.PhotoItem
 import com.momosi.trucktrack.feature.issues.impl.edit.EditIssueScreen
 import com.momosi.trucktrack.feature.issues.impl.list.IssuesScreen
+import com.momosi.trucktrack.feature.issues.impl.search.IssueSearchScreen
 import com.momosi.trucktrack.feature.profile.api.ProfileNavKey
 
 private data object IssueStatusChangedKey : ResultKey
@@ -26,6 +27,13 @@ fun EntryProviderScope<NavKey>.issuesEntries(navigator: Navigator, resultStore: 
             issueStatusChange = statusChanged,
             onNavigateToProfile = { navigator.navigate(ProfileNavKey) },
             onNavigateToCreateIssue = { navigator.navigate(CreateIssueNavKey) },
+            onNavigateToSearch = { navigator.navigate(IssueSearchNavKey) },
+            onNavigateToIssueDetail = { issueId -> navigator.navigate(IssueDetailNavKey(issueId)) },
+        )
+    }
+    entry<IssueSearchNavKey>(metadata = slideFromEndEntryMetadata()) {
+        IssueSearchScreen(
+            onBack = navigator::goBack,
             onNavigateToIssueDetail = { issueId -> navigator.navigate(IssueDetailNavKey(issueId)) },
         )
     }

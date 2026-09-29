@@ -25,7 +25,7 @@ class StartIssue(
     @IsMechanic
     @Transactional
     override fun start(issueId: Long, repairType: RepairType, vehicleSystem: VehicleSystem): IssueModel {
-        val issue = issuePersistence.findById(issueId)
+        val issue = issuePersistence.findByIdOrThrow(issueId)
         if (issue.status != IssueStatus.OPEN) {
             throw GlobalUnprocessableException("Issue must be OPEN to start, current status: ${issue.status}")
         }

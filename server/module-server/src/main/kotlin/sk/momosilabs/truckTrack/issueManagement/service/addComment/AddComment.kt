@@ -21,7 +21,7 @@ class AddComment(
     @IsUser
     @Transactional
     override fun addComment(issueId: Long, comment: String): IssueHistoryModel {
-        val issue = issuePersistence.findById(issueId)
+        val issue = issuePersistence.findByIdOrThrow(issueId)
         if (issue.status == IssueStatus.DONE) {
             throw GlobalUnprocessableException("Cannot add a comment to a DONE issue, current status: ${issue.status}")
         }

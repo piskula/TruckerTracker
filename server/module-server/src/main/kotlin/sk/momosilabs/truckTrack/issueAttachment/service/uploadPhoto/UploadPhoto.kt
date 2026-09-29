@@ -32,7 +32,7 @@ class UploadPhoto(
     @IsUser
     @Transactional
     override fun upload(issueId: Long, file: TruckTrackFile): IssueAttachmentModel {
-        val issue = issuePersistence.findById(issueId)
+        val issue = issuePersistence.findByIdOrThrow(issueId)
         if (issue.status == IssueStatus.DONE) {
             throw GlobalUnprocessableException("Cannot add a photo to a DONE issue, current status: ${issue.status}")
         }

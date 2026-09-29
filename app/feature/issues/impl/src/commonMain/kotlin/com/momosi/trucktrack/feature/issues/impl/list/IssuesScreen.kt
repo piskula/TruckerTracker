@@ -73,6 +73,7 @@ import kotlin.time.Clock
 internal fun IssuesScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToCreateIssue: () -> Unit,
+    onNavigateToSearch: () -> Unit,
     onNavigateToIssueDetail: (Long) -> Unit,
     issueStatusChange: Boolean = false,
     viewModel: IssuesViewModel = koinViewModel(),
@@ -96,6 +97,7 @@ internal fun IssuesScreen(
         onRefresh = { pagingItems.refresh() },
         onNavigateToProfile = onNavigateToProfile,
         onNavigateToCreateIssue = onNavigateToCreateIssue,
+        onNavigateToSearch = onNavigateToSearch,
         onNavigateToIssueDetail = onNavigateToIssueDetail,
     )
 }
@@ -112,6 +114,7 @@ private fun IssuesScreenContent(
     onRefresh: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToCreateIssue: () -> Unit,
+    onNavigateToSearch: () -> Unit,
     onNavigateToIssueDetail: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -133,6 +136,11 @@ private fun IssuesScreenContent(
                     "${info.name} · $roleLabel"
                 }.orEmpty(),
                 actions = {
+                    TopBarIconButton(
+                        icon = TruckTrackIcons.Search,
+                        onClick = onNavigateToSearch,
+                        modifier = Modifier.testTag("issues_search_button"),
+                    )
                     TopBarIconButton(
                         icon = TruckTrackIcons.AccountCircle,
                         onClick = onNavigateToProfile,
@@ -383,6 +391,7 @@ private fun IssuesDriverPreview() {
             onRefresh = {},
             onNavigateToProfile = {},
             onNavigateToCreateIssue = {},
+            onNavigateToSearch = {},
             onNavigateToIssueDetail = {},
         )
     }
@@ -408,6 +417,7 @@ private fun IssuesMechanicPreview() {
             onRefresh = {},
             onNavigateToProfile = {},
             onNavigateToCreateIssue = {},
+            onNavigateToSearch = {},
             onNavigateToIssueDetail = {},
         )
     }
@@ -432,6 +442,7 @@ private fun IssuesEmptyPreview() {
             onRefresh = {},
             onNavigateToProfile = {},
             onNavigateToCreateIssue = {},
+            onNavigateToSearch = {},
             onNavigateToIssueDetail = {},
         )
     }

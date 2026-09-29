@@ -24,7 +24,7 @@ class DeletePhoto(
     @IsDriver
     @Transactional
     override fun delete(issueId: Long, attachmentId: Long) {
-        val issue = issuePersistence.findById(issueId)
+        val issue = issuePersistence.findByIdOrThrow(issueId)
         if (issue.reportedBy.id != currentUserService.currentUserId()) {
             throw GlobalForbiddenException("Only the reporter of the issue can delete its photos")
         }

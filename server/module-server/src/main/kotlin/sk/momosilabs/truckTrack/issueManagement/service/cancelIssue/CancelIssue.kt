@@ -24,7 +24,7 @@ class CancelIssue(
     @IsDriver
     @Transactional
     override fun cancel(issueId: Long): IssueModel {
-        val issue = issuePersistence.findById(issueId)
+        val issue = issuePersistence.findByIdOrThrow(issueId)
         val currentUser: AccountModel = currentUserService.currentUser()
         if (issue.reportedBy.id != currentUser.id) {
             throw GlobalForbiddenException("Only the reporter of the issue can cancel it")

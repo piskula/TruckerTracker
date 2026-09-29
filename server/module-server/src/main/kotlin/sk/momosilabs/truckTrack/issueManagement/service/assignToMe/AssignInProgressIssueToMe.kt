@@ -23,7 +23,7 @@ class AssignInProgressIssueToMe(
     @IsMechanic
     @Transactional
     override fun reassign(issueId: Long): IssueModel {
-        val issue = issuePersistence.findById(issueId)
+        val issue = issuePersistence.findByIdOrThrow(issueId)
         if (issue.status != IssueStatus.IN_PROGRESS) {
             throw GlobalUnprocessableException("Issue must be IN_PROGRESS to change currently assigned mechanic.")
         }

@@ -14,7 +14,7 @@ interface IssuePersistence {
 
     fun findPage(filter: IssueListFilter, pageable: Pageable): Page<IssueModel>
 
-    fun findById(id: Long): IssueModel
+    fun findByIdOrThrow(id: Long): IssueModel
 
     fun create(model: IssueModel): IssueModel
 
