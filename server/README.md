@@ -20,7 +20,7 @@ Spring Boot backend for TruckTrack, a fleet-management issue-tracking system for
 | API docs | SpringDoc / Swagger UI, OAuth2 PKCE |
 | Auth | Keycloak (OAuth2 resource server, JWT validation) |
 | Persistence | PostgreSQL + Spring Data JPA, Liquibase migrations |
-| File storage | MinIO (S3-compatible) |
+| File storage | AWS SDK v2 (`S3Client`), S3-compatible — MinIO locally, Hetzner Object Storage in production |
 | Contract DTOs | `com.momosi.trucktrack:shared` — see `../shared/README.md` |
 
 ## Getting started
@@ -30,7 +30,7 @@ Spring Boot backend for TruckTrack, a fleet-management issue-tracking system for
 | Tool | Needed for | Check |
 |---|---|---|
 | JDK 25 | Gradle toolchain | `java -version` |
-| Docker + Docker Compose | Local PostgreSQL + MinIO | `docker --version` |
+| Docker + Docker Compose | Local PostgreSQL + MinIO (S3-compatible, used for local file storage) | `docker --version` |
 
 ### Run locally
 
@@ -100,8 +100,9 @@ above):
 |---|---|
 | `POSTGRES_DB_URL` | `jdbc:postgresql://localhost:5435/truckTrack?stringtype=unspecified` |
 | `POSTGRES_DB_PASSWORD` | `truckTrack-password` |
-| `MINIO_URL` | `http://localhost:9000` |
-| `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | `minioadmin` |
+| `S3_ENDPOINT` | `http://localhost:9000` |
+| `S3_REGION` | `us-east-1` |
+| `S3_ACCESS_KEY` / `S3_SECRET_KEY` | `minioadmin` |
 | `KEYCLOAK_URL` | `https://sso.momosi.org` |
 | `KEYCLOAK_REALM` | `trucktrack` |
 
