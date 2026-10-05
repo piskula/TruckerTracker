@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
@@ -67,7 +68,6 @@ import com.momosi.trucktrack.core.issue.model.IssueCapabilities
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStateAction
 import com.momosi.trucktrack.core.issue.model.IssueStatus
-import com.momosi.trucktrack.core.issue.model.IssueUpdatedField
 import com.momosi.trucktrack.core.issue.model.RepairType
 import com.momosi.trucktrack.core.issue.model.VehicleSystem
 import com.momosi.trucktrack.core.uilibrary.BackHandler
@@ -105,9 +105,13 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_delete_p
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_description
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_error
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_description_changed
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_empty
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_priority_changed
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_reassigned
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_updated
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_reassigned_to
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_title_changed
+import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_vehicle_changed
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_photos
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_photos_loading
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_reassign_description
@@ -120,10 +124,6 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_resolve_
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_resolve_issue
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_start_working
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_title
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_field_description
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_field_priority
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_field_title
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_field_vehicle
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_high
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_low
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_medium
@@ -728,6 +728,28 @@ private fun HistoryCard(
 }
 
 @Composable
+private fun TextChangeContent(
+    headline: String,
+    valueFrom: String,
+    valueTo: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(text = headline, style = AppTheme.typography.titleSmall, color = AppTheme.colors.onSurface)
+        Text(
+            text = valueFrom,
+            style = AppTheme.typography.bodySmall.copy(textDecoration = TextDecoration.LineThrough),
+            color = AppTheme.colors.outline,
+        )
+        Text(
+            text = valueTo,
+            style = AppTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+            color = AppTheme.colors.onSurface,
+        )
+    }
+}
+
+@Composable
 private fun TimelineStep(
     entry: IssueHistoryUi,
     isLast: Boolean,
@@ -786,7 +808,7 @@ private fun TimelineStep(
                     }
                 }
 
-                is IssueHistoryUi.Update -> {
+                is IssueHistoryUi.TitleChange, is IssueHistoryUi.DescriptionChange -> {
                     Box(
                         modifier = Modifier
                             .size(26.dp)
@@ -795,6 +817,36 @@ private fun TimelineStep(
                     ) {
                         Icon(
                             imageVector = TruckTrackIcons.Edit,
+                            tint = AppTheme.colors.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
+                }
+
+                is IssueHistoryUi.PriorityChange -> {
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .background(AppTheme.colors.surfaceContainerHighest, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = entry.priorityTo.indicatorIcon(),
+                            tint = entry.priorityTo.indicatorColor(),
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                }
+
+                is IssueHistoryUi.VehicleChange -> {
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .background(AppTheme.colors.surfaceContainerHighest, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = TruckTrackIcons.Truck,
                             tint = AppTheme.colors.onSurfaceVariant,
                             modifier = Modifier.size(14.dp),
                         )
@@ -831,16 +883,41 @@ private fun TimelineStep(
 
                 is IssueHistoryUi.AssigneeChange -> {
                     Text(
-                        text = stringResource(Res.string.issue_detail_history_reassigned),
+                        text = entry.assigneeName
+                            ?.let { stringResource(Res.string.issue_detail_history_reassigned_to, it) }
+                            ?: stringResource(Res.string.issue_detail_history_reassigned),
                         style = AppTheme.typography.titleSmall,
                         color = AppTheme.colors.onSurface,
                     )
                 }
 
-                is IssueHistoryUi.Update -> {
-                    val fieldNames = entry.changedFields.map { stringResource(it.labelRes()) }
+                is IssueHistoryUi.TitleChange -> TextChangeContent(
+                    headline = stringResource(Res.string.issue_detail_history_title_changed),
+                    valueFrom = entry.titleFrom,
+                    valueTo = entry.titleTo,
+                )
+
+                is IssueHistoryUi.DescriptionChange -> TextChangeContent(
+                    headline = stringResource(Res.string.issue_detail_history_description_changed),
+                    valueFrom = entry.descriptionFrom,
+                    valueTo = entry.descriptionTo,
+                )
+
+                is IssueHistoryUi.PriorityChange -> {
                     Text(
-                        text = stringResource(Res.string.issue_detail_history_updated, fieldNames.joinToString(", ")),
+                        text = stringResource(
+                            Res.string.issue_detail_history_priority_changed,
+                            entry.priorityFrom.displayName(),
+                            entry.priorityTo.displayName(),
+                        ),
+                        style = AppTheme.typography.titleSmall,
+                        color = AppTheme.colors.onSurface,
+                    )
+                }
+
+                is IssueHistoryUi.VehicleChange -> {
+                    Text(
+                        text = stringResource(Res.string.issue_detail_history_vehicle_changed, entry.vehicleFrom, entry.vehicleTo),
                         style = AppTheme.typography.titleSmall,
                         color = AppTheme.colors.onSurface,
                     )
@@ -1184,13 +1261,6 @@ private fun VehicleType?.vehicleIcon() = when (this) {
     VehicleType.Truck, null -> TruckTrackIcons.Truck
 }
 
-private fun IssueUpdatedField.labelRes() = when (this) {
-    IssueUpdatedField.Title -> Res.string.issue_field_title
-    IssueUpdatedField.Description -> Res.string.issue_field_description
-    IssueUpdatedField.Priority -> Res.string.issue_field_priority
-    IssueUpdatedField.Vehicle -> Res.string.issue_field_vehicle
-}
-
 private val previewIssue = IssueUi(
     id = 1042,
     title = "Engine warning light — truck won't start",
@@ -1209,15 +1279,12 @@ private val previewIssue = IssueUi(
 private val previewHistory = listOf(
     IssueHistoryUi.StatusChange("1", "Michael Schumacher", "Jun 17, 08:00", IssueStatus.Open),
     IssueHistoryUi.StatusChange("2", "Mattia Binotto", "Jun 17, 09:00", IssueStatus.InProgress),
-    IssueHistoryUi.AssigneeChange("3", "Lewis Hamilton", "Jun 17, 09:30"),
+    IssueHistoryUi.AssigneeChange("3", "Lewis Hamilton", "Jun 17, 09:30", "Lewis Hamilton"),
     IssueHistoryUi.Comment("4", "Mattia Binotto", "Jun 17, 10:00", "Issue diagnosed, spare parts ordered"),
     IssueHistoryUi.Comment("5", "Mattia Binotto", "Jun 17, 13:00", "Parts order delayed, ETA tomorrow morning"),
-    IssueHistoryUi.Update(
-        "6",
-        "Lewis Hamilton",
-        "Jun 17, 14:00",
-        persistentListOf(IssueUpdatedField.Description, IssueUpdatedField.Priority),
-    ),
+    IssueHistoryUi.TitleChange("6", "Michael Schumacher", "Jun 17, 13:30", "Engine light", "Engine warning light — truck won't start"),
+    IssueHistoryUi.PriorityChange("7", "Michael Schumacher", "Jun 17, 14:00", IssuePriority.Medium, IssuePriority.High),
+    IssueHistoryUi.VehicleChange("8", "Lewis Hamilton", "Jun 17, 14:30", "MA-204-TT", "MA-311-TT"),
 ).toImmutableList()
 
 @Preview

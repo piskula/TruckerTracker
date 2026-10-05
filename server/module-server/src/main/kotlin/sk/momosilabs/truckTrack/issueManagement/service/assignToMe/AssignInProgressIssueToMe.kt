@@ -41,6 +41,8 @@ class AssignInProgressIssueToMe(
                 issueId = saved.id,
                 performedBy = mechanic,
                 createdAt = now,
+                assigneeFrom = issue.assignedTo,
+                assigneeTo = mechanic,
             )
         )
         return saved

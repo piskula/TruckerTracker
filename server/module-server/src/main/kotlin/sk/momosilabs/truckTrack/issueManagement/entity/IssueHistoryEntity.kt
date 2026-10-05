@@ -1,11 +1,13 @@
 package sk.momosilabs.truckTrack.issueManagement.entity
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.validation.constraints.NotNull
+import org.hibernate.annotations.ColumnTransformer
 import sk.momosilabs.truckTrack.account.entity.AccountEntity
 import java.time.LocalDateTime
 import java.util.UUID
@@ -37,7 +39,7 @@ class IssueHistoryEntity(
     @Enumerated(EnumType.STRING)
     var statusTo: IssueStatus?,
 
-    var commentText: String?,
-
-    var changedFields: String?,
+    @Column(columnDefinition = "jsonb")
+    @ColumnTransformer(write = "?::jsonb")
+    var details: String?,
 )

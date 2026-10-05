@@ -12,6 +12,7 @@ import sk.momosilabs.truckTrack.issueManagement.model.IssueModel
 import sk.momosilabs.truckTrack.issueManagement.service.IssuePersistence
 import sk.momosilabs.truckTrack.security.CurrentUserService
 import sk.momosilabs.truckTrack.security.annotation.IsUser
+import sk.momosilabs.truckTrack.vehicle.model.VehicleModel
 import sk.momosilabs.truckTrack.vehicle.service.VehiclePersistence
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -30,9 +31,6 @@ class UpdateIssue(
         val issue = issuePersistence.findByIdOrThrow(issueId)
         val currentUser: AccountModel = currentUserService.currentUser()
 
-        if (issue.reportedBy.id != currentUser.id && issue.assignedTo?.id != currentUser.id) {
-            throw GlobalForbiddenException("Only the reporter or the assigned mechanic can update this issue")
-        }
         if (issue.status == IssueStatus.DONE || issue.status == IssueStatus.CANCELED) {
             throw GlobalUnprocessableException("Issue must not be DONE or CANCELED to update, current status: ${issue.status}")
         }
@@ -48,6 +46,12 @@ class UpdateIssue(
             return issue
         }
 
+        val editableFields = editableFields(issue, currentUser.id, currentUserService.isMechanic())
+        val forbiddenFields = changedFields - editableFields
+        if (forbiddenFields.isNotEmpty()) {
+            throw GlobalForbiddenException("You are not allowed to change $forbiddenFields of this issue in status ${issue.status}")
+        }
+
         val now = OffsetDateTime.now(ZoneOffset.UTC)
         val saved = issuePersistence.update(
             issue.copy(
@@ -58,15 +62,79 @@ class UpdateIssue(
                 updatedAt = now,
             )
         )
-        issuePersistence.saveHistory(
-            IssueHistoryModel.Update(
-                id = UUID.randomUUID(),
-                issueId = saved.id,
-                performedBy = currentUser,
-                createdAt = now,
-                changedFields = changedFields,
-            )
-        )
+        saveHistory(issue, saved, vehicle, changedFields, currentUser, now)
         return saved
     }
+
+    private fun editableFields(issue: IssueModel, currentUserId: UUID, isMechanic: Boolean): Set<IssueUpdatedField> {
+        val isReporter = issue.reportedBy.id == currentUserId
+        val isAssignedMechanic = isMechanic && issue.assignedTo?.id == currentUserId
+        val isOpen = issue.status == IssueStatus.OPEN
+        return buildSet {
+            if (isReporter && isOpen) add(IssueUpdatedField.TITLE)
+            if (isReporter) add(IssueUpdatedField.DESCRIPTION)
+            if ((isReporter || isMechanic) && isOpen) add(IssueUpdatedField.PRIORITY)
+            if ((isReporter && isOpen) || isAssignedMechanic) add(IssueUpdatedField.VEHICLE)
+        }
+    }
+
+    private fun saveHistory(
+        original: IssueModel,
+        saved: IssueModel,
+        newVehicle: VehicleModel,
+        changedFields: List<IssueUpdatedField>,
+        performedBy: AccountModel,
+        now: OffsetDateTime,
+    ) {
+        if (IssueUpdatedField.TITLE in changedFields) {
+            issuePersistence.saveHistory(
+                IssueHistoryModel.TitleChange(
+                    id = UUID.randomUUID(),
+                    issueId = saved.id,
+                    performedBy = performedBy,
+                    createdAt = now,
+                    titleFrom = original.title,
+                    titleTo = saved.title,
+                )
+            )
+        }
+        if (IssueUpdatedField.DESCRIPTION in changedFields) {
+            issuePersistence.saveHistory(
+                IssueHistoryModel.DescriptionChange(
+                    id = UUID.randomUUID(),
+                    issueId = saved.id,
+                    performedBy = performedBy,
+                    createdAt = now,
+                    descriptionFrom = original.description,
+                    descriptionTo = saved.description,
+                )
+            )
+        }
+        if (IssueUpdatedField.PRIORITY in changedFields) {
+            issuePersistence.saveHistory(
+                IssueHistoryModel.PriorityChange(
+                    id = UUID.randomUUID(),
+                    issueId = saved.id,
+                    performedBy = performedBy,
+                    createdAt = now,
+                    priorityFrom = original.priority,
+                    priorityTo = saved.priority,
+                )
+            )
+        }
+        if (IssueUpdatedField.VEHICLE in changedFields) {
+            issuePersistence.saveHistory(
+                IssueHistoryModel.VehicleChange(
+                    id = UUID.randomUUID(),
+                    issueId = saved.id,
+                    performedBy = performedBy,
+                    createdAt = now,
+                    vehicleFrom = original.vehicle.toSnapshot(),
+                    vehicleTo = newVehicle.toSnapshot(),
+                )
+            )
+        }
+    }
+
+    private fun VehicleModel.toSnapshot() = IssueHistoryModel.VehicleSnapshot(id = id, licensePlate = licensePlate)
 }

@@ -8,7 +8,6 @@ import com.momosi.trucktrack.core.issue.model.IssueHistory
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStatus
 import com.momosi.trucktrack.core.issue.model.IssueUpdate
-import com.momosi.trucktrack.core.issue.model.IssueUpdatedField
 import com.momosi.trucktrack.core.issue.model.RepairType
 import com.momosi.trucktrack.core.issue.model.VehicleSystem
 import com.momosi.trucktrack.core.vehicle.dto.toVehicle
@@ -90,6 +89,7 @@ internal fun IssueHistoryDto.toIssueHistory(): IssueHistory = when (this) {
         id = id.toString(),
         performedBy = performedBy.toAccount(),
         createdAt = createdAt,
+        assigneeTo = assigneeTo?.toAccount(),
     )
 
     is IssueHistoryDto.Comment -> IssueHistory.Comment(
@@ -99,10 +99,35 @@ internal fun IssueHistoryDto.toIssueHistory(): IssueHistory = when (this) {
         commentText = commentText,
     )
 
-    is IssueHistoryDto.Update -> IssueHistory.Update(
+    is IssueHistoryDto.TitleChange -> IssueHistory.TitleChange(
         id = id.toString(),
         performedBy = performedBy.toAccount(),
         createdAt = createdAt,
-        changedFields = changedFields.map { IssueUpdatedField.fromApiValue(it.name) },
+        titleFrom = titleFrom,
+        titleTo = titleTo,
+    )
+
+    is IssueHistoryDto.DescriptionChange -> IssueHistory.DescriptionChange(
+        id = id.toString(),
+        performedBy = performedBy.toAccount(),
+        createdAt = createdAt,
+        descriptionFrom = descriptionFrom,
+        descriptionTo = descriptionTo,
+    )
+
+    is IssueHistoryDto.PriorityChange -> IssueHistory.PriorityChange(
+        id = id.toString(),
+        performedBy = performedBy.toAccount(),
+        createdAt = createdAt,
+        priorityFrom = IssuePriority.fromApiValue(priorityFrom.name),
+        priorityTo = IssuePriority.fromApiValue(priorityTo.name),
+    )
+
+    is IssueHistoryDto.VehicleChange -> IssueHistory.VehicleChange(
+        id = id.toString(),
+        performedBy = performedBy.toAccount(),
+        createdAt = createdAt,
+        vehicleFromLicensePlate = vehicleFrom.licensePlate,
+        vehicleToLicensePlate = vehicleTo.licensePlate,
     )
 }

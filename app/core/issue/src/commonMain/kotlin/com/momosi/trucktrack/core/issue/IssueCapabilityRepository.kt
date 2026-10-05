@@ -22,14 +22,15 @@ class IssueCapabilityRepositoryImpl : IssueCapabilityRepository {
         if (issue.status == IssueStatus.Done || issue.status == IssueStatus.Cancelled) return EditingCapabilities.None
 
         val isReporter = isReportingDriver(issue, user)
-        val isOpenOrInProgress = issue.status == IssueStatus.Open || issue.status == IssueStatus.InProgress
-        val canEditAsReportingDriver = isReporter && issue.status == IssueStatus.Open
+        val isOpen = issue.status == IssueStatus.Open
+        val isOpenOrInProgress = isOpen || issue.status == IssueStatus.InProgress
+        val canEditAsReportingDriver = isReporter && isOpen
         val canEditWhileBeingWorkedOn = isReporter && isOpenOrInProgress
 
         return EditingCapabilities(
             canEditTitle = canEditAsReportingDriver,
             canEditDescription = canEditWhileBeingWorkedOn,
-            canEditPriority = canEditWhileBeingWorkedOn,
+            canEditPriority = (isReporter || user.isMechanic) && isOpen,
             canEditVehicle = canEditAsReportingDriver || isAssignedMechanic(issue, user),
         )
     }

@@ -10,11 +10,12 @@ import sk.momosilabs.truckTrack.account.persistence.repository.AccountRepository
 import sk.momosilabs.truckTrack.config.GlobalNotFoundException
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueEntity
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEntity
-import sk.momosilabs.truckTrack.issueManagement.entity.IssueHistoryEventType
 import sk.momosilabs.truckTrack.issueManagement.entity.IssueStatus
 import java.time.OffsetDateTime
 import sk.momosilabs.truckTrack.issueManagement.model.IssueHistoryModel
 import sk.momosilabs.truckTrack.issueManagement.model.IssueModel
+import sk.momosilabs.truckTrack.issueManagement.persistence.mapper.toDetailsJson
+import sk.momosilabs.truckTrack.issueManagement.persistence.mapper.toEventType
 import sk.momosilabs.truckTrack.issueManagement.persistence.mapper.toModel
 import sk.momosilabs.truckTrack.issueManagement.entity.RepairType
 import sk.momosilabs.truckTrack.issueManagement.entity.VehicleSystem
@@ -25,6 +26,7 @@ import sk.momosilabs.truckTrack.issueManagement.service.IssueListFilter
 import sk.momosilabs.truckTrack.util.toUtcLocalDateTime
 import sk.momosilabs.truckTrack.vehicle.entity.VehicleEntity
 import sk.momosilabs.truckTrack.vehicle.persistence.repository.VehicleRepository
+import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
 @Repository
@@ -33,6 +35,7 @@ class IssuePersistenceProvider(
     private val issueHistoryRepository: IssueHistoryRepository,
     private val vehicleRepository: VehicleRepository,
     private val accountRepository: AccountRepository,
+    private val objectMapper: ObjectMapper,
 ) : IssuePersistence {
 
     @Transactional(readOnly = true)
@@ -123,67 +126,23 @@ class IssuePersistenceProvider(
 
     @Transactional(readOnly = true)
     override fun findHistory(issueId: Long, pageable: Pageable): Page<IssueHistoryModel> =
-        issueHistoryRepository.findAllByIssueId(issueId, pageable).map { it.toModel() }
+        issueHistoryRepository.findAllByIssueId(issueId, pageable).map { it.toModel(objectMapper) }
 
     @Transactional
     override fun saveHistory(model: IssueHistoryModel): IssueHistoryModel {
         val entityToSave = model.toEntity()
-        return issueHistoryRepository.save(entityToSave).toModel()
+        return issueHistoryRepository.save(entityToSave).toModel(objectMapper)
     }
 
-    private fun IssueHistoryModel.toEntity(): IssueHistoryEntity {
-        val issue = issueRepository.getReferenceById(issueId)
-        val performedByEntity = accountRepository.getReferenceById(performedBy.id)
-        val createdAtLocal = createdAt.toUtcLocalDateTime()
-        return when (this) {
-            is IssueHistoryModel.StatusChange -> IssueHistoryEntity(
-                id = id,
-                issue = issue,
-                type = IssueHistoryEventType.STATUS_CHANGE,
-                performedBy = performedByEntity,
-                createdAtUtc = createdAtLocal,
-                statusFrom = statusFrom,
-                statusTo = statusTo,
-                commentText = null,
-                changedFields = null,
-            )
-
-            is IssueHistoryModel.AssigneeChange -> IssueHistoryEntity(
-                id = id,
-                issue = issue,
-                type = IssueHistoryEventType.ASSIGNEE_CHANGE,
-                performedBy = performedByEntity,
-                createdAtUtc = createdAtLocal,
-                statusFrom = null,
-                statusTo = null,
-                commentText = null,
-                changedFields = null,
-            )
-
-            is IssueHistoryModel.Comment -> IssueHistoryEntity(
-                id = id,
-                issue = issue,
-                type = IssueHistoryEventType.COMMENT,
-                performedBy = performedByEntity,
-                createdAtUtc = createdAtLocal,
-                statusFrom = null,
-                statusTo = null,
-                commentText = commentText,
-                changedFields = null,
-            )
-
-            is IssueHistoryModel.Update -> IssueHistoryEntity(
-                id = id,
-                issue = issue,
-                type = IssueHistoryEventType.UPDATE,
-                performedBy = performedByEntity,
-                createdAtUtc = createdAtLocal,
-                statusFrom = null,
-                statusTo = null,
-                commentText = null,
-                changedFields = changedFields.joinToString(",") { it.name },
-            )
-        }
-    }
+    private fun IssueHistoryModel.toEntity() = IssueHistoryEntity(
+        id = id,
+        issue = issueRepository.getReferenceById(issueId),
+        type = toEventType(),
+        performedBy = accountRepository.getReferenceById(performedBy.id),
+        createdAtUtc = createdAt.toUtcLocalDateTime(),
+        statusFrom = (this as? IssueHistoryModel.StatusChange)?.statusFrom,
+        statusTo = (this as? IssueHistoryModel.StatusChange)?.statusTo,
+        details = toDetailsJson(objectMapper),
+    )
 
 }

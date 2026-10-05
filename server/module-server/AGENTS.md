@@ -94,6 +94,23 @@ Controllers live inside their domain package (`<domain>/controller/`). There is 
 - `fun EntityClass.toModel() = ModelClass(...)` for entity → model.
 - `fun ModelToCreate.asNewEntity(resolver: (id) -> RelatedEntity) = Entity(...)` for model → entity when FK resolution is needed.
 
+## Issue History — `details` JSONB Column
+
+`issue_history` keeps the fields common to every event as real columns (`type`, `performed_by_id`,
+`created_at_utc`, plus `status_from`/`status_to` for `STATUS_CHANGE`). Everything type-specific lives
+in the `details` `jsonb` column: comment text, `titleFrom`/`titleTo`, `descriptionFrom`/`descriptionTo`,
+`priorityFrom`/`priorityTo`, vehicle and assignee snapshots. One edited field produces one history row
+of its own type — there is no combined "update" event.
+
+- `IssueHistoryEntity.details` is a plain `String?` with `@Column(columnDefinition = "jsonb")` and
+  `@ColumnTransformer(write = "?::jsonb")`, so it doesn't depend on a Hibernate JSON `FormatMapper`.
+- The JSON shape per type is a data class in `persistence/mapper/IssueHistoryDetails.kt`, read and
+  written with Spring's Jackson 3 `ObjectMapper` in `IssueHistoryEntityMapper.kt`. The model and DTOs
+  never see the JSON.
+- Adding a history type means: a new `IssueHistoryEventType` value, a `details` data class, a model
+  subtype, both mapper branches, and the matching DTO subtype in `module-api`, `shared`, and
+  `api-docs.json`.
+
 ## Shared Utilities (`util/`)
 
 **`util/TimeExtensions.kt`** — timezone-safe conversion helpers. Always use these; never raw `.toLocalDateTime()` or `.atOffset(ZoneOffset.UTC)`:

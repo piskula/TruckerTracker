@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10-05-issue-history-details
+      author: claude
+      changes:
+        - addColumn:
+            tableName: issue_history
+            columns:
+              - column:
+                  name: details
+                  type: jsonb
+        - sql:
+            sql: >
+              UPDATE issue_history
+              SET details = jsonb_build_object('commentText', comment_text)
+              WHERE comment_text IS NOT NULL
+        - delete:
+            tableName: issue_history
+            where: type = 'UPDATE'
+        - dropColumn:
+            tableName: issue_history
+            columnName: comment_text
+        - dropColumn:
+            tableName: issue_history
+            columnName: changed_fields

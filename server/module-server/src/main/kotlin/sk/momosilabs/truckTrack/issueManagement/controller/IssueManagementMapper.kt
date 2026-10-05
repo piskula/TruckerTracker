@@ -4,9 +4,9 @@ import sk.momosilabs.truckTrack.api.issue.dto.AccountDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueFilterDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryDto
+import sk.momosilabs.truckTrack.api.issue.dto.IssueHistoryVehicleDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssuePriorityDto
 import sk.momosilabs.truckTrack.api.issue.dto.IssueStatusDto
-import sk.momosilabs.truckTrack.api.issue.dto.IssueUpdatedFieldDto
 import sk.momosilabs.truckTrack.api.issue.dto.RepairTypeDto
 import sk.momosilabs.truckTrack.api.issue.dto.VehicleSystemDto
 import sk.momosilabs.truckTrack.api.vehicle.dto.VehicleDto
@@ -54,6 +54,8 @@ fun IssueHistoryModel.toDto(): IssueHistoryDto = when (this) {
         id = id,
         performedBy = performedBy.toDto(),
         createdAt = createdAt,
+        assigneeFrom = assigneeFrom?.toDto(),
+        assigneeTo = assigneeTo?.toDto(),
     )
 
     is IssueHistoryModel.Comment -> IssueHistoryDto.Comment(
@@ -63,13 +65,43 @@ fun IssueHistoryModel.toDto(): IssueHistoryDto = when (this) {
         commentText = commentText,
     )
 
-    is IssueHistoryModel.Update -> IssueHistoryDto.Update(
+    is IssueHistoryModel.TitleChange -> IssueHistoryDto.TitleChange(
         id = id,
         performedBy = performedBy.toDto(),
         createdAt = createdAt,
-        changedFields = changedFields.map { IssueUpdatedFieldDto.valueOf(it.name) },
+        titleFrom = titleFrom,
+        titleTo = titleTo,
+    )
+
+    is IssueHistoryModel.DescriptionChange -> IssueHistoryDto.DescriptionChange(
+        id = id,
+        performedBy = performedBy.toDto(),
+        createdAt = createdAt,
+        descriptionFrom = descriptionFrom,
+        descriptionTo = descriptionTo,
+    )
+
+    is IssueHistoryModel.PriorityChange -> IssueHistoryDto.PriorityChange(
+        id = id,
+        performedBy = performedBy.toDto(),
+        createdAt = createdAt,
+        priorityFrom = IssuePriorityDto.valueOf(priorityFrom.name),
+        priorityTo = IssuePriorityDto.valueOf(priorityTo.name),
+    )
+
+    is IssueHistoryModel.VehicleChange -> IssueHistoryDto.VehicleChange(
+        id = id,
+        performedBy = performedBy.toDto(),
+        createdAt = createdAt,
+        vehicleFrom = vehicleFrom.toDto(),
+        vehicleTo = vehicleTo.toDto(),
     )
 }
+
+fun IssueHistoryModel.VehicleSnapshot.toDto() = IssueHistoryVehicleDto(
+    id = id,
+    licensePlate = licensePlate,
+)
 
 fun VehicleModel.toDto() = VehicleDto(
     id = id,
