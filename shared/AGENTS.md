@@ -7,7 +7,7 @@ Contract module: DTOs and enums shared between `app/` (the KMP client) and `serv
 - **Pure Kotlin Multiplatform + `kotlinx.serialization` only.** No Ktor, no Koin, no Spring, no Spring MVC/Jackson annotations, no Android-only or iOS-only APIs. It must stay usable from both a Spring Boot JVM process and a KMP client (Android + iOS).
 - No `build-logic`/convention plugins of its own — plugins are applied directly in `build.gradle.kts`: `alias(libs.plugins.kotlin.multiplatform)`, `alias(libs.plugins.android.multiplatform.library)`, `alias(libs.plugins.kotlin.serialization)`.
 - Targets: `jvm()` (consumed by `server/`), `androidTarget` via `android { }`, `iosArm64()`/`iosSimulatorArm64()` (consumed by `app/`). All source in `commonMain` — there's no platform-specific code here today.
-- Changes here affect both `app/` and `server/`. Before merging, build both consumers from the repo root: `./gradlew :app:app:android:assembleDebug :server:module-server:bootJar`.
+- Changes here affect both `app/` and `server/`. Before merging, build both consumers from the repo root: `./gradlew :app:app:android:assembleStagingDebug :server:module-server:bootJar`.
 
 ## Package Structure
 

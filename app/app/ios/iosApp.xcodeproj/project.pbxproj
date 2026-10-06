@@ -20,6 +20,7 @@
 		5C31FA76D641886716012189 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4010711F7713F4DD96975E70 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F1E2D3C4B5A6978869504132 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		E0A1B2C3D4E5F60718293A4C /* Environment.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Environment.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,6 +38,7 @@
 			isa = PBXGroup;
 			children = (
 				DAFA2679137119F5A9E69421 /* iosApp */,
+				E0A1B2C3D4E5F60718293A4C /* Environment.xcconfig */,
 				50734A22C0C63768E1BDDCE0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -162,6 +164,7 @@
 /* Begin XCBuildConfiguration section */
 		9DC94DBA084A22B980BA8169 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E0A1B2C3D4E5F60718293A4C /* Environment.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -223,6 +226,7 @@
 		};
 		8ACC2420471B31E4E6DE857A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E0A1B2C3D4E5F60718293A4C /* Environment.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -300,7 +304,7 @@
 					"-framework",
 					Shared,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.momosi.trucktrack;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(TT_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -332,7 +336,7 @@
 					"-framework",
 					Shared,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.momosi.trucktrack;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(TT_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

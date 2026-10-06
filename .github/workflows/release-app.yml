@@ -6,10 +6,8 @@ on:
             - 'v*.*.*'
 
 jobs:
-    release-android:
+    prepare:
         runs-on: ubuntu-latest
-        permissions:
-            contents: write
         outputs:
             version-name: ${{ steps.version.outputs.name }}
             version-code: ${{ steps.version.outputs.code }}
@@ -44,28 +42,60 @@ jobs:
                     echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
                     echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
 
-            -   name: Set up JDK 21
-                uses: actions/setup-java@v5
-                with:
-                    java-version: '21'
-                    distribution: 'jetbrains'
-                env:
-                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            -   name: Setup Gradle
-                uses: gradle/actions/setup-gradle@v4
-
-            -   name: Grant execute permission for gradlew
-                run: chmod +x gradlew
-
-            -   name: Fetch Firebase Android config
+            -   name: Generate changelog since previous release
                 run: |
-                    npx firebase-tools@latest apps:sdkconfig ANDROID "$FIREBASE_APP_ID" \
+                    PREVIOUS_TAG=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | grep -B1 -x "${GITHUB_REF_NAME}" | head -1)
+                    if [ "$PREVIOUS_TAG" = "${GITHUB_REF_NAME}" ]; then
+                        PREVIOUS_TAG=""
+                    fi
+
+                    {
+                        if [ -n "$PREVIOUS_TAG" ]; then
+                            echo "Changes since $PREVIOUS_TAG:"
+                            git log --pretty=format:"- %s" "${PREVIOUS_TAG}..${GITHUB_REF_NAME}"
+                        else
+                            echo "Initial release."
+                            git log --pretty=format:"- %s" "${GITHUB_REF_NAME}"
+                        fi
+                        echo ""
+                        echo ""
+                        echo "Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    } > release-notes.txt
+
+            -   name: Upload release notes
+                uses: actions/upload-artifact@v4
+                with:
+                    name: release-notes
+                    path: release-notes.txt
+                    retention-days: 7
+
+    build-android:
+        needs: [ prepare ]
+        runs-on: ubuntu-latest
+        env:
+            VERSION_NAME: ${{ needs.prepare.outputs.version-name }}
+            VERSION_CODE: ${{ needs.prepare.outputs.version-code }}
+
+        steps:
+            -   name: Checkout Repository
+                uses: actions/checkout@v4
+
+            -   name: Set up Gradle build environment
+                uses: ./.github/actions/setup-gradle-build
+
+            -   name: Fetch Firebase Android configs
+                run: |
+                    mkdir -p app/app/android/src/staging app/app/android/src/prod
+                    npx firebase-tools@latest apps:sdkconfig ANDROID "$FIREBASE_STAGING_ANDROID_APP_ID" \
                         --project trucktrack-cf134 \
-                        -o app/app/android/google-services.json
+                        -o app/app/android/src/staging/google-services.json
+                    npx firebase-tools@latest apps:sdkconfig ANDROID "$FIREBASE_PROD_ANDROID_APP_ID" \
+                        --project trucktrack-cf134 \
+                        -o app/app/android/src/prod/google-services.json
                 env:
                     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-                    FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+                    FIREBASE_STAGING_ANDROID_APP_ID: ${{ secrets.FIREBASE_STAGING_ANDROID_APP_ID }}
+                    FIREBASE_PROD_ANDROID_APP_ID: ${{ secrets.FIREBASE_PROD_ANDROID_APP_ID }}
 
             -   name: Decode release keystore
                 run: |
@@ -75,11 +105,13 @@ jobs:
                 env:
                     ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
-            -   name: Build Release APK and AAB
+            -   name: Build staging and prod release APKs and AABs
                 run: |
-                    ./gradlew :app:app:android:assembleRelease :app:app:android:bundleRelease \
-                        -PappVersionName=${{ steps.version.outputs.name }} \
-                        -PappVersionCode=${{ steps.version.outputs.code }} \
+                    ./gradlew \
+                        :app:app:android:assembleStagingRelease :app:app:android:bundleStagingRelease \
+                        :app:app:android:assembleProdRelease :app:app:android:bundleProdRelease \
+                        -PappVersionName="$VERSION_NAME" \
+                        -PappVersionCode="$VERSION_CODE" \
                         -PandroidKeystoreFile="$KEYSTORE_PATH" \
                         -PandroidKeystorePassword="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
                         -PandroidKeyAlias="${{ secrets.ANDROID_KEY_ALIAS }}" \
@@ -89,108 +121,49 @@ jobs:
                 if: always()
                 run: rm -f "$KEYSTORE_PATH"
 
-            -   name: Rename outputs
+            -   name: Collect APKs and AABs
                 run: |
-                    mv app/app/android/build/outputs/apk/release/android-release.apk "app/app/android/build/outputs/apk/release/truck-track-${{ steps.version.outputs.name }}.apk"
-                    mv app/app/android/build/outputs/bundle/release/android-release.aab "app/app/android/build/outputs/bundle/release/truck-track-${{ steps.version.outputs.name }}.aab"
+                    OUTPUTS=app/app/android/build/outputs
+                    mkdir -p dist
+                    for ENVIRONMENT in staging prod; do
+                        mv "$OUTPUTS/apk/$ENVIRONMENT/release/android-$ENVIRONMENT-release.apk" "dist/truck-track-$ENVIRONMENT-$VERSION_NAME.apk"
+                        mv "$OUTPUTS/bundle/${ENVIRONMENT}Release/android-$ENVIRONMENT-release.aab" "dist/truck-track-$ENVIRONMENT-$VERSION_NAME.aab"
+                    done
 
-            -   name: Publish Release
-                run: |
-                    gh release create "${GITHUB_REF_NAME}" \
-                        "app/app/android/build/outputs/apk/release/truck-track-${{ steps.version.outputs.name }}.apk" \
-                        "app/app/android/build/outputs/bundle/release/truck-track-${{ steps.version.outputs.name }}.aab" \
-                        --title "${GITHUB_REF_NAME}" \
-                        --notes "Release build ${{ steps.version.outputs.name }} (${{ github.sha }})"
-                env:
-                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            -   name: Upload Android release artifacts
+                uses: actions/upload-artifact@v4
+                with:
+                    name: android-release
+                    path: |
+                        dist/*.apk
+                        dist/*.aab
+                    retention-days: 7
 
-            -   name: Generate changelog since previous release
-                run: |
-                    PREVIOUS_TAG=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | grep -B1 -x "${GITHUB_REF_NAME}" | head -1)
-                    if [ "$PREVIOUS_TAG" = "${GITHUB_REF_NAME}" ]; then
-                        PREVIOUS_TAG=""
-                    fi
-
-                    {
-                        if [ -n "$PREVIOUS_TAG" ]; then
-                            echo "Changes since $PREVIOUS_TAG:"
-                            git log --pretty=format:"- %s" "${PREVIOUS_TAG}..${GITHUB_REF_NAME}"
-                        else
-                            echo "Initial release."
-                            git log --pretty=format:"- %s" "${GITHUB_REF_NAME}"
-                        fi
-                        echo ""
-                        echo ""
-                        echo "Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    } > release-notes.txt
-
-            -   name: Distribute release APK to Firebase App Distribution
-                run: |
-                    npx firebase-tools@latest appdistribution:distribute \
-                        "app/app/android/build/outputs/apk/release/truck-track-${{ steps.version.outputs.name }}.apk" \
-                        --app "$FIREBASE_APP_ID" \
-                        --groups "release" \
-                        --release-notes-file release-notes.txt
-                env:
-                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-                    FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-
-    release-ios:
-        needs: [ release-android ]
+    build-ios:
+        needs: [ prepare ]
         runs-on: macos-15
-        permissions:
-            contents: write
+        outputs:
+            signed: ${{ steps.check-secrets.outputs.configured }}
+        env:
+            VERSION_NAME: ${{ needs.prepare.outputs.version-name }}
+            VERSION_CODE: ${{ needs.prepare.outputs.version-code }}
 
         steps:
             -   name: Checkout Repository
                 uses: actions/checkout@v4
-                with:
-                    fetch-depth: 0
 
-            -   name: Set up JDK 21
-                uses: actions/setup-java@v5
-                with:
-                    java-version: '21'
-                    distribution: 'jetbrains'
-                env:
-                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            -   name: Setup Gradle
-                uses: gradle/actions/setup-gradle@v4
-
-            -   name: Grant execute permission for gradlew
-                run: chmod +x gradlew
+            -   name: Set up Gradle build environment
+                uses: ./.github/actions/setup-gradle-build
 
             -   name: Select latest Xcode
                 uses: maxim-lobanov/setup-xcode@v1
                 with:
                     xcode-version: latest-stable
 
-            -   name: Fetch Firebase iOS config
-                run: |
-                    npx firebase-tools@latest apps:sdkconfig IOS "$FIREBASE_IOS_APP_ID" \
-                        --project trucktrack-cf134 \
-                        -o app/app/ios/iosApp/GoogleService-Info.plist
-                env:
-                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-                    FIREBASE_IOS_APP_ID: ${{ secrets.FIREBASE_IOS_APP_ID }}
-
-            -   name: Cache CocoaPods
-                uses: actions/cache@v4
-                with:
-                    path: |
-                        app/app/ios/Pods
-                        ~/Library/Caches/CocoaPods
-                    key: cocoapods-${{ hashFiles('app/app/ios/Podfile') }}
-
-            -   name: Install CocoaPods dependencies
-                working-directory: app/app/ios
-                run: pod install
-
             -   name: Check iOS signing secrets are configured
                 id: check-secrets
                 run: |
-                    if [ -n "$IOS_TEAM_ID" ] && [ -n "$IOS_CERT_B64" ] && [ -n "$IOS_CERT_PASSWORD" ] && [ -n "$IOS_PROFILE_B64" ]; then
+                    if [ -n "$IOS_TEAM_ID" ] && [ -n "$IOS_CERT_B64" ] && [ -n "$IOS_CERT_PASSWORD" ] && [ -n "$IOS_STAGING_PROFILE_B64" ] && [ -n "$IOS_PROD_PROFILE_B64" ]; then
                         echo "configured=true" >> "$GITHUB_OUTPUT"
                     else
                         echo "::warning::iOS signing secrets are not configured yet — skipping the iOS release build. See docs/KMP_IOS_READINESS.md."
@@ -200,22 +173,36 @@ jobs:
                     IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
                     IOS_CERT_B64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
                     IOS_CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
-                    IOS_PROFILE_B64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+                    IOS_STAGING_PROFILE_B64: ${{ secrets.IOS_STAGING_ADHOC_PROFILE_BASE64 }}
+                    IOS_PROD_PROFILE_B64: ${{ secrets.IOS_PROD_ADHOC_PROFILE_BASE64 }}
 
-            -   name: Import signing certificate and provisioning profile
+            -   name: Cache CocoaPods
+                if: steps.check-secrets.outputs.configured == 'true'
+                uses: actions/cache@v4
+                with:
+                    path: |
+                        app/app/ios/Pods
+                        ~/Library/Caches/CocoaPods
+                    key: cocoapods-${{ hashFiles('app/app/ios/Podfile') }}
+
+            -   name: Install CocoaPods dependencies
+                if: steps.check-secrets.outputs.configured == 'true'
+                working-directory: app/app/ios
+                run: pod install
+
+            -   name: Import signing certificate and provisioning profiles
                 if: steps.check-secrets.outputs.configured == 'true'
                 env:
                     IOS_CERT_B64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
                     IOS_CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
-                    IOS_PROFILE_B64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+                    IOS_STAGING_PROFILE_B64: ${{ secrets.IOS_STAGING_ADHOC_PROFILE_BASE64 }}
+                    IOS_PROD_PROFILE_B64: ${{ secrets.IOS_PROD_ADHOC_PROFILE_BASE64 }}
                 run: |
                     KEYCHAIN_PATH="$RUNNER_TEMP/ios-signing.keychain-db"
                     KEYCHAIN_PASSWORD=$(uuidgen)
                     CERT_PATH="$RUNNER_TEMP/distribution.p12"
-                    PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
 
                     echo "$IOS_CERT_B64" | base64 -D -o "$CERT_PATH"
-                    echo "$IOS_PROFILE_B64" | base64 -D -o "$PROFILE_PATH"
 
                     security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
                     security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
@@ -223,123 +210,195 @@ jobs:
                     security import "$CERT_PATH" -P "$IOS_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
                     security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
                     security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed 's/"//g')
+                    echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
 
                     PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
                     mkdir -p "$PROFILE_DIR"
-                    security cms -D -i "$PROFILE_PATH" > "$RUNNER_TEMP/profile.plist"
-                    PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" "$RUNNER_TEMP/profile.plist")
-                    PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" "$RUNNER_TEMP/profile.plist")
-                    cp "$PROFILE_PATH" "$PROFILE_DIR/$PROFILE_UUID.mobileprovision"
 
-                    echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
-                    echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+                    install_profile() {
+                        local PROFILE_PATH="$RUNNER_TEMP/$1.mobileprovision"
+                        local PROFILE_PLIST="$RUNNER_TEMP/$1-profile.plist"
+                        echo "$2" | base64 -D -o "$PROFILE_PATH"
+                        security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
+                        local PROFILE_UUID
+                        local PROFILE_NAME
+                        PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" "$PROFILE_PLIST")
+                        PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" "$PROFILE_PLIST")
+                        cp "$PROFILE_PATH" "$PROFILE_DIR/$PROFILE_UUID.mobileprovision"
+                        echo "$3=$PROFILE_NAME" >> "$GITHUB_ENV"
+                    }
+                    install_profile staging "$IOS_STAGING_PROFILE_B64" STAGING_PROFILE_NAME
+                    install_profile prod "$IOS_PROD_PROFILE_B64" PROD_PROFILE_NAME
 
-            -   name: Generate export options plist
+            -   name: Archive signed staging release
                 if: steps.check-secrets.outputs.configured == 'true'
-                env:
-                    IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
-                run: |
-                    cat > "$RUNNER_TEMP/exportOptions.plist" <<PLIST
-                    <?xml version="1.0" encoding="UTF-8"?>
-                    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-                    <plist version="1.0">
-                    <dict>
-                        <key>method</key>
-                        <string>ad-hoc</string>
-                        <key>teamID</key>
-                        <string>$IOS_TEAM_ID</string>
-                        <key>signingStyle</key>
-                        <string>manual</string>
-                        <key>provisioningProfiles</key>
-                        <dict>
-                            <key>com.momosi.trucktrack</key>
-                            <string>$PROFILE_NAME</string>
-                        </dict>
-                    </dict>
-                    </plist>
-                    PLIST
+                uses: ./.github/actions/archive-ios-app
+                with:
+                    environment: staging
+                    bundle-id: com.momosi.trucktrack.staging
+                    firebase-ios-app-id: ${{ secrets.FIREBASE_STAGING_IOS_APP_ID }}
+                    firebase-token: ${{ secrets.FIREBASE_TOKEN }}
+                    team-id: ${{ secrets.IOS_TEAM_ID }}
+                    profile-name: ${{ env.STAGING_PROFILE_NAME }}
+                    configuration: Release
+                    marketing-version: ${{ env.VERSION_NAME }}
+                    build-number: ${{ env.VERSION_CODE }}
+                    output-path: dist/truck-track-staging-${{ env.VERSION_NAME }}.ipa
 
-            -   name: Archive signed iOS release app
+            -   name: Archive signed prod release
                 if: steps.check-secrets.outputs.configured == 'true'
-                env:
-                    IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
-                    VERSION_NAME: ${{ needs.release-android.outputs.version-name }}
-                    VERSION_CODE: ${{ needs.release-android.outputs.version-code }}
-                run: |
-                    xcodebuild archive \
-                        -workspace app/app/ios/iosApp.xcworkspace \
-                        -scheme iosApp \
-                        -sdk iphoneos \
-                        -configuration Release \
-                        -archivePath "$RUNNER_TEMP/iosApp.xcarchive" \
-                        -destination 'generic/platform=iOS' \
-                        CODE_SIGN_STYLE=Manual \
-                        CODE_SIGN_IDENTITY="Apple Distribution" \
-                        DEVELOPMENT_TEAM="$IOS_TEAM_ID" \
-                        PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
-                        MARKETING_VERSION="$VERSION_NAME" \
-                        CURRENT_PROJECT_VERSION="$VERSION_CODE"
+                uses: ./.github/actions/archive-ios-app
+                with:
+                    environment: prod
+                    bundle-id: com.momosi.trucktrack
+                    firebase-ios-app-id: ${{ secrets.FIREBASE_PROD_IOS_APP_ID }}
+                    firebase-token: ${{ secrets.FIREBASE_TOKEN }}
+                    team-id: ${{ secrets.IOS_TEAM_ID }}
+                    profile-name: ${{ env.PROD_PROFILE_NAME }}
+                    configuration: Release
+                    marketing-version: ${{ env.VERSION_NAME }}
+                    build-number: ${{ env.VERSION_CODE }}
+                    output-path: dist/truck-track-prod-${{ env.VERSION_NAME }}.ipa
 
-            -   name: Export signed .ipa
+            -   name: Upload iOS release artifacts
                 if: steps.check-secrets.outputs.configured == 'true'
-                env:
-                    VERSION_NAME: ${{ needs.release-android.outputs.version-name }}
-                run: |
-                    xcodebuild -exportArchive \
-                        -archivePath "$RUNNER_TEMP/iosApp.xcarchive" \
-                        -exportPath "$RUNNER_TEMP/export" \
-                        -exportOptionsPlist "$RUNNER_TEMP/exportOptions.plist"
-                    mv "$RUNNER_TEMP/export/iosApp.ipa" "$RUNNER_TEMP/truck-track-${VERSION_NAME}.ipa"
-
-            -   name: Upload debug symbols to Crashlytics
-                if: steps.check-secrets.outputs.configured == 'true'
-                run: |
-                    app/app/ios/Pods/FirebaseCrashlytics/upload-symbols \
-                        -gsp app/app/ios/iosApp/GoogleService-Info.plist \
-                        -p ios \
-                        "$RUNNER_TEMP/iosApp.xcarchive/dSYMs"
-
-            -   name: Upload .ipa to GitHub Release
-                if: steps.check-secrets.outputs.configured == 'true'
-                env:
-                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                    VERSION_NAME: ${{ needs.release-android.outputs.version-name }}
-                run: gh release upload "${GITHUB_REF_NAME}" "$RUNNER_TEMP/truck-track-${VERSION_NAME}.ipa"
-
-            -   name: Generate changelog since previous release
-                if: steps.check-secrets.outputs.configured == 'true'
-                run: |
-                    PREVIOUS_TAG=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | grep -B1 -x "${GITHUB_REF_NAME}" | head -1)
-                    if [ "$PREVIOUS_TAG" = "${GITHUB_REF_NAME}" ]; then
-                        PREVIOUS_TAG=""
-                    fi
-
-                    {
-                        if [ -n "$PREVIOUS_TAG" ]; then
-                            echo "Changes since $PREVIOUS_TAG:"
-                            git log --pretty=format:"- %s" "${PREVIOUS_TAG}..${GITHUB_REF_NAME}"
-                        else
-                            echo "Initial release."
-                            git log --pretty=format:"- %s" "${GITHUB_REF_NAME}"
-                        fi
-                        echo ""
-                        echo ""
-                        echo "Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    } > release-notes.txt
-
-            -   name: Distribute release .ipa to Firebase App Distribution
-                if: steps.check-secrets.outputs.configured == 'true'
-                env:
-                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-                    FIREBASE_IOS_APP_ID: ${{ secrets.FIREBASE_IOS_APP_ID }}
-                    VERSION_NAME: ${{ needs.release-android.outputs.version-name }}
-                run: |
-                    npx firebase-tools@latest appdistribution:distribute \
-                        "$RUNNER_TEMP/truck-track-${VERSION_NAME}.ipa" \
-                        --app "$FIREBASE_IOS_APP_ID" \
-                        --groups "release" \
-                        --release-notes-file release-notes.txt
+                uses: actions/upload-artifact@v4
+                with:
+                    name: ios-release
+                    path: dist/*.ipa
+                    retention-days: 7
 
             -   name: Clean up signing keychain
                 if: always() && steps.check-secrets.outputs.configured == 'true'
                 run: security delete-keychain "$KEYCHAIN_PATH" || true
+
+    publish-release:
+        needs: [ prepare, build-android, build-ios ]
+        if: always() && needs.prepare.result == 'success'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            -   name: Download release notes
+                uses: actions/download-artifact@v4
+                with:
+                    name: release-notes
+
+            -   name: Download Android release artifacts
+                uses: actions/download-artifact@v4
+                continue-on-error: true
+                with:
+                    name: android-release
+                    path: artifacts
+
+            -   name: Download iOS release artifacts
+                uses: actions/download-artifact@v4
+                continue-on-error: true
+                with:
+                    name: ios-release
+                    path: artifacts
+
+            -   name: Collect available assets
+                id: assets
+                run: |
+                    shopt -s nullglob
+                    ANDROID_FILES=(artifacts/*.apk artifacts/*.aab)
+                    IOS_FILES=(artifacts/*.ipa)
+
+                    if [ ${#ANDROID_FILES[@]} -ne 4 ]; then
+                        echo "::error::Expected 4 Android release artifacts (staging + prod APK/AAB), found ${#ANDROID_FILES[@]} — not publishing"
+                        exit 1
+                    fi
+
+                    if [ ${#IOS_FILES[@]} -ne 2 ]; then
+                        echo "::warning::Publishing without a complete iOS release — found ${#IOS_FILES[@]} of 2 .ipa file(s)"
+                    fi
+
+                    echo "files=${ANDROID_FILES[*]} ${IOS_FILES[*]}" >> "$GITHUB_OUTPUT"
+
+            -   name: Publish GitHub Release
+                run: |
+                    gh release create "${GITHUB_REF_NAME}" ${{ steps.assets.outputs.files }} \
+                        --title "${GITHUB_REF_NAME}" \
+                        --notes-file release-notes.txt
+                env:
+                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                    GH_REPO: ${{ github.repository }}
+
+    distribute-android:
+        needs: [ prepare, publish-release ]
+        runs-on: ubuntu-latest
+        env:
+            VERSION_NAME: ${{ needs.prepare.outputs.version-name }}
+
+        steps:
+            -   name: Download release notes
+                uses: actions/download-artifact@v4
+                with:
+                    name: release-notes
+
+            -   name: Download Android release artifacts
+                uses: actions/download-artifact@v4
+                with:
+                    name: android-release
+                    path: artifacts
+
+            -   name: Distribute staging APK to Firebase App Distribution
+                run: |
+                    npx firebase-tools@latest appdistribution:distribute "artifacts/truck-track-staging-$VERSION_NAME.apk" \
+                        --app "$FIREBASE_STAGING_ANDROID_APP_ID" \
+                        --groups "release" \
+                        --release-notes-file release-notes.txt
+                env:
+                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+                    FIREBASE_STAGING_ANDROID_APP_ID: ${{ secrets.FIREBASE_STAGING_ANDROID_APP_ID }}
+
+            -   name: Distribute prod APK to Firebase App Distribution
+                run: |
+                    npx firebase-tools@latest appdistribution:distribute "artifacts/truck-track-prod-$VERSION_NAME.apk" \
+                        --app "$FIREBASE_PROD_ANDROID_APP_ID" \
+                        --groups "release" \
+                        --release-notes-file release-notes.txt
+                env:
+                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+                    FIREBASE_PROD_ANDROID_APP_ID: ${{ secrets.FIREBASE_PROD_ANDROID_APP_ID }}
+
+    distribute-ios:
+        needs: [ prepare, build-ios, publish-release ]
+        if: needs.build-ios.outputs.signed == 'true'
+        runs-on: ubuntu-latest
+        env:
+            VERSION_NAME: ${{ needs.prepare.outputs.version-name }}
+
+        steps:
+            -   name: Download release notes
+                uses: actions/download-artifact@v4
+                with:
+                    name: release-notes
+
+            -   name: Download iOS release artifacts
+                uses: actions/download-artifact@v4
+                with:
+                    name: ios-release
+                    path: artifacts
+
+            -   name: Distribute staging .ipa to Firebase App Distribution
+                run: |
+                    npx firebase-tools@latest appdistribution:distribute "artifacts/truck-track-staging-$VERSION_NAME.ipa" \
+                        --app "$FIREBASE_STAGING_IOS_APP_ID" \
+                        --groups "release" \
+                        --release-notes-file release-notes.txt
+                env:
+                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+                    FIREBASE_STAGING_IOS_APP_ID: ${{ secrets.FIREBASE_STAGING_IOS_APP_ID }}
+
+            -   name: Distribute prod .ipa to Firebase App Distribution
+                run: |
+                    npx firebase-tools@latest appdistribution:distribute "artifacts/truck-track-prod-$VERSION_NAME.ipa" \
+                        --app "$FIREBASE_PROD_IOS_APP_ID" \
+                        --groups "release" \
+                        --release-notes-file release-notes.txt
+                env:
+                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+                    FIREBASE_PROD_IOS_APP_ID: ${{ secrets.FIREBASE_PROD_IOS_APP_ID }}

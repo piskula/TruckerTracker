@@ -20,7 +20,7 @@ description: Use when setting up a new machine for this repo, checking whether r
 | Tool | Version | Needed for | Check | Platform |
 |---|---|---|---|---|
 | JDK | 25 (Temurin/Adoptium recommended) | Gradle toolchain — `jvmToolchain(25)` in `app/build-logic/convention` | `java -version` | all |
-| Android SDK | cmdline-tools + platform 37 + build-tools (latest) | `./gradlew :app:app:android:assembleDebug` (from the repo root), Android Studio | Android SDK path env var set and exists (`ANDROID_HOME` on macOS/Linux, `%LOCALAPPDATA%\Android\Sdk` on Windows) | all |
+| Android SDK | cmdline-tools + platform 37 + build-tools (latest) | `./gradlew :app:app:android:assembleStagingDebug` (from the repo root), Android Studio | Android SDK path env var set and exists (`ANDROID_HOME` on macOS/Linux, `%LOCALAPPDATA%\Android\Sdk` on Windows) | all |
 | Xcode | latest stable from the App Store (15+ minimum) + CLT | Building `app:ios` (`app/app/ios/iosApp.xcodeproj`) | `xcode-select -p` | **macOS only** — iOS can't be built elsewhere |
 | `gh` (GitHub CLI), logged in | latest | Agents running `gh run list`/`gh release create` etc. directly (`analyze-ci-failure`, `release-app` skills) | `gh auth status` | all |
 | Node.js | current LTS (20+) | Runs the Firebase MCP server (`npx -y firebase-tools@latest mcp`, see `.mcp.json`) — an old Node breaks `npx` resolution for modern packages | `node --version` | all |
@@ -116,7 +116,7 @@ firebase login:list            # shows an authenticated account
 xcode-select -p               # macOS only — points at an installed Xcode
 ```
 
-- [ ] `./gradlew :app:app:android:assembleDebug` succeeds from the repo root (or `cd app && ./gradlew :app:android:assembleDebug` for a decoupled client-only build)
+- [ ] `./gradlew :app:app:android:assembleStagingDebug` succeeds from the repo root (or `cd app && ./gradlew :app:android:assembleStagingDebug` for a decoupled client-only build)
 - [ ] (macOS only) `open app/app/ios/iosApp.xcodeproj` builds and runs in Xcode
 - [ ] A fresh Claude Code session shows the `firebase` MCP server in its tool list
       (MCP servers load at session start — restart the session after finishing setup)
@@ -138,6 +138,8 @@ and `release-app.yml`, both at the repo root). A fresh local checkout has neithe
   firebase apps:sdkconfig ANDROID <ANDROID_APP_ID> --project trucktrack-cf134 -o app/app/android/google-services.json
   firebase apps:sdkconfig IOS <IOS_APP_ID> --project trucktrack-cf134 -o app/app/ios/iosApp/GoogleService-Info.plist
   ```
+
+Each build variant is its own Firebase app (see `app/README.md` → "Build variants"): the default `staging` flavor / `APP_ENVIRONMENT=staging` needs the `com.momosi.trucktrack.staging` apps, prod needs `com.momosi.trucktrack`. For Android, put a per-flavor file at `app/app/android/src/<flavor>/google-services.json` or a single root file containing both clients.
 
 This is a one-time step per machine — the files don't change unless the Firebase project
 reconfigures. iOS additionally needs `pod install` run from `app/app/ios` (CocoaPods) before opening

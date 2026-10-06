@@ -10,7 +10,11 @@ import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 
 @Composable
-fun SectionLabel(text: String, modifier: Modifier = Modifier, color: Color = AppTheme.colors.onSurfaceVariant) {
+fun SectionLabel(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = AppTheme.colors.onSurfaceVariant,
+) {
     Text(
         text = text,
         style = AppTheme.typography.labelLarge,

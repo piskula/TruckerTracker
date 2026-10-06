@@ -9,6 +9,10 @@ TruckTrackApplication.kt   ← Calls initializeApp() from app:shared to start Ko
 TruckTrackActivity.kt      ← setContent { }, enableEdgeToEdge(), renders TruckTrackApp() from app:shared
 ```
 
+## Build Variants
+
+One flavor dimension, `environment`: `staging` (default, app ID `com.momosi.trucktrack.staging`, its own `src/staging/res` app name) and `prod` (`com.momosi.trucktrack`). Each flavor sets the `AppConfig` values as `buildConfigField`s plus the `oidcRedirectScheme` manifest placeholder via the `appConfig(...)` helper in `build.gradle.kts`; `TruckTrack.kt` turns them into an `AppConfig` for `initKoin`. See `app/README.md` → "Build variants".
+
 ## Responsibilities
 
 - `TruckTrackApplication`: initializes Koin via `initializeApp()` from `app:shared`, sets up Coil image loader.

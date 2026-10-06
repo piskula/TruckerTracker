@@ -1,6 +1,6 @@
 package com.momosi.trucktrack.user.di
 
-import com.momosi.trucktrack.core.common.TruckTrackConfig
+import com.momosi.trucktrack.core.common.config.AppConfig
 import com.momosi.trucktrack.user.AuthManager
 import com.momosi.trucktrack.user.AuthManagerImpl
 import com.momosi.trucktrack.user.UserRepository
@@ -15,14 +15,15 @@ expect fun platformUserModule(): Module
 
 val userModule = module {
     single {
-        OpenIdConnectClient(discoveryUri = "${TruckTrackConfig.REALM_URL}.well-known/openid-configuration") {
-            clientId = TruckTrackConfig.OAUTH_CLIENT_ID
+        val appConfig: AppConfig = get()
+        OpenIdConnectClient(discoveryUri = "${appConfig.realmUrl}.well-known/openid-configuration") {
+            clientId = appConfig.oauthClientId
             scope = "openid offline_access"
-            redirectUri = TruckTrackConfig.OAUTH_REDIRECT_URL
-            postLogoutRedirectUri = TruckTrackConfig.OAUTH_LOGOUT_REDIRECT_URL
+            redirectUri = appConfig.oauthRedirectUrl
+            postLogoutRedirectUri = appConfig.oauthLogoutRedirectUrl
         }
     }
-    single { AuthApi() }
+    single { AuthApi(get()) }
     single { TokenVerifier(get(), get(), get()) }
     single<UserRepository> { UserRepositoryImpl(get()) }
     single<AuthManager> { AuthManagerImpl(get(), get(), get(), get(), get(), get()) }

@@ -1,0 +1,122 @@
+name: Archive signed iOS app
+description: Fetches the environment's Firebase config, archives and exports an ad-hoc signed .ipa, and uploads its dSYMs to Crashlytics.
+inputs:
+    environment:
+        description: App environment passed to Xcode as APP_ENVIRONMENT (staging or prod)
+        required: true
+    bundle-id:
+        description: Bundle identifier the environment builds
+        required: true
+    firebase-ios-app-id:
+        description: Firebase iOS app ID of the environment
+        required: true
+    firebase-token:
+        description: Firebase CLI token
+        required: true
+    team-id:
+        description: Apple Developer team ID
+        required: true
+    profile-name:
+        description: Name of the installed ad-hoc provisioning profile for the bundle ID
+        required: true
+    configuration:
+        description: Xcode build configuration (Debug or Release)
+        default: Debug
+    marketing-version:
+        description: MARKETING_VERSION of the build; the project default is kept when empty
+        default: ''
+    build-number:
+        description: CURRENT_PROJECT_VERSION of the build
+        required: true
+    output-path:
+        description: Path the exported .ipa is moved to
+        required: true
+runs:
+    using: composite
+    steps:
+        -   name: Fetch Firebase iOS config (${{ inputs.environment }})
+            shell: bash
+            env:
+                FIREBASE_TOKEN: ${{ inputs.firebase-token }}
+                FIREBASE_IOS_APP_ID: ${{ inputs.firebase-ios-app-id }}
+            run: |
+                rm -f app/app/ios/iosApp/GoogleService-Info.plist
+                npx firebase-tools@latest apps:sdkconfig IOS "$FIREBASE_IOS_APP_ID" \
+                    --project trucktrack-cf134 \
+                    -o app/app/ios/iosApp/GoogleService-Info.plist
+
+        -   name: Archive iOS app (${{ inputs.environment }})
+            shell: bash
+            env:
+                APP_ENVIRONMENT: ${{ inputs.environment }}
+                IOS_TEAM_ID: ${{ inputs.team-id }}
+                PROFILE_NAME: ${{ inputs.profile-name }}
+                BUILD_NUMBER: ${{ inputs.build-number }}
+                CONFIGURATION: ${{ inputs.configuration }}
+                MARKETING_VERSION_INPUT: ${{ inputs.marketing-version }}
+            run: |
+                VERSION_ARGS=()
+                if [ -n "$MARKETING_VERSION_INPUT" ]; then
+                    VERSION_ARGS+=(MARKETING_VERSION="$MARKETING_VERSION_INPUT")
+                fi
+                xcodebuild archive \
+                    -workspace app/app/ios/iosApp.xcworkspace \
+                    -scheme iosApp \
+                    -sdk iphoneos \
+                    -configuration "$CONFIGURATION" \
+                    -archivePath "$RUNNER_TEMP/iosApp-$APP_ENVIRONMENT.xcarchive" \
+                    -destination 'generic/platform=iOS' \
+                    APP_ENVIRONMENT="$APP_ENVIRONMENT" \
+                    CODE_SIGN_STYLE=Manual \
+                    CODE_SIGN_IDENTITY="Apple Distribution" \
+                    DEVELOPMENT_TEAM="$IOS_TEAM_ID" \
+                    PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+                    CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+                    "${VERSION_ARGS[@]}"
+
+        -   name: Export signed .ipa (${{ inputs.environment }})
+            shell: bash
+            env:
+                APP_ENVIRONMENT: ${{ inputs.environment }}
+                BUNDLE_ID: ${{ inputs.bundle-id }}
+                IOS_TEAM_ID: ${{ inputs.team-id }}
+                PROFILE_NAME: ${{ inputs.profile-name }}
+                OUTPUT_PATH: ${{ inputs.output-path }}
+            run: |
+                EXPORT_OPTIONS="$RUNNER_TEMP/exportOptions-$APP_ENVIRONMENT.plist"
+                cat > "$EXPORT_OPTIONS" <<PLIST
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+                <plist version="1.0">
+                <dict>
+                    <key>method</key>
+                    <string>ad-hoc</string>
+                    <key>teamID</key>
+                    <string>$IOS_TEAM_ID</string>
+                    <key>signingStyle</key>
+                    <string>manual</string>
+                    <key>provisioningProfiles</key>
+                    <dict>
+                        <key>$BUNDLE_ID</key>
+                        <string>$PROFILE_NAME</string>
+                    </dict>
+                </dict>
+                </plist>
+                PLIST
+
+                xcodebuild -exportArchive \
+                    -archivePath "$RUNNER_TEMP/iosApp-$APP_ENVIRONMENT.xcarchive" \
+                    -exportPath "$RUNNER_TEMP/export-$APP_ENVIRONMENT" \
+                    -exportOptionsPlist "$EXPORT_OPTIONS"
+                mkdir -p "$(dirname "$OUTPUT_PATH")"
+                mv "$RUNNER_TEMP/export-$APP_ENVIRONMENT/iosApp.ipa" "$OUTPUT_PATH"
+
+        -   name: Upload debug symbols to Crashlytics (${{ inputs.environment }})
+            shell: bash
+            env:
+                APP_ENVIRONMENT: ${{ inputs.environment }}
+            run: |
+                app/app/ios/Pods/FirebaseCrashlytics/upload-symbols \
+                    -gsp app/app/ios/iosApp/GoogleService-Info.plist \
+                    -p ios \
+                    "$RUNNER_TEMP/iosApp-$APP_ENVIRONMENT.xcarchive/dSYMs"

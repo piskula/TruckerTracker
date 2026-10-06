@@ -46,7 +46,7 @@ Kotlin Multiplatform client for TruckTrack, targeting Android and iOS from one s
 | Tool | Needed for | Check | Auth |
 |---|---|---|---|
 | JDK 25 | Gradle toolchain (`jvmToolchain(25)`, all modules) | `java -version` | — |
-| Android SDK (cmdline-tools, platform 37, build-tools) | `./gradlew :app:android:assembleDebug`, Android Studio | Android SDK path env var set (`ANDROID_HOME`) | — |
+| Android SDK (cmdline-tools, platform 37, build-tools) | `./gradlew :app:android:assembleStagingDebug`, Android Studio | Android SDK path env var set (`ANDROID_HOME`) | — |
 | Xcode 15+ + command line tools (**macOS only**) | Building `app:ios` | `xcode-select -p` | — |
 | CocoaPods (**macOS only**) | Linking Firebase into `app:ios` (`ios/Podfile`) | `pod --version` | — |
 | [`gh`](https://cli.github.com/) (GitHub CLI) | Agents inspecting CI runs/PRs/releases (`analyze-ci-failure`, `release-app` skills) | `gh auth status` | `gh auth login` |
@@ -64,13 +64,29 @@ Both platforms need a local Firebase config file first — neither is committed 
 get them): `app/android/google-services.json` and `ios/iosApp/GoogleService-Info.plist`.
 
 Commands below assume you're inside `app/` (this build's own root). From the repo root, prefix
-every task with `:app:`, e.g. `:app:app:android:assembleDebug`.
+every task with `:app:`, e.g. `:app:app:android:assembleStagingDebug`.
 
-**Android** — `./gradlew :app:android:assembleDebug`, or open `app/` in Android Studio and
+**Android** — `./gradlew :app:android:assembleStagingDebug`, or open `app/` in Android Studio and
 run the `app:android` configuration.
 
 **iOS** — run `pod install` in `app/ios` (generates `iosApp.xcworkspace`), then open
 `app/ios/iosApp.xcworkspace` (not the `.xcodeproj`) in Xcode (15+) and run.
+
+### Build variants
+
+| | Staging | Prod |
+|---|---|---|
+| Android app ID | `com.momosi.trucktrack.staging` | `com.momosi.trucktrack` |
+| iOS bundle ID | `com.momosi.trucktrack.staging` | `com.momosi.trucktrack` |
+| App name | Truck Track Staging | Truck Track |
+| Select it | Android flavor `staging` (default) · iOS `APP_ENVIRONMENT=staging` (default) | Android flavor `prod` · iOS `APP_ENVIRONMENT=prod` |
+| Backend API | [tt.momosi.org](https://tt.momosi.org/) | [tt.momosi.org](https://tt.momosi.org/) (same as staging for now) |
+| Keycloak realm | [sso.momosi.org/realms/trucktrack](https://sso.momosi.org/realms/trucktrack/) · [admin](https://sso.momosi.org/admin/trucktrack/console/) | [sso.momosi.org/realms/trucktrack](https://sso.momosi.org/realms/trucktrack/) · [admin](https://sso.momosi.org/admin/trucktrack/console/) (same as staging for now) |
+| OAuth redirect | `com.momosi.trucktrack.staging://auth/callback` | `com.momosi.trucktrack.staging://auth/callback` (staging scheme for now — with both apps installed, Android asks which app should receive the login redirect) |
+| Distribution | [Firebase App Distribution](https://console.firebase.google.com/project/trucktrack-cf134/appdistribution) | Firebase App Distribution · Play Store (TBD) · App Store (TBD) |
+| CI secrets | `FIREBASE_STAGING_ANDROID_APP_ID`, `FIREBASE_STAGING_IOS_APP_ID`, `IOS_STAGING_ADHOC_PROFILE_BASE64` | `FIREBASE_PROD_ANDROID_APP_ID`, `FIREBASE_PROD_IOS_APP_ID`, `IOS_PROD_ADHOC_PROFILE_BASE64` |
+
+Values are set in `app/android/build.gradle.kts` (flavors) and `app/ios/Environment.xcconfig`.
 
 ## Continuous integration
 
@@ -80,25 +96,34 @@ without leaving the terminal.
 
 ### On every push to `main` (`build-app.yml`)
 
-- **`build-android`** — assembles a debug APK.
-- **`build-ios`** — builds a signed, device-installable `.ipa` if the iOS signing secrets (see
-  [Releasing](#releasing)) are configured; otherwise falls back to an unsigned iOS Simulator app.
+- The build and distribute jobs cover **both** environments (staging and prod) — see [Build variants](#build-variants).
+- **`build-android`** — assembles the staging and prod debug APKs in one Gradle run.
+- **`build-ios`** — archives a signed, device-installable staging and prod `.ipa` one after the other
+  (sharing the Kotlin framework and CocoaPods build) if the iOS signing secrets are configured;
+  otherwise falls back to unsigned iOS Simulator apps. The per-environment archive/export/dSYM
+  steps live in the local `.github/actions/archive-ios-app` action.
 - **`publish-release`** — replaces the assets on the repo's `latest` pre-release with whichever
   build(s) succeeded (publishes a partial release rather than blocking on both).
-- **`distribute-android`** — pushes the debug APK to the `internal-testers` group in Firebase App
-  Distribution.
-- **`distribute-ios`** — pushes the signed `.ipa` to the `internal-testers` group in Firebase App
-  Distribution. Skipped when the iOS signing secrets aren't configured.
+- **`distribute-android`** — pushes each debug APK to its own Firebase app (staging / prod), both to
+  the `internal-testers` group in Firebase App Distribution.
+- **`distribute-ios`** — pushes each signed `.ipa` to its own Firebase app (staging / prod), both to
+  the `internal-testers` group in Firebase App Distribution. Skipped when the iOS signing secrets aren't configured.
 - Skipped entirely for doc-only changes (`paths-ignore`: `**/*.md`, `.claude/**`, `docs/**`).
 
 ### On pushing a version tag (`release-app.yml`)
 
-- **`release-android`** — builds a signed release APK/AAB, publishes them as a GitHub Release
-  named after the tag, and distributes the APK to the `release` group in Firebase App
-  Distribution.
-- **`release-ios`** — builds a signed `.ipa` (same tag-derived version), attaches it to the GitHub
-  Release, and distributes it to the `release` group in Firebase App Distribution. Skipped (with a
-  warning) when the iOS signing secrets aren't configured.
+Every release covers **both** environments (staging and prod) from the same commit:
+
+- **`prepare`** — validates the tag, derives `versionName`/`versionCode`, and writes the changelog
+  since the previous tag.
+- **`build-android`** and **`build-ios`** (in parallel) — signed staging + prod release APKs and AABs
+  in one Gradle run; signed ad-hoc staging + prod `.ipa`s archived with the `Release` configuration
+  (iOS is skipped with a warning when its signing secrets aren't configured).
+- **`publish-release`** — creates the GitHub Release named after the tag with all artifacts at once
+  and the changelog as notes. Fails if any Android artifact is missing; publishes without iOS (with a
+  warning) if the `.ipa`s are missing.
+- **`distribute-android`** / **`distribute-ios`** — push each APK / `.ipa` to its own Firebase app
+  (staging / prod), both to the `release` group in Firebase App Distribution.
 - See [Releasing](#releasing) for the tag format and required secrets.
 
 ## Project structure
@@ -215,19 +240,18 @@ git push origin v1.2.3
 
 - Tag must match `vMAJOR.MINOR.PATCH`, with `MINOR` and `PATCH` each under 100 (so
   `versionCode = MAJOR * 10000 + MINOR * 100 + PATCH` can't collide across versions).
-- **Android** — produces a signed `truck-track-<version>.apk` and `truck-track-<version>.aab`,
-  both built with `versionName`/`versionCode` embedded from the tag, published as a GitHub Release
+- **Android** — produces signed `truck-track-<env>-<version>.apk` and `truck-track-<env>-<version>.aab`
+  for `staging` and `prod`, built with `versionName`/`versionCode` embedded from the tag, published as a GitHub Release
   named after the tag. Requires four repo secrets: `ANDROID_KEYSTORE_BASE64`,
   `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
-- **iOS** — produces a signed `truck-track-<version>.ipa` (same `MARKETING_VERSION`/
+- **iOS** — produces signed ad-hoc `truck-track-<env>-<version>.ipa` for `staging` and `prod` (same `MARKETING_VERSION`/
   `CURRENT_PROJECT_VERSION` derived from the tag), attached to the same GitHub Release. Requires
-  five repo secrets: `IOS_TEAM_ID`, `IOS_DISTRIBUTION_CERTIFICATE_BASE64`,
-  `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD`, `IOS_PROVISIONING_PROFILE_BASE64`,
-  `FIREBASE_IOS_APP_ID` (all five are configured — see the `manage-ios-signing` skill for adding
+  `IOS_TEAM_ID`, `IOS_DISTRIBUTION_CERTIFICATE_BASE64`, `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD`,
+  `IOS_STAGING_ADHOC_PROFILE_BASE64` and `IOS_PROD_ADHOC_PROFILE_BASE64` (all must be configured — see the `manage-ios-signing` skill for adding
   testers or renewing the certificate). If any go missing or expire, this step falls back to
   skipping with a warning rather than failing the release.
-- Both platforms' builds are also distributed to their `release` group in Firebase App
-  Distribution.
+- Firebase distribution uses `FIREBASE_{STAGING,PROD}_{ANDROID,IOS}_APP_ID`, all to the `release`
+  group. Store uploads (Play Store / App Store) aren't automated yet.
 
 ## Docs
 

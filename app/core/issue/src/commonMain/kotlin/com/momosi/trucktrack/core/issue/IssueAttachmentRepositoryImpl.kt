@@ -1,6 +1,6 @@
 package com.momosi.trucktrack.core.issue
 
-import com.momosi.trucktrack.core.common.TruckTrackConfig
+import com.momosi.trucktrack.core.common.config.AppConfig
 import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.common.model.Page
@@ -16,9 +16,9 @@ import io.ktor.client.request.setBody
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 
-class IssueAttachmentRepositoryImpl(private val issueAttachmentApi: IssueAttachmentApi) : IssueAttachmentRepository {
+class IssueAttachmentRepositoryImpl(private val issueAttachmentApi: IssueAttachmentApi, private val appConfig: AppConfig) : IssueAttachmentRepository {
 
-    override fun getPhotoUrl(issueId: Long, attachmentId: Long): String = "${TruckTrackConfig.API_BASE_URL}api/v1/issue/$issueId/photo/$attachmentId"
+    override fun getPhotoUrl(issueId: Long, attachmentId: Long): String = "${appConfig.apiBaseUrl}api/v1/issue/$issueId/photo/$attachmentId"
 
     override suspend fun getPhotos(
         issueId: Long,

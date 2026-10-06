@@ -172,8 +172,9 @@ One package per feature screen, related files together: `IssuesScreen.kt`, `Issu
   `ktor-serialization-kotlinx-json`.
 * API clients live in the relevant `core` module (e.g. `core:issue`, `core:user`); request/response
   types come from `com.momosi.trucktrack:shared`, never module-local DTOs.
-* Base URL is `TruckTrackConfig.API_BASE_URL` in `core:common` — reference the constant, don't
-  re-declare the literal.
+* Backend URLs (API base, Keycloak realm), the OAuth client ID and the redirect scheme come from the
+  Koin-injected `AppConfig` (`core:common`) — never hardcode them. Values are per-environment build
+  config (Android product flavors, iOS `Environment.xcconfig`), see `README.md` → "Build variants".
 * Authentication: bearer token injected via Ktor's `Auth` plugin, wired to `AuthManager`.
 * To use Ktor in a module: apply the `trucktrack.ktor` plugin, or add `implementation(libs.bundles.ktor)`
   to `commonMain` dependencies.

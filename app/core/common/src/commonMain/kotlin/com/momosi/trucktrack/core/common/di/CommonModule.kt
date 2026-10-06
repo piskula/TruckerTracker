@@ -13,7 +13,7 @@ import org.koin.dsl.module
 val commonModule = module {
     single { DispatcherProvider() }
     single { DateFormatter() }
-    single { VersionApi() }
+    single { VersionApi(get()) }
     single<VersionRepository> { VersionRepositoryImpl(get()) }
     single<ErrorReporter> { ErrorReporterImpl() }
 }

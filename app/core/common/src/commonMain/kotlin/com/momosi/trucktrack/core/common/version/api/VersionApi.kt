@@ -1,6 +1,6 @@
 package com.momosi.trucktrack.core.common.version.api
 
-import com.momosi.trucktrack.core.common.TruckTrackConfig
+import com.momosi.trucktrack.core.common.config.AppConfig
 import com.momosi.trucktrack.core.common.network.installApiExceptionMapping
 import com.momosi.trucktrack.shared.version.BuildInfoDto
 import io.ktor.client.HttpClient
@@ -10,7 +10,7 @@ import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-class VersionApi {
+class VersionApi(private val appConfig: AppConfig) {
 
     private val client by lazy {
         HttpClient {
@@ -22,5 +22,5 @@ class VersionApi {
         }
     }
 
-    suspend fun getBuildInfo(): BuildInfoDto = client.get("${TruckTrackConfig.API_BASE_URL}api/v1/version").body()
+    suspend fun getBuildInfo(): BuildInfoDto = client.get("${appConfig.apiBaseUrl}api/v1/version").body()
 }

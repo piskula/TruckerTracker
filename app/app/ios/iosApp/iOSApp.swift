@@ -5,15 +5,29 @@ import SwiftUI
 struct iOSApp: App {
     init() {
         #if DEBUG
-        IosAppInitializerKt.bootstrapIosApp(isDebug: true)
+        let isDebug = true
         #else
-        IosAppInitializerKt.bootstrapIosApp(isDebug: false)
+        let isDebug = false
         #endif
+        IosAppInitializerKt.bootstrapIosApp(
+            isDebug: isDebug,
+            apiBaseUrl: Self.infoValue("TTApiBaseUrl"),
+            realmUrl: Self.infoValue("TTRealmUrl"),
+            oauthClientId: Self.infoValue("TTOAuthClientId"),
+            appScheme: Self.infoValue("TTAppScheme")
+        )
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
+    }
+
+    private static func infoValue(_ key: String) -> String {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String, !value.isEmpty else {
+            fatalError("Missing \(key) in Info.plist")
+        }
+        return value
     }
 }
