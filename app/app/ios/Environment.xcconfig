@@ -12,7 +12,7 @@ TT_DISPLAY_NAME_prod = TruckTrack
 TT_API_BASE_URL_prod = https:/$()/tt.momosi.org/
 TT_REALM_URL_prod = https:/$()/sso.momosi.org/realms/trucktrack/
 TT_OAUTH_CLIENT_ID_prod = trucktrack-app
-TT_APP_SCHEME_prod = com.momosi.trucktrack
+TT_APP_SCHEME_prod = com.momosi.trucktrack.staging
 
 TT_BUNDLE_IDENTIFIER = $(TT_BUNDLE_IDENTIFIER_$(APP_ENVIRONMENT))
 TT_DISPLAY_NAME = $(TT_DISPLAY_NAME_$(APP_ENVIRONMENT))

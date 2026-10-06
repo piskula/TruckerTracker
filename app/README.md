@@ -82,7 +82,7 @@ run the `app:android` configuration.
 | Select it | Android flavor `staging` (default) · iOS `APP_ENVIRONMENT=staging` (default) | Android flavor `prod` · iOS `APP_ENVIRONMENT=prod` |
 | Backend API | [tt.momosi.org](https://tt.momosi.org/) | [tt.momosi.org](https://tt.momosi.org/) (same as staging for now) |
 | Keycloak realm | [sso.momosi.org/realms/trucktrack](https://sso.momosi.org/realms/trucktrack/) · [admin](https://sso.momosi.org/admin/trucktrack/console/) | [sso.momosi.org/realms/trucktrack](https://sso.momosi.org/realms/trucktrack/) · [admin](https://sso.momosi.org/admin/trucktrack/console/) (same as staging for now) |
-| OAuth redirect | `com.momosi.trucktrack.staging://auth/callback` | `com.momosi.trucktrack://auth/callback` |
+| OAuth redirect | `com.momosi.trucktrack.staging://auth/callback` | `com.momosi.trucktrack.staging://auth/callback` (staging scheme for now — with both apps installed, Android asks which app should receive the login redirect) |
 | Distribution | [Firebase App Distribution](https://console.firebase.google.com/project/trucktrack-cf134/appdistribution) | Firebase App Distribution · Play Store (TBD) · App Store (TBD) |
 | CI secrets | `FIREBASE_STAGING_ANDROID_APP_ID`, `FIREBASE_STAGING_IOS_APP_ID`, `IOS_STAGING_ADHOC_PROFILE_BASE64` | `FIREBASE_PROD_ANDROID_APP_ID`, `FIREBASE_PROD_IOS_APP_ID`, `IOS_PROD_ADHOC_PROFILE_BASE64` |
 

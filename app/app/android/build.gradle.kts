@@ -45,7 +45,7 @@ android {
                 apiBaseUrl = "https://tt.momosi.org/",
                 realmUrl = "https://sso.momosi.org/realms/trucktrack/",
                 oauthClientId = "trucktrack-app",
-                appScheme = "com.momosi.trucktrack",
+                appScheme = "com.momosi.trucktrack.staging",
             )
         }
     }
