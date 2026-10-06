@@ -160,6 +160,7 @@ jobs:
                 run: |
                     mkdir -p dist
                     build_simulator_app() {
+                        rm -f app/app/ios/iosApp/GoogleService-Info.plist
                         npx firebase-tools@latest apps:sdkconfig IOS "$2" \
                             --project trucktrack-cf134 \
                             -o app/app/ios/iosApp/GoogleService-Info.plist

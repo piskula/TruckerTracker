@@ -40,6 +40,7 @@ runs:
                 FIREBASE_TOKEN: ${{ inputs.firebase-token }}
                 FIREBASE_IOS_APP_ID: ${{ inputs.firebase-ios-app-id }}
             run: |
+                rm -f app/app/ios/iosApp/GoogleService-Info.plist
                 npx firebase-tools@latest apps:sdkconfig IOS "$FIREBASE_IOS_APP_ID" \
                     --project trucktrack-cf134 \
                     -o app/app/ios/iosApp/GoogleService-Info.plist
