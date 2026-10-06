@@ -143,7 +143,7 @@ connected only by Gradle's composite-build dependency substitution, avoids it en
 Building everything at once, from the repo root:
 
 ```bash
-./gradlew :app:app:android:assembleDebug :server:module-server:bootJar
+./gradlew :app:app:android:assembleStagingDebug :server:module-server:bootJar
 ```
 
 For day-to-day work you'll usually want just one side:

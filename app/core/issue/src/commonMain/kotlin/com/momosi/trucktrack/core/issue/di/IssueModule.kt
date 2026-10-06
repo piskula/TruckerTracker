@@ -17,6 +17,6 @@ val issueModule = module {
     single { get<Ktorfit>().createIssueHistoryApi() }
     single { get<Ktorfit>().createIssueAttachmentApi() }
     single<IssueRepository> { IssueRepositoryImpl(get(), get()) }
-    single<IssueAttachmentRepository> { IssueAttachmentRepositoryImpl(get()) }
+    single<IssueAttachmentRepository> { IssueAttachmentRepositoryImpl(get(), get()) }
     single<IssueCapabilityRepository> { IssueCapabilityRepositoryImpl() }
 }

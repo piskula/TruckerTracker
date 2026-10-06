@@ -15,13 +15,21 @@
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleDisplayName</key>
-	<string>TruckTrack</string>
+	<string>$(TT_DISPLAY_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>TTApiBaseUrl</key>
+	<string>$(TT_API_BASE_URL)</string>
+	<key>TTAppScheme</key>
+	<string>$(TT_APP_SCHEME)</string>
+	<key>TTOAuthClientId</key>
+	<string>$(TT_OAUTH_CLIENT_ID)</string>
+	<key>TTRealmUrl</key>
+	<string>$(TT_REALM_URL)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

@@ -9,6 +9,7 @@ Base dependency for all other modules. Otherwise contains shared utilities with 
 | `DispatcherProvider` | Coroutine dispatcher abstraction (`main`, `io`, `default`). Inject instead of hardcoding `Dispatchers.*`. |
 | `ConnectivityManager` | Interface in `commonMain`. `ConnectivityManagerImpl` — Android impl (`android.net.ConnectivityManager`) in `androidMain`, iOS impl (`NWPathMonitor`) in `iosMain`. Use the interface everywhere. |
 | `AppVersionProvider` | Interface in `commonMain` exposing `versionName`/`versionCode` of the running app. `AppVersionProviderImpl` — Android impl (`PackageManager`) in `androidMain`, iOS impl (`NSBundle.mainBundle`) in `iosMain`. |
+| `AppConfig` | Data class with the per-environment values: `apiBaseUrl`, `realmUrl`, `oauthClientId`, `appScheme` (+ derived `oauthRedirectUrl`/`oauthLogoutRedirectUrl`). Validates its URLs on construction. Built by each platform from its own build config (Android flavor `BuildConfig`, iOS `Environment.xcconfig` → `Info.plist`) and registered in Koin by `app:shared`'s `initKoin(appConfig)` — inject it with `get()`, never hardcode a URL. |
 | `AppEnvironment` | Singleton object (same pattern as `Logger`/`CrashReporting` — no DI) exposing `isDebug: Boolean`. Set once via `AppEnvironment.init(isDebug)` from `app:shared`'s `initApp(isDebug)`, which itself gets the flag from each platform's own build-type check (`BuildConfig.DEBUG` on Android, `#if DEBUG` on iOS). Read directly wherever a debug-only gate is needed. |
 | `VersionRepository` | `suspend fun getServerVersion(): Result<ServerVersion>` — fetches the backend's build info from `GET /api/v1/version` (public endpoint). Uses its own standalone `HttpClient` (`VersionApi`), same pattern as `core:user`'s `AuthApi` — see Notes. |
 | `LanguageRepository` | `language: StateFlow<AppLanguage>`, `requiresRestartToApply: Boolean`, `setLanguage(AppLanguage)` — the user's in-app language override (`English`/`Slovak`). Android impl (`AppCompatDelegate.setApplicationLocales`) applies and persists instantly, no restart needed. iOS impl (`NSUserDefaults`) persists the choice but only takes effect after the app restarts — `requiresRestartToApply` tells callers when to prompt for that. |
@@ -23,6 +24,7 @@ commonMain/
   coroutines/DispatcherProvider.kt
   coroutines/Flows.kt              ← Flow utility extensions
   network/ConnectivityManager.kt   ← Interface (pure Kotlin)
+  config/AppConfig.kt             ← Per-environment URLs / OAuth client / scheme, provided via Koin
   environment/AppEnvironment.kt    ← Singleton object holding isDebug
   version/AppVersionProvider.kt    ← Interface (pure Kotlin)
   version/VersionRepository.kt / VersionRepositoryImpl.kt

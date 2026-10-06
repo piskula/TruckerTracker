@@ -1,6 +1,6 @@
 package com.momosi.trucktrack.core.network.di
 
-import com.momosi.trucktrack.core.common.TruckTrackConfig
+import com.momosi.trucktrack.core.common.config.AppConfig
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.common.network.installApiExceptionMapping
 import com.momosi.trucktrack.core.common.network.isTransientNetworkFailure
@@ -41,7 +41,7 @@ val networkModule = module {
         val appCoroutineScope: CoroutineScope = get()
         buildHttpClient(authManager, appCoroutineScope) {
             defaultRequest {
-                url(TruckTrackConfig.API_BASE_URL)
+                url(get<AppConfig>().apiBaseUrl)
                 contentType(ContentType.Application.Json)
             }
             install(ContentNegotiation) {
@@ -52,7 +52,7 @@ val networkModule = module {
 
     single {
         Ktorfit.Builder()
-            .baseUrl(TruckTrackConfig.API_BASE_URL)
+            .baseUrl(get<AppConfig>().apiBaseUrl)
             .httpClient(get<HttpClient>())
             .build()
     }
@@ -62,7 +62,7 @@ val networkModule = module {
         val appCoroutineScope: CoroutineScope = get()
         buildHttpClient(authManager, appCoroutineScope) {
             defaultRequest {
-                url(TruckTrackConfig.API_BASE_URL)
+                url(get<AppConfig>().apiBaseUrl)
             }
         }
     }

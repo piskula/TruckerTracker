@@ -1,4 +1,5 @@
-﻿import com.momosi.trucktrack.utils.stringProperty
+﻿import com.android.build.api.dsl.ProductFlavor
+import com.momosi.trucktrack.utils.stringProperty
 
 plugins {
     alias(libs.plugins.android.application)
@@ -23,8 +24,30 @@ android {
 
         versionCode = stringProperty("appVersionCode")?.toIntOrNull() ?: 1
         versionName = stringProperty("appVersionName") ?: "dev"
+    }
 
-        manifestPlaceholders["oidcRedirectScheme"] = "com.momosi.trucktrack"
+    flavorDimensions += "environment"
+    productFlavors {
+        create("staging") {
+            dimension = "environment"
+            isDefault = true
+            applicationIdSuffix = ".staging"
+            appConfig(
+                apiBaseUrl = "https://tt.momosi.org/",
+                realmUrl = "https://sso.momosi.org/realms/trucktrack/",
+                oauthClientId = "trucktrack-app",
+                appScheme = "com.momosi.trucktrack.staging",
+            )
+        }
+        create("prod") {
+            dimension = "environment"
+            appConfig(
+                apiBaseUrl = "https://tt.momosi.org/",
+                realmUrl = "https://sso.momosi.org/realms/trucktrack/",
+                oauthClientId = "trucktrack-app",
+                appScheme = "com.momosi.trucktrack",
+            )
+        }
     }
 
     buildTypes {
@@ -69,4 +92,12 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+}
+
+private fun ProductFlavor.appConfig(apiBaseUrl: String, realmUrl: String, oauthClientId: String, appScheme: String) {
+    buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+    buildConfigField("String", "REALM_URL", "\"$realmUrl\"")
+    buildConfigField("String", "OAUTH_CLIENT_ID", "\"$oauthClientId\"")
+    buildConfigField("String", "APP_SCHEME", "\"$appScheme\"")
+    manifestPlaceholders["oidcRedirectScheme"] = appScheme
 }

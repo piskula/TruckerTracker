@@ -23,9 +23,9 @@ gets a `testTag`.
 ## Step 1 — Build, install, launch
 
 ```bash
-./gradlew :app:android:assembleDebug          # from app/, or :app:app:android:assembleDebug from repo root
-adb install -r app/android/build/outputs/apk/debug/android-debug.apk   # path relative to app/
-adb shell monkey -p com.momosi.trucktrack -c android.intent.category.LAUNCHER 1
+./gradlew :app:android:assembleStagingDebug          # from app/, or :app:app:android:assembleStagingDebug from repo root
+adb install -r app/android/build/outputs/apk/staging/debug/android-staging-debug.apk   # path relative to app/
+adb shell monkey -p com.momosi.trucktrack.staging -c android.intent.category.LAUNCHER 1
 ```
 
 If the device is locked: `adb shell input keyevent 82 && adb shell wm dismiss-keyguard`.

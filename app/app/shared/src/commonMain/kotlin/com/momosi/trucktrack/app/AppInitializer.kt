@@ -2,15 +2,18 @@ package com.momosi.trucktrack.app
 
 import coil3.SingletonImageLoader
 import com.momosi.trucktrack.app.di.allModules
+import com.momosi.trucktrack.core.common.config.AppConfig
 import com.momosi.trucktrack.core.common.crashreporting.CrashReporting
 import com.momosi.trucktrack.core.common.environment.AppEnvironment
 import com.momosi.trucktrack.core.common.logger.Logger
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
+import org.koin.dsl.module
 
-fun initKoin(platformConfig: KoinApplication.() -> Unit = {}) {
+fun initKoin(appConfig: AppConfig, platformConfig: KoinApplication.() -> Unit = {}) {
     startKoin {
         platformConfig()
+        modules(module { single { appConfig } })
         modules(allModules)
     }
 }

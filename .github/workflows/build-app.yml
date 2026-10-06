@@ -35,15 +35,16 @@ jobs:
 
             -   name: Fetch Firebase Android config
                 run: |
-                    npx firebase-tools@latest apps:sdkconfig ANDROID "$FIREBASE_APP_ID" \
+                    mkdir -p app/app/android/src/staging
+                    npx firebase-tools@latest apps:sdkconfig ANDROID "$FIREBASE_STAGING_ANDROID_APP_ID" \
                         --project trucktrack-cf134 \
-                        -o app/app/android/google-services.json
+                        -o app/app/android/src/staging/google-services.json
                 env:
                     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-                    FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+                    FIREBASE_STAGING_ANDROID_APP_ID: ${{ secrets.FIREBASE_STAGING_ANDROID_APP_ID }}
 
             -   name: Run detekt and Android Lint
-                run: ./gradlew :app:app:android:detekt :app:app:android:lintDebug --continue
+                run: ./gradlew :app:app:android:detekt :app:app:android:lintStagingDebug --continue
 
             -   name: Upload detekt SARIF report
                 if: always()
@@ -56,7 +57,7 @@ jobs:
                 if: always()
                 uses: github/codeql-action/upload-sarif@v4
                 with:
-                    sarif_file: app/app/android/build/reports/lint-results-debug.sarif
+                    sarif_file: app/app/android/build/reports/lint-results-stagingDebug.sarif
                     category: android-lint
 
     build-android:
@@ -69,34 +70,42 @@ jobs:
             -   name: Set up Gradle build environment
                 uses: ./.github/actions/setup-gradle-build
 
-            -   name: Fetch Firebase Android config
+            -   name: Fetch Firebase Android configs
                 run: |
-                    npx firebase-tools@latest apps:sdkconfig ANDROID "$FIREBASE_APP_ID" \
+                    mkdir -p app/app/android/src/staging app/app/android/src/prod
+                    npx firebase-tools@latest apps:sdkconfig ANDROID "$FIREBASE_STAGING_ANDROID_APP_ID" \
                         --project trucktrack-cf134 \
-                        -o app/app/android/google-services.json
+                        -o app/app/android/src/staging/google-services.json
+                    npx firebase-tools@latest apps:sdkconfig ANDROID "$FIREBASE_PROD_ANDROID_APP_ID" \
+                        --project trucktrack-cf134 \
+                        -o app/app/android/src/prod/google-services.json
                 env:
                     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-                    FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+                    FIREBASE_STAGING_ANDROID_APP_ID: ${{ secrets.FIREBASE_STAGING_ANDROID_APP_ID }}
+                    FIREBASE_PROD_ANDROID_APP_ID: ${{ secrets.FIREBASE_PROD_ANDROID_APP_ID }}
 
-            -   name: Build Debug APK
+            -   name: Build staging and prod debug APKs
                 run: |
-                    ./gradlew :app:app:android:assembleDebug \
+                    ./gradlew :app:app:android:assembleStagingDebug :app:app:android:assembleProdDebug \
                         -PappVersionName=dev.${{ github.run_number }} \
                         -PappVersionCode=1
 
-            -   name: Rename APK
-                run: mv app/app/android/build/outputs/apk/debug/android-debug.apk app/app/android/build/outputs/apk/debug/truck-track.apk
+            -   name: Collect APKs
+                run: |
+                    mkdir -p dist
+                    mv app/app/android/build/outputs/apk/staging/debug/android-staging-debug.apk dist/truck-track-staging.apk
+                    mv app/app/android/build/outputs/apk/prod/debug/android-prod-debug.apk dist/truck-track-prod.apk
 
-            -   name: Upload APK artifact
+            -   name: Upload APK artifacts
                 uses: actions/upload-artifact@v4
                 with:
-                    name: android-debug-apk
-                    path: app/app/android/build/outputs/apk/debug/truck-track.apk
+                    name: android-debug-apks
+                    path: dist/*.apk
                     retention-days: 7
 
     build-ios:
-        # Builds a real signed .ipa once the iOS signing secrets below are all configured; until
-        # then it falls back to today's unsigned iOS Simulator build so CI keeps passing. No code
+        # Builds real signed .ipas once the iOS signing secrets below are all configured; until
+        # then it falls back to unsigned iOS Simulator builds so CI keeps passing. No code
         # changes are needed to flip over — just add the secrets. See docs/KMP_IOS_READINESS.md.
         runs-on: macos-15
         outputs:
@@ -114,15 +123,6 @@ jobs:
                 with:
                     xcode-version: latest-stable
 
-            -   name: Fetch Firebase iOS config
-                run: |
-                    npx firebase-tools@latest apps:sdkconfig IOS "$FIREBASE_IOS_APP_ID" \
-                        --project trucktrack-cf134 \
-                        -o app/app/ios/iosApp/GoogleService-Info.plist
-                env:
-                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-                    FIREBASE_IOS_APP_ID: ${{ secrets.FIREBASE_IOS_APP_ID }}
-
             -   name: Cache CocoaPods
                 uses: actions/cache@v4
                 with:
@@ -138,59 +138,67 @@ jobs:
             -   name: Check iOS signing secrets are configured
                 id: check-secrets
                 run: |
-                    if [ -n "$IOS_TEAM_ID" ] && [ -n "$IOS_CERT_B64" ] && [ -n "$IOS_CERT_PASSWORD" ] && [ -n "$IOS_PROFILE_B64" ]; then
+                    if [ -n "$IOS_TEAM_ID" ] && [ -n "$IOS_CERT_B64" ] && [ -n "$IOS_CERT_PASSWORD" ] && [ -n "$IOS_STAGING_PROFILE_B64" ] && [ -n "$IOS_PROD_PROFILE_B64" ]; then
                         echo "configured=true" >> "$GITHUB_OUTPUT"
                     else
-                        echo "::warning::iOS signing secrets are not configured yet — building an unsigned Simulator app instead of a signed .ipa. See docs/KMP_IOS_READINESS.md."
+                        echo "::warning::iOS signing secrets are not configured yet — building unsigned Simulator apps instead of signed .ipas. See docs/KMP_IOS_READINESS.md."
                         echo "configured=false" >> "$GITHUB_OUTPUT"
                     fi
                 env:
                     IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
                     IOS_CERT_B64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
                     IOS_CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
-                    IOS_PROFILE_B64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+                    IOS_STAGING_PROFILE_B64: ${{ secrets.IOS_STAGING_ADHOC_PROFILE_BASE64 }}
+                    IOS_PROD_PROFILE_B64: ${{ secrets.IOS_PROD_ADHOC_PROFILE_BASE64 }}
 
-            -   name: Build iOS Simulator app (unsigned fallback)
+            -   name: Build iOS Simulator apps (unsigned fallback)
                 if: steps.check-secrets.outputs.configured != 'true'
+                env:
+                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+                    FIREBASE_STAGING_IOS_APP_ID: ${{ secrets.FIREBASE_STAGING_IOS_APP_ID }}
+                    FIREBASE_PROD_IOS_APP_ID: ${{ secrets.FIREBASE_PROD_IOS_APP_ID }}
                 run: |
-                    xcodebuild \
-                        -workspace app/app/ios/iosApp.xcworkspace \
-                        -scheme iosApp \
-                        -sdk iphonesimulator \
-                        -configuration Debug \
-                        -destination 'generic/platform=iOS Simulator' \
-                        -derivedDataPath build-ios \
-                        CODE_SIGNING_ALLOWED=NO \
-                        build
+                    mkdir -p dist
+                    build_simulator_app() {
+                        npx firebase-tools@latest apps:sdkconfig IOS "$2" \
+                            --project trucktrack-cf134 \
+                            -o app/app/ios/iosApp/GoogleService-Info.plist
+                        xcodebuild \
+                            -workspace app/app/ios/iosApp.xcworkspace \
+                            -scheme iosApp \
+                            -sdk iphonesimulator \
+                            -configuration Debug \
+                            -destination 'generic/platform=iOS Simulator' \
+                            -derivedDataPath build-ios \
+                            APP_ENVIRONMENT="$1" \
+                            CODE_SIGNING_ALLOWED=NO \
+                            build
+                        (cd build-ios/Build/Products/Debug-iphonesimulator && zip -qr "$GITHUB_WORKSPACE/dist/truck-track-$1-ios-simulator.zip" iosApp.app)
+                    }
+                    build_simulator_app staging "$FIREBASE_STAGING_IOS_APP_ID"
+                    build_simulator_app prod "$FIREBASE_PROD_IOS_APP_ID"
 
-            -   name: Zip Simulator app
-                if: steps.check-secrets.outputs.configured != 'true'
-                run: |
-                    cd build-ios/Build/Products/Debug-iphonesimulator
-                    zip -r truck-track-ios-simulator.zip iosApp.app
-
-            -   name: Upload Simulator app artifact
+            -   name: Upload Simulator app artifacts
                 if: steps.check-secrets.outputs.configured != 'true'
                 uses: actions/upload-artifact@v4
                 with:
-                    name: ios-simulator-app
-                    path: build-ios/Build/Products/Debug-iphonesimulator/truck-track-ios-simulator.zip
+                    name: ios-simulator-apps
+                    path: dist/*-ios-simulator.zip
                     retention-days: 7
 
-            -   name: Import signing certificate and provisioning profile
+            -   name: Import signing certificate and provisioning profiles
                 if: steps.check-secrets.outputs.configured == 'true'
                 env:
                     IOS_CERT_B64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
                     IOS_CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
-                    IOS_PROFILE_B64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+                    IOS_STAGING_PROFILE_B64: ${{ secrets.IOS_STAGING_ADHOC_PROFILE_BASE64 }}
+                    IOS_PROD_PROFILE_B64: ${{ secrets.IOS_PROD_ADHOC_PROFILE_BASE64 }}
                 run: |
                     KEYCHAIN_PATH="$RUNNER_TEMP/ios-signing.keychain-db"
                     KEYCHAIN_PASSWORD=$(uuidgen)
                     CERT_PATH="$RUNNER_TEMP/distribution.p12"
-                    PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
 
                     echo "$IOS_CERT_B64" | base64 -D -o "$CERT_PATH"
-                    echo "$IOS_PROFILE_B64" | base64 -D -o "$PROFILE_PATH"
 
                     security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
                     security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
@@ -198,83 +206,58 @@ jobs:
                     security import "$CERT_PATH" -P "$IOS_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
                     security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
                     security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed 's/"//g')
+                    echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
 
                     PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
                     mkdir -p "$PROFILE_DIR"
-                    security cms -D -i "$PROFILE_PATH" > "$RUNNER_TEMP/profile.plist"
-                    PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" "$RUNNER_TEMP/profile.plist")
-                    PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" "$RUNNER_TEMP/profile.plist")
-                    cp "$PROFILE_PATH" "$PROFILE_DIR/$PROFILE_UUID.mobileprovision"
 
-                    echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
-                    echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+                    install_profile() {
+                        local PROFILE_PATH="$RUNNER_TEMP/$1.mobileprovision"
+                        local PROFILE_PLIST="$RUNNER_TEMP/$1-profile.plist"
+                        echo "$2" | base64 -D -o "$PROFILE_PATH"
+                        security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
+                        local PROFILE_UUID
+                        local PROFILE_NAME
+                        PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" "$PROFILE_PLIST")
+                        PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" "$PROFILE_PLIST")
+                        cp "$PROFILE_PATH" "$PROFILE_DIR/$PROFILE_UUID.mobileprovision"
+                        echo "$3=$PROFILE_NAME" >> "$GITHUB_ENV"
+                    }
+                    install_profile staging "$IOS_STAGING_PROFILE_B64" STAGING_PROFILE_NAME
+                    install_profile prod "$IOS_PROD_PROFILE_B64" PROD_PROFILE_NAME
 
-            -   name: Generate export options plist
+            -   name: Archive signed staging app
                 if: steps.check-secrets.outputs.configured == 'true'
-                env:
-                    IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
-                run: |
-                    cat > "$RUNNER_TEMP/exportOptions.plist" <<PLIST
-                    <?xml version="1.0" encoding="UTF-8"?>
-                    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-                    <plist version="1.0">
-                    <dict>
-                        <key>method</key>
-                        <string>ad-hoc</string>
-                        <key>teamID</key>
-                        <string>$IOS_TEAM_ID</string>
-                        <key>signingStyle</key>
-                        <string>manual</string>
-                        <key>provisioningProfiles</key>
-                        <dict>
-                            <key>com.momosi.trucktrack</key>
-                            <string>$PROFILE_NAME</string>
-                        </dict>
-                    </dict>
-                    </plist>
-                    PLIST
+                uses: ./.github/actions/archive-ios-app
+                with:
+                    environment: staging
+                    bundle-id: com.momosi.trucktrack.staging
+                    firebase-ios-app-id: ${{ secrets.FIREBASE_STAGING_IOS_APP_ID }}
+                    firebase-token: ${{ secrets.FIREBASE_TOKEN }}
+                    team-id: ${{ secrets.IOS_TEAM_ID }}
+                    profile-name: ${{ env.STAGING_PROFILE_NAME }}
+                    build-number: ${{ github.run_number }}
+                    output-path: dist/truck-track-staging.ipa
 
-            -   name: Archive signed iOS app
+            -   name: Archive signed prod app
                 if: steps.check-secrets.outputs.configured == 'true'
-                env:
-                    IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
-                run: |
-                    xcodebuild archive \
-                        -workspace app/app/ios/iosApp.xcworkspace \
-                        -scheme iosApp \
-                        -sdk iphoneos \
-                        -configuration Debug \
-                        -archivePath "$RUNNER_TEMP/iosApp.xcarchive" \
-                        -destination 'generic/platform=iOS' \
-                        CODE_SIGN_STYLE=Manual \
-                        CODE_SIGN_IDENTITY="Apple Distribution" \
-                        DEVELOPMENT_TEAM="$IOS_TEAM_ID" \
-                        PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
-                        CURRENT_PROJECT_VERSION="${{ github.run_number }}"
+                uses: ./.github/actions/archive-ios-app
+                with:
+                    environment: prod
+                    bundle-id: com.momosi.trucktrack
+                    firebase-ios-app-id: ${{ secrets.FIREBASE_PROD_IOS_APP_ID }}
+                    firebase-token: ${{ secrets.FIREBASE_TOKEN }}
+                    team-id: ${{ secrets.IOS_TEAM_ID }}
+                    profile-name: ${{ env.PROD_PROFILE_NAME }}
+                    build-number: ${{ github.run_number }}
+                    output-path: dist/truck-track-prod.ipa
 
-            -   name: Export signed .ipa
-                if: steps.check-secrets.outputs.configured == 'true'
-                run: |
-                    xcodebuild -exportArchive \
-                        -archivePath "$RUNNER_TEMP/iosApp.xcarchive" \
-                        -exportPath "$RUNNER_TEMP/export" \
-                        -exportOptionsPlist "$RUNNER_TEMP/exportOptions.plist"
-                    mv "$RUNNER_TEMP/export/iosApp.ipa" "$RUNNER_TEMP/truck-track.ipa"
-
-            -   name: Upload debug symbols to Crashlytics
-                if: steps.check-secrets.outputs.configured == 'true'
-                run: |
-                    app/app/ios/Pods/FirebaseCrashlytics/upload-symbols \
-                        -gsp app/app/ios/iosApp/GoogleService-Info.plist \
-                        -p ios \
-                        "$RUNNER_TEMP/iosApp.xcarchive/dSYMs"
-
-            -   name: Upload signed .ipa artifact
+            -   name: Upload signed .ipa artifacts
                 if: steps.check-secrets.outputs.configured == 'true'
                 uses: actions/upload-artifact@v4
                 with:
-                    name: ios-ipa
-                    path: ${{ runner.temp }}/truck-track.ipa
+                    name: ios-ipas
+                    path: dist/*.ipa
                     retention-days: 7
 
             -   name: Clean up signing keychain
@@ -293,42 +276,40 @@ jobs:
             contents: write
 
         steps:
-            -   name: Download Android artifact
+            -   name: Download Android artifacts
                 uses: actions/download-artifact@v4
                 continue-on-error: true
                 with:
-                    name: android-debug-apk
+                    name: android-debug-apks
                     path: artifacts
 
-            -   name: Download iOS Simulator artifact
+            -   name: Download iOS Simulator artifacts
                 uses: actions/download-artifact@v4
                 continue-on-error: true
                 with:
-                    name: ios-simulator-app
+                    name: ios-simulator-apps
                     path: artifacts
 
-            -   name: Download iOS .ipa artifact
+            -   name: Download iOS .ipa artifacts
                 uses: actions/download-artifact@v4
                 continue-on-error: true
                 with:
-                    name: ios-ipa
+                    name: ios-ipas
                     path: artifacts
 
             -   name: Collect available assets
                 id: assets
                 run: |
-                    FILES=()
-                    [ -f artifacts/truck-track.apk ] && FILES+=("artifacts/truck-track.apk")
-                    [ -f artifacts/truck-track-ios-simulator.zip ] && FILES+=("artifacts/truck-track-ios-simulator.zip")
-                    [ -f artifacts/truck-track.ipa ] && FILES+=("artifacts/truck-track.ipa")
+                    shopt -s nullglob
+                    FILES=(artifacts/*.apk artifacts/*.ipa artifacts/*-ios-simulator.zip)
 
                     if [ ${#FILES[@]} -eq 0 ]; then
                         echo "::error::Both Android and iOS builds failed (or produced no artifact) — nothing to publish"
                         exit 1
                     fi
 
-                    if [ ${#FILES[@]} -lt 2 ]; then
-                        echo "::warning::Publishing a partial release — only ${#FILES[@]} of 2 build artifact(s) are available"
+                    if [ ${#FILES[@]} -lt 4 ]; then
+                        echo "::warning::Publishing a partial release — only ${#FILES[@]} of 4 build artifact(s) are available"
                     fi
 
                     echo "files=${FILES[*]}" >> "$GITHUB_OUTPUT"
@@ -358,10 +339,10 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            -   name: Download Android artifact
+            -   name: Download Android artifacts
                 uses: actions/download-artifact@v4
                 with:
-                    name: android-debug-apk
+                    name: android-debug-apks
                     path: artifacts
 
             -   name: Write Firebase release notes
@@ -375,15 +356,25 @@ jobs:
                         echo "Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
                     } > release-notes.txt
 
-            -   name: Distribute Android APK to Firebase App Distribution
+            -   name: Distribute staging APK to Firebase App Distribution
                 run: |
-                    npx firebase-tools@latest appdistribution:distribute artifacts/truck-track.apk \
-                        --app "$FIREBASE_APP_ID" \
+                    npx firebase-tools@latest appdistribution:distribute artifacts/truck-track-staging.apk \
+                        --app "$FIREBASE_STAGING_ANDROID_APP_ID" \
                         --groups "internal-testers" \
                         --release-notes-file release-notes.txt
                 env:
                     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-                    FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+                    FIREBASE_STAGING_ANDROID_APP_ID: ${{ secrets.FIREBASE_STAGING_ANDROID_APP_ID }}
+
+            -   name: Distribute prod APK to Firebase App Distribution
+                run: |
+                    npx firebase-tools@latest appdistribution:distribute artifacts/truck-track-prod.apk \
+                        --app "$FIREBASE_PROD_ANDROID_APP_ID" \
+                        --groups "internal-testers" \
+                        --release-notes-file release-notes.txt
+                env:
+                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+                    FIREBASE_PROD_ANDROID_APP_ID: ${{ secrets.FIREBASE_PROD_ANDROID_APP_ID }}
 
     distribute-ios:
         needs: [ verify, build-ios ]
@@ -395,10 +386,10 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            -   name: Download iOS .ipa artifact
+            -   name: Download iOS .ipa artifacts
                 uses: actions/download-artifact@v4
                 with:
-                    name: ios-ipa
+                    name: ios-ipas
                     path: artifacts
 
             -   name: Write Firebase release notes
@@ -412,12 +403,22 @@ jobs:
                         echo "Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
                     } > release-notes.txt
 
-            -   name: Distribute iOS .ipa to Firebase App Distribution
+            -   name: Distribute staging .ipa to Firebase App Distribution
                 run: |
-                    npx firebase-tools@latest appdistribution:distribute artifacts/truck-track.ipa \
-                        --app "$FIREBASE_IOS_APP_ID" \
+                    npx firebase-tools@latest appdistribution:distribute artifacts/truck-track-staging.ipa \
+                        --app "$FIREBASE_STAGING_IOS_APP_ID" \
                         --groups "internal-testers" \
                         --release-notes-file release-notes.txt
                 env:
                     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-                    FIREBASE_IOS_APP_ID: ${{ secrets.FIREBASE_IOS_APP_ID }}
+                    FIREBASE_STAGING_IOS_APP_ID: ${{ secrets.FIREBASE_STAGING_IOS_APP_ID }}
+
+            -   name: Distribute prod .ipa to Firebase App Distribution
+                run: |
+                    npx firebase-tools@latest appdistribution:distribute artifacts/truck-track-prod.ipa \
+                        --app "$FIREBASE_PROD_IOS_APP_ID" \
+                        --groups "internal-testers" \
+                        --release-notes-file release-notes.txt
+                env:
+                    FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+                    FIREBASE_PROD_IOS_APP_ID: ${{ secrets.FIREBASE_PROD_IOS_APP_ID }}

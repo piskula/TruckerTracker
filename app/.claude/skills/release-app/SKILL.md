@@ -1,11 +1,11 @@
 ---
 name: release-app
-description: Use when cutting a signed Android release build or explaining how to release the app. Triggered by phrases like "release the app", "cut a release", "release android", "publish a new version", "tag a release", "how do I release", "release next patch", "release next minor", "release next major", "bump the version".
+description: Use when cutting a signed release (Android + iOS, staging + prod) or explaining how to release the app. Triggered by phrases like "release the app", "cut a release", "release android", "publish a new version", "tag a release", "how do I release", "release next patch", "release next minor", "release next major", "bump the version".
 ---
 
-# Skill: Cut a Signed Android Release
+# Skill: Cut a Signed Release
 
-> `.github/workflows/release-app.yml` builds a signed release APK + AAB and publishes them as a GitHub Release whenever a `vMAJOR.MINOR.PATCH` tag is pushed. There is no separate version-bump commit or manifest edit — the tag *is* the version, parsed at build time.
+> `.github/workflows/release-app.yml` builds signed staging + prod release APKs, AABs and ad-hoc `.ipa`s, publishes them as one GitHub Release and distributes them through Firebase App Distribution whenever a `vMAJOR.MINOR.PATCH` tag is pushed. There is no separate version-bump commit or manifest edit — the tag *is* the version, parsed at build time.
 
 ## Triggers
 
@@ -21,15 +21,15 @@ git tag v1.2.3
 git push origin v1.2.3
 ```
 
-That's the entire release process. Pushing the tag triggers `release-android`, which:
+That's the entire release process. Pushing the tag runs:
 
-1. Parses `vMAJOR.MINOR.PATCH` from `GITHUB_REF_NAME` — **fails fast** if the tag doesn't match, or if `MINOR`/`PATCH` are ≥ 100.
-2. Computes `versionCode = MAJOR * 10000 + MINOR * 100 + PATCH` (this is why `MINOR`/`PATCH` are capped under 100 — keeps codes from colliding across versions).
-3. Decodes the release keystore from the `ANDROID_KEYSTORE_BASE64` secret and runs `:app:app:android:assembleRelease :app:app:android:bundleRelease` (from the repo root) with `-PappVersionName`/`-PappVersionCode` set from the parsed tag — these flow into `app/app/android/build.gradle.kts`'s `versionName`/`versionCode` via `stringProperty("appVersionName"/"appVersionCode")`.
-4. Renames the outputs to `truck-track-<version>.apk` / `truck-track-<version>.aab` (version-suffixed, not the raw AGP output names).
-5. Publishes both as a GitHub Release titled after the tag via `gh release create "$GITHUB_REF_NAME" ...`.
+1. **`prepare`** — parses `vMAJOR.MINOR.PATCH` from `GITHUB_REF_NAME` (**fails fast** if the tag doesn't match, or if `MINOR`/`PATCH` are ≥ 100), computes `versionCode = MAJOR * 10000 + MINOR * 100 + PATCH` (this is why `MINOR`/`PATCH` are capped under 100 — keeps codes from colliding across versions), and writes the changelog since the previous tag.
+2. **`build-android`** — decodes the release keystore from `ANDROID_KEYSTORE_BASE64` and runs `assembleStagingRelease bundleStagingRelease assembleProdRelease bundleProdRelease` in one Gradle run with `-PappVersionName`/`-PappVersionCode` from the tag (they flow into `app/app/android/build.gradle.kts` via `stringProperty("appVersionName"/"appVersionCode")`). Outputs are renamed to `truck-track-<env>-<version>.apk` / `.aab`.
+3. **`build-ios`** (parallel to Android) — archives staging and prod with the `Release` configuration through `.github/actions/archive-ios-app`, producing `truck-track-<env>-<version>.ipa` (ad hoc) and uploading dSYMs to Crashlytics. Skipped with a warning when iOS signing secrets are missing.
+4. **`publish-release`** — `gh release create "$GITHUB_REF_NAME"` with all artifacts and the changelog. Requires all 4 Android artifacts; publishes without iOS (with a warning) if the `.ipa`s are missing.
+5. **`distribute-android`** / **`distribute-ios`** — each build to its own Firebase app (staging / prod), `release` group.
 
-Verified end to end against tag `v0.0.1`: release assets were `truck-track-0.0.1.apk` / `truck-track-0.0.1.aab`, and `aapt dump badging` on the APK confirmed `versionCode='1' versionName='0.0.1'` (`0*10000 + 0*100 + 1 = 1`) — the version flows through correctly from tag → Gradle → manifest → filename.
+Verified end to end against tag `v0.0.1` (before the staging/prod split, so the asset names were unprefixed): release assets were `truck-track-0.0.1.apk` / `truck-track-0.0.1.aab`, and `aapt dump badging` on the APK confirmed `versionCode='1' versionName='0.0.1'` (`0*10000 + 0*100 + 1 = 1`) — the version flows through correctly from tag → Gradle → manifest → filename.
 
 ## Releasing the next patch / minor / major
 
@@ -57,7 +57,7 @@ git push origin "$NEXT"
 
 ## Required secrets
 
-Four repo secrets must exist (`gh secret list` to confirm) — release-android fails during "Build Release APK and AAB" if any are missing, since `AndroidSigningPlugin` only wires the `release` signing config when all four are non-blank:
+Four Android signing secrets must exist (`gh secret list` to confirm) — `build-android` fails during "Build staging and prod release APKs and AABs" if any are missing, since `AndroidSigningPlugin` only wires the `release` signing config when all four are non-blank:
 
 | Secret | Used for |
 |---|---|
@@ -65,6 +65,8 @@ Four repo secrets must exist (`gh secret list` to confirm) — release-android f
 | `ANDROID_KEYSTORE_PASSWORD` | keystore password |
 | `ANDROID_KEY_ALIAS` | signing key alias |
 | `ANDROID_KEY_PASSWORD` | signing key password |
+
+Firebase and iOS signing secrets (`FIREBASE_{STAGING,PROD}_{ANDROID,IOS}_APP_ID`, `IOS_{STAGING,PROD}_ADHOC_PROFILE_BASE64`, `IOS_TEAM_ID`, `IOS_DISTRIBUTION_CERTIFICATE_*`) are covered in `app/README.md` → "Releasing" and the `manage-ios-signing` skill.
 
 ## Tag rules
 
@@ -92,12 +94,12 @@ Use the `analyze-ci-failure` skill against the `release-app.yml` run. Known-spec
 |---|---|
 | `Tag 'vX.Y.Z' does not match required vMAJOR.MINOR.PATCH format` | Tag pushed without the `v` prefix, or wrong segment count |
 | `MINOR and PATCH must be less than 100 to avoid versionCode collisions` | e.g. `v1.150.0` |
-| Build fails at "Build Release APK and AAB" with a signing-related Gradle error | One of the four `ANDROID_KEYSTORE_*`/`ANDROID_KEY_*` secrets is missing, wrong, or the keystore file is corrupt/mismatched with the alias |
+| Build fails at "Build staging and prod release APKs and AABs" with a signing-related Gradle error | One of the four `ANDROID_KEYSTORE_*`/`ANDROID_KEY_*` secrets is missing, wrong, or the keystore file is corrupt/mismatched with the alias |
 | `gh release create` fails with "release already exists" | The tag was already released once — delete the release + tag first (see above), don't just push again |
 
 ## Verification
 
 - [ ] Tag matches `vMAJOR.MINOR.PATCH` with `MINOR`/`PATCH` under 100
-- [ ] `gh run view <run-id>` shows `release-android` succeeded
-- [ ] `gh release view vX.Y.Z` shows both `truck-track-X.Y.Z.apk` and `truck-track-X.Y.Z.aab` assets
-- [ ] (optional) `aapt dump badging truck-track-X.Y.Z.apk | head -1` confirms `versionName`/`versionCode` match the tag
+- [ ] `gh run view <run-id>` shows `build-android`, `build-ios`, `publish-release` and both `distribute-*` jobs succeeded
+- [ ] `gh release view vX.Y.Z` shows `truck-track-{staging,prod}-X.Y.Z.apk`, `.aab` and `.ipa` assets (6 total)
+- [ ] (optional) `aapt dump badging truck-track-prod-X.Y.Z.apk | head -1` confirms `versionName`/`versionCode` match the tag
