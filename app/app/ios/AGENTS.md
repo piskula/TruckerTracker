@@ -10,6 +10,7 @@ iosApp/
   ContentView.swift    ← Wraps MainViewControllerKt.MainViewController() (from app:shared, iosMain) in a UIViewControllerRepresentable
   Info.plist           ← App display name/icon, CADisableMinimumFrameDurationOnPhone (required — its absence caused a 20s watchdog kill on every launch, see git history)
   GoogleService-Info.plist  ← Firebase config, not committed — see setup-local-tools skill
+  PrivacyInfo.xcprivacy     ← App privacy manifest: collected data + required-reason APIs (UserDefaults, file timestamps/disk space via Coil's disk cache, boot time via Compose). Update it when adding a dependency or platform API in one of Apple's required-reason categories; keep it consistent with docs/privacy-policy.md
 Environment.xcconfig   ← Per-environment values (bundle ID, display name, API/realm URLs, OAuth client, scheme), selected by APP_ENVIRONMENT (staging|prod, default staging). Project-level base configuration — CocoaPods owns the target-level one. See app/README.md → "Build variants"
 Podfile                ← CocoaPods deps (Firebase Crashlytics linking only)
 ```

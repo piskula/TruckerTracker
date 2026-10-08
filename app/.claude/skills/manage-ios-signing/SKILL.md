@@ -27,6 +27,8 @@ Ad-hoc profiles cap at 100 devices/year total; every device added means editing 
 | `IOS_DISTRIBUTION_CERTIFICATE_BASE64` | Certificate renewal only (yearly) |
 | `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD` | Same time as the cert above |
 | `IOS_STAGING_ADHOC_PROFILE_BASE64`, `IOS_PROD_ADHOC_PROFILE_BASE64` | **Every time a tester device is added/removed** — update both, with the same device list |
+| `IOS_PROD_APPSTORE_PROFILE_BASE64` | Certificate renewal only — App Store profiles list no devices, so testers never affect it. Portal type "App Store Connect", bundle ID `com.momosi.trucktrack` |
+| `APP_STORE_CONNECT_API_KEY_BASE64`, `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID` | Only if the key is revoked. Team key with the **Developer** role (enough to upload builds), from App Store Connect → Users and Access → Integrations |
 
 Adding a tester only touches the two profile secrets. You do **not** need to regenerate the certificate to add a device.
 
