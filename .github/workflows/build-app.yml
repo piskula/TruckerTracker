@@ -28,7 +28,7 @@ jobs:
 
         steps:
             -   name: Checkout Repository
-                uses: actions/checkout@v4
+                uses: actions/checkout@v7
 
             -   name: Set up Gradle build environment
                 uses: ./.github/actions/setup-gradle-build
@@ -65,7 +65,7 @@ jobs:
 
         steps:
             -   name: Checkout Repository
-                uses: actions/checkout@v4
+                uses: actions/checkout@v7
 
             -   name: Set up Gradle build environment
                 uses: ./.github/actions/setup-gradle-build
@@ -97,7 +97,7 @@ jobs:
                     mv app/app/android/build/outputs/apk/prod/debug/android-prod-debug.apk dist/truck-track-prod.apk
 
             -   name: Upload APK artifacts
-                uses: actions/upload-artifact@v4
+                uses: actions/upload-artifact@v7
                 with:
                     name: android-debug-apks
                     path: dist/*.apk
@@ -113,7 +113,7 @@ jobs:
 
         steps:
             -   name: Checkout Repository
-                uses: actions/checkout@v4
+                uses: actions/checkout@v7
 
             -   name: Set up Gradle build environment
                 uses: ./.github/actions/setup-gradle-build
@@ -124,7 +124,7 @@ jobs:
                     xcode-version: latest-stable
 
             -   name: Cache CocoaPods
-                uses: actions/cache@v4
+                uses: actions/cache@v6
                 with:
                     path: |
                         app/app/ios/Pods
@@ -181,7 +181,7 @@ jobs:
 
             -   name: Upload Simulator app artifacts
                 if: steps.check-secrets.outputs.configured != 'true'
-                uses: actions/upload-artifact@v4
+                uses: actions/upload-artifact@v7
                 with:
                     name: ios-simulator-apps
                     path: dist/*-ios-simulator.zip
@@ -255,7 +255,7 @@ jobs:
 
             -   name: Upload signed .ipa artifacts
                 if: steps.check-secrets.outputs.configured == 'true'
-                uses: actions/upload-artifact@v4
+                uses: actions/upload-artifact@v7
                 with:
                     name: ios-ipas
                     path: dist/*.ipa
@@ -278,21 +278,21 @@ jobs:
 
         steps:
             -   name: Download Android artifacts
-                uses: actions/download-artifact@v4
+                uses: actions/download-artifact@v8
                 continue-on-error: true
                 with:
                     name: android-debug-apks
                     path: artifacts
 
             -   name: Download iOS Simulator artifacts
-                uses: actions/download-artifact@v4
+                uses: actions/download-artifact@v8
                 continue-on-error: true
                 with:
                     name: ios-simulator-apps
                     path: artifacts
 
             -   name: Download iOS .ipa artifacts
-                uses: actions/download-artifact@v4
+                uses: actions/download-artifact@v8
                 continue-on-error: true
                 with:
                     name: ios-ipas
@@ -341,7 +341,7 @@ jobs:
 
         steps:
             -   name: Download Android artifacts
-                uses: actions/download-artifact@v4
+                uses: actions/download-artifact@v8
                 with:
                     name: android-debug-apks
                     path: artifacts
@@ -388,7 +388,7 @@ jobs:
 
         steps:
             -   name: Download iOS .ipa artifacts
-                uses: actions/download-artifact@v4
+                uses: actions/download-artifact@v8
                 with:
                     name: ios-ipas
                     path: artifacts
