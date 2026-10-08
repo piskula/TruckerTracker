@@ -11,6 +11,7 @@
 		BDF2DC7DC99BCDCDA7C0A2B5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1740ED6B2F726BFD5F8220 /* ContentView.swift */; };
 		914FF952E23F1E75C297F41C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5C31FA76D641886716012189 /* Assets.xcassets */; };
 		A1B2C3D4E5F60718293A4B5C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A6978869504132 /* GoogleService-Info.plist */; };
+		7A3E9C1B2D4F6A8B0C1D2E3F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 8B4F0D2C3E5A7B9C1D2E3F40 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +21,7 @@
 		5C31FA76D641886716012189 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4010711F7713F4DD96975E70 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F1E2D3C4B5A6978869504132 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		8B4F0D2C3E5A7B9C1D2E3F40 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E0A1B2C3D4E5F60718293A4C /* Environment.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Environment.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -51,6 +53,7 @@
 				5C31FA76D641886716012189 /* Assets.xcassets */,
 				4010711F7713F4DD96975E70 /* Info.plist */,
 				F1E2D3C4B5A6978869504132 /* GoogleService-Info.plist */,
+				8B4F0D2C3E5A7B9C1D2E3F40 /* PrivacyInfo.xcprivacy */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -123,6 +126,7 @@
 			files = (
 				914FF952E23F1E75C297F41C /* Assets.xcassets in Resources */,
 				A1B2C3D4E5F60718293A4B5C /* GoogleService-Info.plist in Resources */,
+				7A3E9C1B2D4F6A8B0C1D2E3F /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
