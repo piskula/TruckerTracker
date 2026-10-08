@@ -22,7 +22,7 @@ Only to run the app, fix crashes and keep the service secure.
 ## Who else gets it
 
 - **Google Firebase**, for crash reports. Google may process this data in the USA under EU-approved safeguards ([Firebase privacy](https://firebase.google.com/support/privacy)).
-- **\[Hosting provider\]**, which runs the server and stores the data.
+- **Our hosting provider**, which runs the server and stores the data on behalf of Momosi. It may use the data only to provide that service.
 
 No one else, unless the law requires it.
 
