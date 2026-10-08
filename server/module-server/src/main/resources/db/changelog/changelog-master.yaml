@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/2026/09/09-04-issue-history-changed-fields.yaml
   - include:
       file: db/changelog/2026/09/09-17-repair-type-and-vehicle-system.yaml
+  - include:
+      file: db/changelog/2026/10/10-05-issue-history-details.yaml

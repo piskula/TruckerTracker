@@ -309,6 +309,7 @@ class IssueDetailViewModel(
             id = id,
             performedByName = performedBy?.fullName,
             createdAtFormatted = dateFormatter.formatDateTime(createdAt),
+            assigneeName = assigneeTo.fullName,
         )
 
         is IssueHistory.Comment -> IssueHistoryUi.Comment(
@@ -318,11 +319,36 @@ class IssueDetailViewModel(
             commentText = commentText,
         )
 
-        is IssueHistory.Update -> IssueHistoryUi.Update(
+        is IssueHistory.TitleChange -> IssueHistoryUi.TitleChange(
             id = id,
             performedByName = performedBy?.fullName,
             createdAtFormatted = dateFormatter.formatDateTime(createdAt),
-            changedFields = changedFields.toImmutableList(),
+            titleFrom = titleFrom,
+            titleTo = titleTo,
+        )
+
+        is IssueHistory.DescriptionChange -> IssueHistoryUi.DescriptionChange(
+            id = id,
+            performedByName = performedBy?.fullName,
+            createdAtFormatted = dateFormatter.formatDateTime(createdAt),
+            descriptionFrom = descriptionFrom,
+            descriptionTo = descriptionTo,
+        )
+
+        is IssueHistory.PriorityChange -> IssueHistoryUi.PriorityChange(
+            id = id,
+            performedByName = performedBy?.fullName,
+            createdAtFormatted = dateFormatter.formatDateTime(createdAt),
+            priorityFrom = priorityFrom,
+            priorityTo = priorityTo,
+        )
+
+        is IssueHistory.VehicleChange -> IssueHistoryUi.VehicleChange(
+            id = id,
+            performedByName = performedBy?.fullName,
+            createdAtFormatted = dateFormatter.formatDateTime(createdAt),
+            vehicleFrom = vehicleFromLicensePlate,
+            vehicleTo = vehicleToLicensePlate,
         )
     }
 }

@@ -23,4 +23,6 @@ enum class IssueStatus {
         Done -> "DONE"
         Cancelled -> "CANCELED"
     }
+
+    fun isClosed(): Boolean = this == Done || this == Cancelled
 }

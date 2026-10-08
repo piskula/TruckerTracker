@@ -823,7 +823,10 @@
             "STATUS_CHANGE": "#/components/schemas/IssueHistoryDtoStatusChange",
             "ASSIGNEE_CHANGE": "#/components/schemas/IssueHistoryDtoAssigneeChange",
             "COMMENT": "#/components/schemas/IssueHistoryDtoComment",
-            "UPDATE": "#/components/schemas/IssueHistoryDtoUpdate"
+            "TITLE_CHANGE": "#/components/schemas/IssueHistoryDtoTitleChange",
+            "DESCRIPTION_CHANGE": "#/components/schemas/IssueHistoryDtoDescriptionChange",
+            "PRIORITY_CHANGE": "#/components/schemas/IssueHistoryDtoPriorityChange",
+            "VEHICLE_CHANGE": "#/components/schemas/IssueHistoryDtoVehicleChange"
           }
         },
         "oneOf": [
@@ -837,7 +840,16 @@
             "$ref": "#/components/schemas/IssueHistoryDtoComment"
           },
           {
-            "$ref": "#/components/schemas/IssueHistoryDtoUpdate"
+            "$ref": "#/components/schemas/IssueHistoryDtoTitleChange"
+          },
+          {
+            "$ref": "#/components/schemas/IssueHistoryDtoDescriptionChange"
+          },
+          {
+            "$ref": "#/components/schemas/IssueHistoryDtoPriorityChange"
+          },
+          {
+            "$ref": "#/components/schemas/IssueHistoryDtoVehicleChange"
           }
         ]
       },
@@ -900,6 +912,12 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "assigneeFrom": {
+            "$ref": "#/components/schemas/AccountDto"
+          },
+          "assigneeTo": {
+            "$ref": "#/components/schemas/AccountDto"
           }
         }
       },
@@ -928,13 +946,13 @@
           }
         }
       },
-      "IssueHistoryDtoUpdate": {
+      "IssueHistoryDtoTitleChange": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
             "enum": [
-              "UPDATE"
+              "TITLE_CHANGE"
             ]
           },
           "id": {
@@ -948,17 +966,117 @@
             "type": "string",
             "format": "date-time"
           },
-          "changedFields": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "TITLE",
-                "DESCRIPTION",
-                "PRIORITY",
-                "VEHICLE"
-              ]
-            }
+          "titleFrom": {
+            "type": "string"
+          },
+          "titleTo": {
+            "type": "string"
+          }
+        }
+      },
+      "IssueHistoryDtoDescriptionChange": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "DESCRIPTION_CHANGE"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "performedBy": {
+            "$ref": "#/components/schemas/AccountDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "descriptionFrom": {
+            "type": "string"
+          },
+          "descriptionTo": {
+            "type": "string"
+          }
+        }
+      },
+      "IssueHistoryDtoPriorityChange": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "PRIORITY_CHANGE"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "performedBy": {
+            "$ref": "#/components/schemas/AccountDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priorityFrom": {
+            "type": "string",
+            "enum": [
+              "P1_HIGH",
+              "P3_MEDIUM",
+              "P5_LOW"
+            ]
+          },
+          "priorityTo": {
+            "type": "string",
+            "enum": [
+              "P1_HIGH",
+              "P3_MEDIUM",
+              "P5_LOW"
+            ]
+          }
+        }
+      },
+      "IssueHistoryDtoVehicleChange": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "VEHICLE_CHANGE"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "performedBy": {
+            "$ref": "#/components/schemas/AccountDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "vehicleFrom": {
+            "$ref": "#/components/schemas/IssueHistoryVehicleDto"
+          },
+          "vehicleTo": {
+            "$ref": "#/components/schemas/IssueHistoryVehicleDto"
+          }
+        }
+      },
+      "IssueHistoryVehicleDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "licensePlate": {
+            "type": "string"
           }
         }
       },

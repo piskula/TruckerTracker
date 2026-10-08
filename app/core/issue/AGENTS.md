@@ -48,10 +48,9 @@ for what the current user may edit and do on an issue; feature modules should re
 `IssueCapabilities` has two nested groups:
 - `editing: EditingCapabilities` — per-field edit permissions. Nothing is editable once the issue is
   `Done` or `Cancelled`, regardless of role. Otherwise, for the reporting driver
-  (`issue.reportedBy.id == user.id`, `user.isDriver`): title and vehicle are editable only while
-  `Open`; description and priority stay editable through `InProgress` too, so the reporter can still
-  add detail or reprioritize while a mechanic is actively working the issue. The assigned mechanic
-  (`issue.assignedTo.id == user.id`, `user.isMechanic`) can edit vehicle — note `assignedTo` stays set
+  (`issue.reportedBy.id == user.id`, `user.isDriver`): title, description, priority and vehicle are
+  editable only while `Open`, before any work has started. The assigned mechanic
+  (`issue.assignedTo.id == user.id`, `user.isMechanic`) can edit priority and vehicle — note `assignedTo` stays set
   after the issue closes, so this path relies on the terminal-state guard above rather than checking
   status itself.
 - `actions: ActionCapabilities` — lifecycle actions. `nextStateAction` (`IssueStateAction?`) is the
@@ -68,12 +67,12 @@ for what the current user may edit and do on an issue; feature modules should re
 | `Issue` | Core entity: id, title, description, status, priority, vehicle, reportedBy, assignedTo, repairType, vehicleSystem, createdAt, updatedAt |
 | `RepairType` | Fixed enum set by the mechanic on start (`Damage`, `Fault`, `Installation`) — same shape as `IssueStatus`/`IssuePriority`, localized via compose string resources, not fetched from the server |
 | `VehicleSystem` | Fixed enum, same shape/localization as `RepairType` (`Electrical`, `Tires`, `Body`, `Engine`, `Drivetrain`, `Brakes`, `Air`, `Tarp`, `Cooling`, `Other`) |
-| `IssueStatus` | `Open`, `InProgress`, `Done` |
+| `IssueStatus` | `Open`, `InProgress`, `Done`, `Cancelled`. `isClosed()` is true for `Done` and `Cancelled` — use it instead of listing the closed statuses at call sites |
 | `IssuePriority` | `High`, `Medium`, `Low` |
 | `Account` | Minimal user reference: id, username, firstName, lastName. Has `fullName` computed property. |
 | `IssueCreate` | Input model for creating an issue |
-| `IssueHistory` | A `sealed interface` history entry — `StatusChange`, `AssigneeChange`, `Comment`, `Update` — mirroring `IssueHistoryDto`'s polymorphic wire shape. Each subtype carries only its own fields (e.g. `StatusChange.statusTo`, `Comment.commentText`); there's no flat "one field per possible type" shape and no separate discriminant enum. |
-| `IssueUpdatedField` | `Title`, `Description`, `Priority`, `Vehicle` — which fields an `IssueHistory.Update` entry changed |
+| `IssueUpdate` | Input model for editing an issue: vehicleId, title, description, priority |
+| `IssueHistory` | A `sealed interface` history entry — `StatusChange`, `AssigneeChange`, `Comment`, `TitleChange`, `DescriptionChange`, `PriorityChange`, `VehicleChange` — mirroring `IssueHistoryDto`'s polymorphic wire shape. Each subtype carries only its own fields (e.g. `StatusChange.statusTo`, `PriorityChange.priorityFrom`/`priorityTo`, `AssigneeChange.assigneeTo`); there's no flat "one field per possible type" shape and no separate discriminant enum. One edited field produces one entry of its own type — there is no combined "update" entry. |
 | `IssueAttachment` | Photo metadata: id, filename, url |
 | `IssueCapabilities` | What the current user may edit (`editing: EditingCapabilities`) and do (`actions: ActionCapabilities`) on an issue |
 | `IssueStateAction` | `StartWorking`, `ResolveIssue`, `Reassign`, `Cancel` — the current user's next available action on an issue |

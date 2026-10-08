@@ -19,17 +19,14 @@ class IssueCapabilityRepositoryImpl : IssueCapabilityRepository {
     )
 
     private fun resolveEditing(issue: Issue, user: User): EditingCapabilities {
-        if (issue.status == IssueStatus.Done || issue.status == IssueStatus.Cancelled) return EditingCapabilities.None
+        if (issue.status.isClosed()) return EditingCapabilities.None
 
-        val isReporter = isReportingDriver(issue, user)
-        val isOpenOrInProgress = issue.status == IssueStatus.Open || issue.status == IssueStatus.InProgress
-        val canEditAsReportingDriver = isReporter && issue.status == IssueStatus.Open
-        val canEditWhileBeingWorkedOn = isReporter && isOpenOrInProgress
+        val canEditAsReportingDriver = isReportingDriver(issue, user) && issue.status == IssueStatus.Open
 
         return EditingCapabilities(
             canEditTitle = canEditAsReportingDriver,
-            canEditDescription = canEditWhileBeingWorkedOn,
-            canEditPriority = canEditWhileBeingWorkedOn,
+            canEditDescription = canEditAsReportingDriver,
+            canEditPriority = canEditAsReportingDriver || isAssignedMechanic(issue, user),
             canEditVehicle = canEditAsReportingDriver || isAssignedMechanic(issue, user),
         )
     }

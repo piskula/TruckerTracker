@@ -37,8 +37,11 @@
     <string name="issue_detail_description">Description</string>
     <string name="issue_detail_history">History</string>
     <string name="issue_detail_history_empty">No history yet</string>
-    <string name="issue_detail_history_reassigned">Reassigned</string>
-    <string name="issue_detail_history_updated">Updated: %1$s</string>
+    <string name="issue_detail_history_reassigned_to">Reassigned to %1$s</string>
+    <string name="issue_detail_history_title_changed">Title changed</string>
+    <string name="issue_detail_history_description_changed">Description changed</string>
+    <string name="issue_detail_history_priority_changed">Priority: %1$s → %2$s</string>
+    <string name="issue_detail_history_vehicle_changed">Vehicle: %1$s → %2$s</string>
     <string name="issue_detail_add_comment">Add Comment</string>
     <string name="issue_detail_comment_placeholder">Write a comment…</string>
     <string name="issue_detail_photos_loading">Photos</string>

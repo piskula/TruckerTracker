@@ -29,6 +29,8 @@ sealed interface IssueHistoryDto {
         override val id: Uuid,
         override val performedBy: AccountDto,
         override val createdAt: Instant,
+        val assigneeFrom: AccountDto,
+        val assigneeTo: AccountDto,
     ) : IssueHistoryDto
 
     @Serializable
@@ -41,11 +43,42 @@ sealed interface IssueHistoryDto {
     ) : IssueHistoryDto
 
     @Serializable
-    @SerialName("UPDATE")
-    data class Update(
+    @SerialName("TITLE_CHANGE")
+    data class TitleChange(
         override val id: Uuid,
         override val performedBy: AccountDto,
         override val createdAt: Instant,
-        val changedFields: List<IssueUpdatedFieldDto>,
+        val titleFrom: String,
+        val titleTo: String,
+    ) : IssueHistoryDto
+
+    @Serializable
+    @SerialName("DESCRIPTION_CHANGE")
+    data class DescriptionChange(
+        override val id: Uuid,
+        override val performedBy: AccountDto,
+        override val createdAt: Instant,
+        val descriptionFrom: String,
+        val descriptionTo: String,
+    ) : IssueHistoryDto
+
+    @Serializable
+    @SerialName("PRIORITY_CHANGE")
+    data class PriorityChange(
+        override val id: Uuid,
+        override val performedBy: AccountDto,
+        override val createdAt: Instant,
+        val priorityFrom: IssuePriorityDto,
+        val priorityTo: IssuePriorityDto,
+    ) : IssueHistoryDto
+
+    @Serializable
+    @SerialName("VEHICLE_CHANGE")
+    data class VehicleChange(
+        override val id: Uuid,
+        override val performedBy: AccountDto,
+        override val createdAt: Instant,
+        val vehicleFrom: IssueHistoryVehicleDto,
+        val vehicleTo: IssueHistoryVehicleDto,
     ) : IssueHistoryDto
 }

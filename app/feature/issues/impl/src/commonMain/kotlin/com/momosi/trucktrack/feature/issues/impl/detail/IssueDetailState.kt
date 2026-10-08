@@ -4,7 +4,6 @@ import androidx.compose.runtime.Immutable
 import com.momosi.trucktrack.core.issue.model.IssueCapabilities
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStatus
-import com.momosi.trucktrack.core.issue.model.IssueUpdatedField
 import com.momosi.trucktrack.core.issue.model.RepairType
 import com.momosi.trucktrack.core.issue.model.VehicleSystem
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
@@ -71,13 +70,22 @@ sealed interface IssueHistoryUi {
     data class StatusChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val statusTo: IssueStatus) : IssueHistoryUi
 
     @Immutable
-    data class AssigneeChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String) : IssueHistoryUi
+    data class AssigneeChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val assigneeName: String) : IssueHistoryUi
 
     @Immutable
     data class Comment(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val commentText: String) : IssueHistoryUi
 
     @Immutable
-    data class Update(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val changedFields: ImmutableList<IssueUpdatedField>) : IssueHistoryUi
+    data class TitleChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val titleFrom: String, val titleTo: String) : IssueHistoryUi
+
+    @Immutable
+    data class DescriptionChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val descriptionFrom: String, val descriptionTo: String) : IssueHistoryUi
+
+    @Immutable
+    data class PriorityChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val priorityFrom: IssuePriority, val priorityTo: IssuePriority) : IssueHistoryUi
+
+    @Immutable
+    data class VehicleChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val vehicleFrom: String, val vehicleTo: String) : IssueHistoryUi
 }
 
 @Immutable

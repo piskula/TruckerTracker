@@ -28,8 +28,11 @@ class AssignInProgressIssueToMe(
             throw GlobalUnprocessableException("Issue must be IN_PROGRESS to change currently assigned mechanic.")
         }
 
+        val currentAssignee = issue.assignedTo
+            ?: throw GlobalUnprocessableException("Issue has no assigned mechanic to take over from.")
+
         val mechanic: AccountModel = currentUserService.currentUser()
-        if (issue.assignedTo?.id == mechanic.id) {
+        if (currentAssignee.id == mechanic.id) {
             throw GlobalUnprocessableException("Issue is already assigned to you.")
         }
 
@@ -41,6 +44,8 @@ class AssignInProgressIssueToMe(
                 issueId = saved.id,
                 performedBy = mechanic,
                 createdAt = now,
+                assigneeFrom = currentAssignee,
+                assigneeTo = mechanic,
             )
         )
         return saved
