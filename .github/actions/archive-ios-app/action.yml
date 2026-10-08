@@ -1,5 +1,5 @@
 name: Archive signed iOS app
-description: Fetches the environment's Firebase config, archives and exports an ad-hoc signed .ipa, and uploads its dSYMs to Crashlytics.
+description: Fetches the environment's Firebase config, archives and exports an ad-hoc signed .ipa (plus an App Store signed one when requested), and uploads its dSYMs to Crashlytics.
 inputs:
     environment:
         description: App environment passed to Xcode as APP_ENVIRONMENT (staging or prod)
@@ -31,6 +31,12 @@ inputs:
     output-path:
         description: Path the exported .ipa is moved to
         required: true
+    app-store-profile-name:
+        description: Name of the installed App Store provisioning profile for the bundle ID; no App Store .ipa is exported when empty
+        default: ''
+    app-store-output-path:
+        description: Path the exported App Store .ipa is moved to
+        default: ''
 runs:
     using: composite
     steps:
@@ -82,15 +88,22 @@ runs:
                 IOS_TEAM_ID: ${{ inputs.team-id }}
                 PROFILE_NAME: ${{ inputs.profile-name }}
                 OUTPUT_PATH: ${{ inputs.output-path }}
+                APP_STORE_PROFILE_NAME: ${{ inputs.app-store-profile-name }}
+                APP_STORE_OUTPUT_PATH: ${{ inputs.app-store-output-path }}
             run: |
-                EXPORT_OPTIONS="$RUNNER_TEMP/exportOptions-$APP_ENVIRONMENT.plist"
-                cat > "$EXPORT_OPTIONS" <<PLIST
+                export_ipa() {
+                    local METHOD="$1"
+                    local EXPORT_PROFILE_NAME="$2"
+                    local EXPORT_OUTPUT_PATH="$3"
+                    local EXPORT_OPTIONS="$RUNNER_TEMP/exportOptions-$APP_ENVIRONMENT-$METHOD.plist"
+                    local EXPORT_DIR="$RUNNER_TEMP/export-$APP_ENVIRONMENT-$METHOD"
+                    cat > "$EXPORT_OPTIONS" <<PLIST
                 <?xml version="1.0" encoding="UTF-8"?>
                 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
                 <plist version="1.0">
                 <dict>
                     <key>method</key>
-                    <string>ad-hoc</string>
+                    <string>$METHOD</string>
                     <key>teamID</key>
                     <string>$IOS_TEAM_ID</string>
                     <key>signingStyle</key>
@@ -98,18 +111,24 @@ runs:
                     <key>provisioningProfiles</key>
                     <dict>
                         <key>$BUNDLE_ID</key>
-                        <string>$PROFILE_NAME</string>
+                        <string>$EXPORT_PROFILE_NAME</string>
                     </dict>
                 </dict>
                 </plist>
                 PLIST
 
-                xcodebuild -exportArchive \
-                    -archivePath "$RUNNER_TEMP/iosApp-$APP_ENVIRONMENT.xcarchive" \
-                    -exportPath "$RUNNER_TEMP/export-$APP_ENVIRONMENT" \
-                    -exportOptionsPlist "$EXPORT_OPTIONS"
-                mkdir -p "$(dirname "$OUTPUT_PATH")"
-                mv "$RUNNER_TEMP/export-$APP_ENVIRONMENT/iosApp.ipa" "$OUTPUT_PATH"
+                    xcodebuild -exportArchive \
+                        -archivePath "$RUNNER_TEMP/iosApp-$APP_ENVIRONMENT.xcarchive" \
+                        -exportPath "$EXPORT_DIR" \
+                        -exportOptionsPlist "$EXPORT_OPTIONS"
+                    mkdir -p "$(dirname "$EXPORT_OUTPUT_PATH")"
+                    mv "$EXPORT_DIR/iosApp.ipa" "$EXPORT_OUTPUT_PATH"
+                }
+
+                export_ipa ad-hoc "$PROFILE_NAME" "$OUTPUT_PATH"
+                if [ -n "$APP_STORE_PROFILE_NAME" ]; then
+                    export_ipa app-store-connect "$APP_STORE_PROFILE_NAME" "$APP_STORE_OUTPUT_PATH"
+                fi
 
         -   name: Upload debug symbols to Crashlytics (${{ inputs.environment }})
             shell: bash

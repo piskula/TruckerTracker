@@ -30,6 +30,8 @@
 	<string>$(TT_OAUTH_CLIENT_ID)</string>
 	<key>TTRealmUrl</key>
 	<string>$(TT_REALM_URL)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

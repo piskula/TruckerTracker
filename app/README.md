@@ -124,6 +124,7 @@ Every release covers **both** environments (staging and prod) from the same comm
   warning) if the `.ipa`s are missing.
 - **`distribute-android`** / **`distribute-ios`** — push each APK / `.ipa` to its own Firebase app
   (staging / prod), both to the `release` group in Firebase App Distribution.
+- **`upload-testflight`** — uploads the App Store signed prod `.ipa` to TestFlight.
 - See [Releasing](#releasing) for the tag format and required secrets.
 
 ## Project structure
@@ -250,8 +251,13 @@ git push origin v1.2.3
   `IOS_STAGING_ADHOC_PROFILE_BASE64` and `IOS_PROD_ADHOC_PROFILE_BASE64` (all must be configured — see the `manage-ios-signing` skill for adding
   testers or renewing the certificate). If any go missing or expire, this step falls back to
   skipping with a warning rather than failing the release.
+- **TestFlight** — the prod archive is additionally exported with the App Store profile and uploaded
+  to App Store Connect by the `upload-testflight` job. Requires `IOS_PROD_APPSTORE_PROFILE_BASE64`,
+  `APP_STORE_CONNECT_API_KEY_BASE64`, `APP_STORE_CONNECT_API_KEY_ID` and `APP_STORE_CONNECT_ISSUER_ID`;
+  skipped with a warning when any are missing. Builds land in TestFlight for internal testers;
+  submitting for App Store review is done manually in App Store Connect.
 - Firebase distribution uses `FIREBASE_{STAGING,PROD}_{ANDROID,IOS}_APP_ID`, all to the `release`
-  group. Store uploads (Play Store / App Store) aren't automated yet.
+  group. Play Store uploads aren't automated yet.
 
 ## Docs
 

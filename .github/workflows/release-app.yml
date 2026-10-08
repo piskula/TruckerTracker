@@ -144,6 +144,7 @@ jobs:
         runs-on: macos-15
         outputs:
             signed: ${{ steps.check-secrets.outputs.configured }}
+            app-store: ${{ steps.check-secrets.outputs.app-store }}
         env:
             VERSION_NAME: ${{ needs.prepare.outputs.version-name }}
             VERSION_CODE: ${{ needs.prepare.outputs.version-code }}
@@ -169,12 +170,23 @@ jobs:
                         echo "::warning::iOS signing secrets are not configured yet — skipping the iOS release build. See docs/KMP_IOS_READINESS.md."
                         echo "configured=false" >> "$GITHUB_OUTPUT"
                     fi
+
+                    if [ -n "$IOS_PROD_APPSTORE_PROFILE_B64" ] && [ -n "$ASC_KEY_B64" ] && [ -n "$ASC_KEY_ID" ] && [ -n "$ASC_ISSUER_ID" ]; then
+                        echo "app-store=true" >> "$GITHUB_OUTPUT"
+                    else
+                        echo "::warning::App Store Connect secrets are not configured — skipping the TestFlight upload."
+                        echo "app-store=false" >> "$GITHUB_OUTPUT"
+                    fi
                 env:
                     IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
                     IOS_CERT_B64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
                     IOS_CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
                     IOS_STAGING_PROFILE_B64: ${{ secrets.IOS_STAGING_ADHOC_PROFILE_BASE64 }}
                     IOS_PROD_PROFILE_B64: ${{ secrets.IOS_PROD_ADHOC_PROFILE_BASE64 }}
+                    IOS_PROD_APPSTORE_PROFILE_B64: ${{ secrets.IOS_PROD_APPSTORE_PROFILE_BASE64 }}
+                    ASC_KEY_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+                    ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+                    ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
 
             -   name: Cache CocoaPods
                 if: steps.check-secrets.outputs.configured == 'true'
@@ -197,6 +209,8 @@ jobs:
                     IOS_CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
                     IOS_STAGING_PROFILE_B64: ${{ secrets.IOS_STAGING_ADHOC_PROFILE_BASE64 }}
                     IOS_PROD_PROFILE_B64: ${{ secrets.IOS_PROD_ADHOC_PROFILE_BASE64 }}
+                    IOS_PROD_APPSTORE_PROFILE_B64: ${{ secrets.IOS_PROD_APPSTORE_PROFILE_BASE64 }}
+                    INSTALL_APP_STORE_PROFILE: ${{ steps.check-secrets.outputs.app-store }}
                 run: |
                     KEYCHAIN_PATH="$RUNNER_TEMP/ios-signing.keychain-db"
                     KEYCHAIN_PASSWORD=$(uuidgen)
@@ -229,6 +243,9 @@ jobs:
                     }
                     install_profile staging "$IOS_STAGING_PROFILE_B64" STAGING_PROFILE_NAME
                     install_profile prod "$IOS_PROD_PROFILE_B64" PROD_PROFILE_NAME
+                    if [ "$INSTALL_APP_STORE_PROFILE" = "true" ]; then
+                        install_profile prod-appstore "$IOS_PROD_APPSTORE_PROFILE_B64" PROD_APPSTORE_PROFILE_NAME
+                    fi
 
             -   name: Archive signed staging release
                 if: steps.check-secrets.outputs.configured == 'true'
@@ -259,6 +276,8 @@ jobs:
                     marketing-version: ${{ env.VERSION_NAME }}
                     build-number: ${{ env.VERSION_CODE }}
                     output-path: dist/truck-track-prod-${{ env.VERSION_NAME }}.ipa
+                    app-store-profile-name: ${{ env.PROD_APPSTORE_PROFILE_NAME }}
+                    app-store-output-path: dist-appstore/truck-track-prod-${{ env.VERSION_NAME }}.ipa
 
             -   name: Upload iOS release artifacts
                 if: steps.check-secrets.outputs.configured == 'true'
@@ -266,6 +285,14 @@ jobs:
                 with:
                     name: ios-release
                     path: dist/*.ipa
+                    retention-days: 7
+
+            -   name: Upload iOS App Store artifact
+                if: steps.check-secrets.outputs.configured == 'true' && steps.check-secrets.outputs.app-store == 'true'
+                uses: actions/upload-artifact@v4
+                with:
+                    name: ios-appstore
+                    path: dist-appstore/*.ipa
                     retention-days: 7
 
             -   name: Clean up signing keychain
@@ -402,3 +429,41 @@ jobs:
                 env:
                     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
                     FIREBASE_PROD_IOS_APP_ID: ${{ secrets.FIREBASE_PROD_IOS_APP_ID }}
+
+    upload-testflight:
+        needs: [ prepare, build-ios, publish-release ]
+        if: needs.build-ios.outputs.signed == 'true' && needs.build-ios.outputs.app-store == 'true'
+        runs-on: macos-15
+        env:
+            VERSION_NAME: ${{ needs.prepare.outputs.version-name }}
+
+        steps:
+            -   name: Download iOS App Store artifact
+                uses: actions/download-artifact@v4
+                with:
+                    name: ios-appstore
+                    path: artifacts
+
+            -   name: Install App Store Connect API key
+                env:
+                    ASC_KEY_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+                    ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+                run: |
+                    KEY_DIR="$HOME/.appstoreconnect/private_keys"
+                    mkdir -p "$KEY_DIR"
+                    echo "$ASC_KEY_B64" | base64 -D -o "$KEY_DIR/AuthKey_$ASC_KEY_ID.p8"
+
+            -   name: Upload prod .ipa to TestFlight
+                env:
+                    ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+                    ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+                run: |
+                    xcrun altool --upload-app \
+                        --type ios \
+                        --file "artifacts/truck-track-prod-$VERSION_NAME.ipa" \
+                        --apiKey "$ASC_KEY_ID" \
+                        --apiIssuer "$ASC_ISSUER_ID"
+
+            -   name: Remove App Store Connect API key
+                if: always()
+                run: rm -rf "$HOME/.appstoreconnect/private_keys"
