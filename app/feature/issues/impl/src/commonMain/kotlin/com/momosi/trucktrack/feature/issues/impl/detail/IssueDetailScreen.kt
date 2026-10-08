@@ -108,7 +108,6 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_description_changed
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_empty
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_priority_changed
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_reassigned
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_reassigned_to
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_title_changed
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_detail_history_vehicle_changed
@@ -883,9 +882,7 @@ private fun TimelineStep(
 
                 is IssueHistoryUi.AssigneeChange -> {
                     Text(
-                        text = entry.assigneeName
-                            ?.let { stringResource(Res.string.issue_detail_history_reassigned_to, it) }
-                            ?: stringResource(Res.string.issue_detail_history_reassigned),
+                        text = stringResource(Res.string.issue_detail_history_reassigned_to, entry.assigneeName),
                         style = AppTheme.typography.titleSmall,
                         color = AppTheme.colors.onSurface,
                     )

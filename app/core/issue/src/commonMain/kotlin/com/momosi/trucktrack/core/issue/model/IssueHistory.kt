@@ -9,7 +9,7 @@ sealed interface IssueHistory {
 
     data class StatusChange(override val id: String, override val performedBy: Account?, override val createdAt: Instant, val statusFrom: IssueStatus?, val statusTo: IssueStatus) : IssueHistory
 
-    data class AssigneeChange(override val id: String, override val performedBy: Account?, override val createdAt: Instant, val assigneeTo: Account?) : IssueHistory
+    data class AssigneeChange(override val id: String, override val performedBy: Account?, override val createdAt: Instant, val assigneeTo: Account) : IssueHistory
 
     data class Comment(override val id: String, override val performedBy: Account?, override val createdAt: Instant, val commentText: String) : IssueHistory
 

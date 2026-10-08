@@ -31,7 +31,7 @@ class UpdateIssue(
         val issue = issuePersistence.findByIdOrThrow(issueId)
         val currentUser: AccountModel = currentUserService.currentUser()
 
-        if (issue.status == IssueStatus.DONE || issue.status == IssueStatus.CANCELED) {
+        if (issue.status.isClosed()) {
             throw GlobalUnprocessableException("Issue must not be DONE or CANCELED to update, current status: ${issue.status}")
         }
 
@@ -72,8 +72,8 @@ class UpdateIssue(
         val isOpen = issue.status == IssueStatus.OPEN
         return buildSet {
             if (isReporter && isOpen) add(IssueUpdatedField.TITLE)
-            if (isReporter) add(IssueUpdatedField.DESCRIPTION)
-            if ((isReporter || isMechanic) && isOpen) add(IssueUpdatedField.PRIORITY)
+            if (isReporter && isOpen) add(IssueUpdatedField.DESCRIPTION)
+            if ((isReporter && isOpen) || isAssignedMechanic) add(IssueUpdatedField.PRIORITY)
             if ((isReporter && isOpen) || isAssignedMechanic) add(IssueUpdatedField.VEHICLE)
         }
     }

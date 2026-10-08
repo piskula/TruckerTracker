@@ -37,8 +37,7 @@
     <string name="issue_detail_description">Popis</string>
     <string name="issue_detail_history">História</string>
     <string name="issue_detail_history_empty">Zatiaľ bez histórie</string>
-    <string name="issue_detail_history_reassigned">Prepriradené</string>
-    <string name="issue_detail_history_reassigned_to">Prepriradené na %1$s</string>
+    <string name="issue_detail_history_reassigned_to">Pridelené mechanikovi %1$s</string>
     <string name="issue_detail_history_title_changed">Zmenený názov</string>
     <string name="issue_detail_history_description_changed">Zmenený popis</string>
     <string name="issue_detail_history_priority_changed">Priorita: %1$s → %2$s</string>

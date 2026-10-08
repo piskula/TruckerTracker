@@ -309,7 +309,7 @@ class IssueDetailViewModel(
             id = id,
             performedByName = performedBy?.fullName,
             createdAtFormatted = dateFormatter.formatDateTime(createdAt),
-            assigneeName = assigneeTo?.fullName,
+            assigneeName = assigneeTo.fullName,
         )
 
         is IssueHistory.Comment -> IssueHistoryUi.Comment(

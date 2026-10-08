@@ -89,7 +89,7 @@ internal fun IssueHistoryDto.toIssueHistory(): IssueHistory = when (this) {
         id = id.toString(),
         performedBy = performedBy.toAccount(),
         createdAt = createdAt,
-        assigneeTo = assigneeTo?.toAccount(),
+        assigneeTo = assigneeTo.toAccount(),
     )
 
     is IssueHistoryDto.Comment -> IssueHistory.Comment(

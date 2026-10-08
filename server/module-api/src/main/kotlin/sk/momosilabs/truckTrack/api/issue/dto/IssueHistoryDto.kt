@@ -32,8 +32,8 @@ sealed interface IssueHistoryDto {
         override val id: UUID,
         override val performedBy: AccountDto,
         override val createdAt: OffsetDateTime,
-        val assigneeFrom: AccountDto?,
-        val assigneeTo: AccountDto?,
+        val assigneeFrom: AccountDto,
+        val assigneeTo: AccountDto,
     ) : IssueHistoryDto
 
     data class Comment(

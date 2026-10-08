@@ -29,8 +29,8 @@ sealed interface IssueHistoryDto {
         override val id: Uuid,
         override val performedBy: AccountDto,
         override val createdAt: Instant,
-        val assigneeFrom: AccountDto? = null,
-        val assigneeTo: AccountDto? = null,
+        val assigneeFrom: AccountDto,
+        val assigneeTo: AccountDto,
     ) : IssueHistoryDto
 
     @Serializable

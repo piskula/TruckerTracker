@@ -26,8 +26,8 @@ sealed interface IssueHistoryModel {
         override val issueId: Long,
         override val performedBy: AccountModel,
         override val createdAt: OffsetDateTime,
-        val assigneeFrom: AccountModel?,
-        val assigneeTo: AccountModel?,
+        val assigneeFrom: AccountModel,
+        val assigneeTo: AccountModel,
     ) : IssueHistoryModel
 
     data class Comment(

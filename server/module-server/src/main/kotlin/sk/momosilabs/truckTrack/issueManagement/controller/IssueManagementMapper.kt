@@ -54,8 +54,8 @@ fun IssueHistoryModel.toDto(): IssueHistoryDto = when (this) {
         id = id,
         performedBy = performedBy.toDto(),
         createdAt = createdAt,
-        assigneeFrom = assigneeFrom?.toDto(),
-        assigneeTo = assigneeTo?.toDto(),
+        assigneeFrom = assigneeFrom.toDto(),
+        assigneeTo = assigneeTo.toDto(),
     )
 
     is IssueHistoryModel.Comment -> IssueHistoryDto.Comment(

@@ -70,7 +70,7 @@ sealed interface IssueHistoryUi {
     data class StatusChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val statusTo: IssueStatus) : IssueHistoryUi
 
     @Immutable
-    data class AssigneeChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val assigneeName: String?) : IssueHistoryUi
+    data class AssigneeChange(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val assigneeName: String) : IssueHistoryUi
 
     @Immutable
     data class Comment(override val id: String, override val performedByName: String?, override val createdAtFormatted: String, val commentText: String) : IssueHistoryUi

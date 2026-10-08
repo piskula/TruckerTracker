@@ -37,7 +37,6 @@
     <string name="issue_detail_description">Description</string>
     <string name="issue_detail_history">History</string>
     <string name="issue_detail_history_empty">No history yet</string>
-    <string name="issue_detail_history_reassigned">Reassigned</string>
     <string name="issue_detail_history_reassigned_to">Reassigned to %1$s</string>
     <string name="issue_detail_history_title_changed">Title changed</string>
     <string name="issue_detail_history_description_changed">Description changed</string>

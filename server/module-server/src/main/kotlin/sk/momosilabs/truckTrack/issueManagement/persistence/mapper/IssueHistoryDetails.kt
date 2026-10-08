@@ -19,8 +19,8 @@ data class DescriptionChangeDetails(
 )
 
 data class AssigneeChangeDetails(
-    val assigneeFrom: AccountModel?,
-    val assigneeTo: AccountModel?,
+    val assigneeFrom: AccountModel,
+    val assigneeTo: AccountModel,
 )
 
 data class PriorityChangeDetails(

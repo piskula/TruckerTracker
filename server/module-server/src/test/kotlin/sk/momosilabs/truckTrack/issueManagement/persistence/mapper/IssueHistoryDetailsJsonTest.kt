@@ -27,7 +27,8 @@ class IssueHistoryDetailsJsonTest {
     lateinit var objectMapper: ObjectMapper
 
     private val performer = AccountModel(id = UUID.randomUUID(), username = "mech", firstName = "Mattia", lastName = "Binotto")
-    private val createdAt = OffsetDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.MICROS)
+    private val previousAssignee = AccountModel(id = UUID.randomUUID(), username = "prev", firstName = "Toto", lastName = "Wolff")
+    private val createdAt =OffsetDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.MICROS)
 
     @Test
     fun `every history type survives a round trip through the details column`() {
@@ -41,7 +42,7 @@ class IssueHistoryDetailsJsonTest {
                 IssueHistoryModel.VehicleSnapshot(1, "BA-111-AA"),
                 IssueHistoryModel.VehicleSnapshot(2, "BA-222-BB"),
             ),
-            IssueHistoryModel.AssigneeChange(UUID.randomUUID(), ISSUE_ID, performer, createdAt, assigneeFrom = null, assigneeTo = performer),
+            IssueHistoryModel.AssigneeChange(UUID.randomUUID(), ISSUE_ID, performer, createdAt, assigneeFrom = previousAssignee, assigneeTo = performer),
             IssueHistoryModel.StatusChange(UUID.randomUUID(), ISSUE_ID, performer, createdAt, IssueStatus.OPEN, IssueStatus.IN_PROGRESS),
         )
 
@@ -53,12 +54,20 @@ class IssueHistoryDetailsJsonTest {
     @Test
     fun `migrated rows written by the SQL changeset are readable`() {
         val comment = entity(IssueHistoryModel.Comment(UUID.randomUUID(), ISSUE_ID, performer, createdAt, "x"), """{"commentText": "Legacy"}""")
-        val assignee = entity(IssueHistoryModel.AssigneeChange(UUID.randomUUID(), ISSUE_ID, performer, createdAt, null, null), null)
+        val assignee = entity(
+            IssueHistoryModel.AssigneeChange(UUID.randomUUID(), ISSUE_ID, performer, createdAt, previousAssignee, performer),
+            """
+            {
+              "assigneeFrom": {"id": "${previousAssignee.id}", "username": "${previousAssignee.username}", "firstName": "${previousAssignee.firstName}", "lastName": "${previousAssignee.lastName}"},
+              "assigneeTo": {"id": "${performer.id}", "username": "${performer.username}", "firstName": "${performer.firstName}", "lastName": "${performer.lastName}"}
+            }
+            """,
+        )
 
         assertThat((comment.toModel(objectMapper) as IssueHistoryModel.Comment).commentText).isEqualTo("Legacy")
-        val legacyAssignee = assignee.toModel(objectMapper) as IssueHistoryModel.AssigneeChange
-        assertThat(legacyAssignee.assigneeFrom).isNull()
-        assertThat(legacyAssignee.assigneeTo).isNull()
+        val migratedAssignee = assignee.toModel(objectMapper) as IssueHistoryModel.AssigneeChange
+        assertThat(migratedAssignee.assigneeFrom).isEqualTo(previousAssignee)
+        assertThat(migratedAssignee.assigneeTo).isEqualTo(performer)
     }
 
     private fun IssueHistoryModel.toPersistedEntity() = entity(this, toDetailsJson(objectMapper))

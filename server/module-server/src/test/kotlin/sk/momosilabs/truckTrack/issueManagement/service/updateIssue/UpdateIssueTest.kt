@@ -47,8 +47,8 @@ class UpdateIssueTest {
     }
 
     @Test
-    fun `any mechanic can change priority of an OPEN issue`() {
-        val persistence = FakeIssuePersistence(issue(IssueStatus.OPEN))
+    fun `assigned mechanic can change priority of an IN_PROGRESS issue`() {
+        val persistence = FakeIssuePersistence(issue(IssueStatus.IN_PROGRESS, assignedTo = mechanic))
 
         useCase(persistence, mechanic, isMechanic = true)
             .update(ISSUE_ID, command(priority = IssuePriority.P3_MEDIUM))
@@ -57,12 +57,34 @@ class UpdateIssueTest {
     }
 
     @Test
-    fun `priority cannot be changed once the issue is IN_PROGRESS`() {
+    fun `a mechanic who is not assigned cannot change priority`() {
+        val persistence = FakeIssuePersistence(issue(IssueStatus.OPEN))
+
+        assertThatThrownBy {
+            useCase(persistence, mechanic, isMechanic = true)
+                .update(ISSUE_ID, command(priority = IssuePriority.P3_MEDIUM))
+        }.isInstanceOf(GlobalForbiddenException::class.java)
+        assertThat(persistence.history).isEmpty()
+    }
+
+    @Test
+    fun `reporter cannot change priority once the issue is IN_PROGRESS`() {
         val persistence = FakeIssuePersistence(issue(IssueStatus.IN_PROGRESS, assignedTo = mechanic))
 
         assertThatThrownBy {
             useCase(persistence, reporter, isMechanic = false)
                 .update(ISSUE_ID, command(priority = IssuePriority.P1_HIGH))
+        }.isInstanceOf(GlobalForbiddenException::class.java)
+        assertThat(persistence.history).isEmpty()
+    }
+
+    @Test
+    fun `reporter cannot change description once the issue is IN_PROGRESS`() {
+        val persistence = FakeIssuePersistence(issue(IssueStatus.IN_PROGRESS, assignedTo = mechanic))
+
+        assertThatThrownBy {
+            useCase(persistence, reporter, isMechanic = false)
+                .update(ISSUE_ID, command(description = "New description"))
         }.isInstanceOf(GlobalForbiddenException::class.java)
         assertThat(persistence.history).isEmpty()
     }
