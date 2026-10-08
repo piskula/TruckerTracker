@@ -3,71 +3,17 @@ databaseChangeLog:
       id: 10-05-issue-history-details
       author: claude
       changes:
+        - delete:
+            tableName: issue_history
         - addColumn:
             tableName: issue_history
             columns:
               - column:
                   name: details
                   type: jsonb
-        - sql:
-            sql: >
-              UPDATE issue_history
-              SET details = jsonb_build_object('commentText', comment_text)
-              WHERE comment_text IS NOT NULL
-        - delete:
-            tableName: issue_history
-            where: type = 'UPDATE'
         - dropColumn:
             tableName: issue_history
             columnName: comment_text
         - dropColumn:
             tableName: issue_history
             columnName: changed_fields
-  - changeSet:
-      id: 10-05-issue-history-assignee-details
-      author: claude
-      changes:
-        - sql:
-            sql: >
-              WITH resolved AS (
-                SELECT
-                  reassign.id AS history_id,
-                  reassign.performed_by_id AS assignee_to_id,
-                  (
-                    SELECT previous.performed_by_id
-                    FROM issue_history previous
-                    WHERE previous.issue_id = reassign.issue_id
-                      AND previous.created_at_utc < reassign.created_at_utc
-                      AND (
-                        previous.type = 'ASSIGNEE_CHANGE'
-                        OR (previous.type = 'STATUS_CHANGE' AND previous.status_to = 'IN_PROGRESS')
-                      )
-                    ORDER BY previous.created_at_utc DESC
-                    LIMIT 1
-                  ) AS assignee_from_id
-                FROM issue_history reassign
-                WHERE reassign.type = 'ASSIGNEE_CHANGE'
-                  AND reassign.details IS NULL
-              )
-              UPDATE issue_history
-              SET details = jsonb_build_object(
-                'assigneeFrom', jsonb_build_object(
-                  'id', assignee_from.id,
-                  'username', assignee_from.username,
-                  'firstName', assignee_from.first_name,
-                  'lastName', assignee_from.last_name
-                ),
-                'assigneeTo', jsonb_build_object(
-                  'id', assignee_to.id,
-                  'username', assignee_to.username,
-                  'firstName', assignee_to.first_name,
-                  'lastName', assignee_to.last_name
-                )
-              )
-              FROM resolved
-              JOIN account assignee_from ON assignee_from.id = resolved.assignee_from_id
-              JOIN account assignee_to ON assignee_to.id = resolved.assignee_to_id
-              WHERE issue_history.id = resolved.history_id
-        - delete:
-            tableName: issue_history
-            where: type = 'ASSIGNEE_CHANGE' AND details IS NULL
