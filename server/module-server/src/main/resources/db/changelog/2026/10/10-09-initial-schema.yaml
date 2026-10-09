@@ -1,7 +1,259 @@
 databaseChangeLog:
   - changeSet:
-      id: 06-15-initial-vehicles
-      author: ooravcok
+      id: 1791577000000-01
+      author: piskula
+      changes:
+        - createTable:
+            tableName: account
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: vehicle
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: license_plate
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: make
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: model
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: issue
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: priority
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: vehicle_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_issue_vehicle
+                    references: vehicle(id)
+              - column:
+                  name: reported_by_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_issue_reported_by
+                    references: account(id)
+              - column:
+                  name: assigned_to_id
+                  type: uuid
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_issue_assigned_to
+                    references: account(id)
+              - column:
+                  name: created_at_utc
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at_utc
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: repair_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: vehicle_system
+                  type: varchar(50)
+                  constraints:
+                    nullable: true
+
+        - createTable:
+            tableName: issue_history
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: issue_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_issue_history_issue
+                    references: issue(id)
+              - column:
+                  name: type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: performed_by_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_issue_history_performed_by
+                    references: account(id)
+              - column:
+                  name: created_at_utc
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_from
+                  type: varchar(50)
+              - column:
+                  name: status_to
+                  type: varchar(50)
+              - column:
+                  name: details
+                  type: jsonb
+
+        - createTable:
+            tableName: file
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: uuid
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: bucket
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: storage_location
+                  type: varchar(1000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: filename
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: size_bytes
+                  type: bigint
+              - column:
+                  name: uploaded_by_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_file_uploaded_by
+                    references: account(id)
+              - column:
+                  name: uploaded_at_utc
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: issue_attachment
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: issue_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_issue_attachment_issue
+                    references: issue(id)
+              - column:
+                  name: file_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_issue_attachment_file
+                    references: file(id)
+
+  - changeSet:
+      id: 1791577000000-02
+      author: piskula
       changes:
 
         - insert:
