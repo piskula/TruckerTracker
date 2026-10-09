@@ -27,6 +27,10 @@ class SecurityConfig {
                 it.requestMatchers(
                     "/api/v1/version",
                 ).permitAll()
+                it.requestMatchers(
+                    "/actuator/health",
+                    "/actuator/health/**",
+                ).permitAll()
                 it.anyRequest().authenticated()
             }
             .oauth2ResourceServer { it.jwt {} }
