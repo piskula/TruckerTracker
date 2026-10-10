@@ -42,10 +42,10 @@ android {
         create("prod") {
             dimension = "environment"
             appConfig(
-                apiBaseUrl = "https://tt.momosi.org/",
-                realmUrl = "https://sso.momosi.org/realms/trucktrack/",
-                oauthClientId = "trucktrack-app",
-                appScheme = "com.momosi.trucktrack.staging",
+                apiBaseUrl = "https://transroute.org/",
+                realmUrl = "https://sso.transroute.org/realms/transroute/",
+                oauthClientId = "trucktrack-mobile",
+                appScheme = "com.momosi.trucktrack",
             )
         }
     }
