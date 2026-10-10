@@ -139,6 +139,14 @@ jobs:
                         dist/*.aab
                     retention-days: 7
 
+            -   name: Upload prod R8 mapping file
+                uses: actions/upload-artifact@v7
+                with:
+                    name: android-prod-mapping
+                    path: app/app/android/build/outputs/mapping/prodRelease/mapping.txt
+                    if-no-files-found: error
+                    retention-days: 7
+
     build-ios:
         needs: [ prepare ]
         runs-on: macos-15
@@ -429,6 +437,64 @@ jobs:
                 env:
                     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
                     FIREBASE_PROD_IOS_APP_ID: ${{ secrets.FIREBASE_PROD_IOS_APP_ID }}
+
+    upload-google-play:
+        needs: [ prepare, publish-release ]
+        runs-on: ubuntu-latest
+        env:
+            VERSION_NAME: ${{ needs.prepare.outputs.version-name }}
+
+        steps:
+            -   name: Check Google Play secrets are configured
+                id: check-secrets
+                run: |
+                    if [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+                        echo "configured=true" >> "$GITHUB_OUTPUT"
+                    else
+                        echo "::warning::PLAY_SERVICE_ACCOUNT_JSON is not configured — skipping the Google Play upload."
+                        echo "configured=false" >> "$GITHUB_OUTPUT"
+                    fi
+                env:
+                    PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+
+            -   name: Download release notes
+                if: steps.check-secrets.outputs.configured == 'true'
+                uses: actions/download-artifact@v8
+                with:
+                    name: release-notes
+
+            -   name: Download Android release artifacts
+                if: steps.check-secrets.outputs.configured == 'true'
+                uses: actions/download-artifact@v8
+                with:
+                    name: android-release
+                    path: artifacts
+
+            -   name: Download prod R8 mapping file
+                if: steps.check-secrets.outputs.configured == 'true'
+                uses: actions/download-artifact@v8
+                with:
+                    name: android-prod-mapping
+                    path: mapping
+
+            -   name: Prepare Play release notes
+                if: steps.check-secrets.outputs.configured == 'true'
+                run: |
+                    mkdir -p whatsnew
+                    grep -v '^Workflow run:' release-notes.txt | head -c 500 > whatsnew/whatsnew-en-US
+
+            -   name: Upload prod AAB to Google Play internal track
+                if: steps.check-secrets.outputs.configured == 'true'
+                uses: r0adkll/upload-google-play@v1.1.5
+                with:
+                    serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+                    packageName: com.momosi.trucktrack
+                    releaseFiles: artifacts/truck-track-prod-${{ env.VERSION_NAME }}.aab
+                    releaseName: ${{ env.VERSION_NAME }}
+                    track: internal
+                    status: completed
+                    whatsNewDirectory: whatsnew
+                    mappingFile: mapping/mapping.txt
 
     upload-testflight:
         needs: [ prepare, build-ios, publish-release ]
