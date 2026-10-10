@@ -36,6 +36,16 @@ server:
   # to allow swagger-ui to perform requests against HTTPS
   forward-headers-strategy: framework
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
 springdoc:
   oauth2:
     authorization-url: https://sso.momosi.org/realms/trucktrack/protocol/openid-connect/auth
