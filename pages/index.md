@@ -24,6 +24,11 @@ Ask your company's administrator, or email us. Account details are removed withi
 **The app crashed or something doesn't work.**
 Email us with your phone model, the app version (Profile screen) and what you were doing.
 
+## For administrators
+
+Company administrators manage user accounts, passwords and roles (driver / mechanic) in the
+**[administration console](https://sso.transroute.org/admin/transroute/console/)**.
+
 ## Legal
 
 - [Privacy policy](privacy/)

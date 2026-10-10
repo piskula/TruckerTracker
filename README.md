@@ -11,6 +11,7 @@ Boot backend, sharing one contract module of DTOs.
 ## Contents
 
 - [Architecture](#architecture)
+- [Environments](#environments)
 - [Repository layout](#repository-layout)
 - [Getting started](#getting-started)
 - [Continuous integration](#continuous-integration)
@@ -112,6 +113,16 @@ flowchart TD
     API -.->|validates tokens| Keycloak
     Keycloak --> AuthDB
 ```
+
+## Environments
+
+| | Staging | Prod |
+|---|---|---|
+| Backend API | [tt.momosi.org](https://tt.momosi.org/) | [transroute.org](https://transroute.org/) |
+| Keycloak realm | [sso.momosi.org/realms/trucktrack](https://sso.momosi.org/realms/trucktrack/) | [sso.transroute.org/realms/transroute](https://sso.transroute.org/realms/transroute/) |
+| Keycloak admin console | [sso.momosi.org/admin/trucktrack/console](https://sso.momosi.org/admin/trucktrack/console/) | [sso.transroute.org/admin/transroute/console](https://sso.transroute.org/admin/transroute/console/) |
+
+User accounts and roles (`DRIVER` / `MECHANIC`) are managed in the Keycloak admin console.
 
 ## Repository layout
 
