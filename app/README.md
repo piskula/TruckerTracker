@@ -79,6 +79,7 @@ run the `app:android` configuration.
 | Android app ID | `com.momosi.trucktrack.staging` | `com.momosi.trucktrack` |
 | iOS bundle ID | `com.momosi.trucktrack.staging` | `com.momosi.trucktrack` |
 | App name | Truck Track Staging | Truck Track |
+| App icon | Orange with a `TEST` banner — Android `src/staging/res` overrides, iOS `AppIcon-Staging` asset | Teal — Android `src/main/res`, iOS `AppIcon` asset |
 | Select it | Android flavor `staging` (default) · iOS `APP_ENVIRONMENT=staging` (default) | Android flavor `prod` · iOS `APP_ENVIRONMENT=prod` |
 | Backend API | [tt.momosi.org](https://tt.momosi.org/) | [transroute.org](https://transroute.org/) |
 | Keycloak realm | [sso.momosi.org/realms/trucktrack](https://sso.momosi.org/realms/trucktrack/) · [admin](https://sso.momosi.org/admin/trucktrack/console/) | [sso.transroute.org/realms/transroute](https://sso.transroute.org/realms/transroute/) · [admin](https://sso.transroute.org/admin/transroute/console/) |
