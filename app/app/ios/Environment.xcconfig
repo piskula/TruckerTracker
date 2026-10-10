@@ -6,6 +6,7 @@ TT_API_BASE_URL_staging = https:/$()/tt.momosi.org/
 TT_REALM_URL_staging = https:/$()/sso.momosi.org/realms/trucktrack/
 TT_OAUTH_CLIENT_ID_staging = trucktrack-app
 TT_APP_SCHEME_staging = com.momosi.trucktrack.staging
+TT_APP_ICON_NAME_staging = AppIcon-Staging
 
 TT_BUNDLE_IDENTIFIER_prod = com.momosi.trucktrack
 TT_DISPLAY_NAME_prod = TruckTrack
@@ -13,6 +14,7 @@ TT_API_BASE_URL_prod = https:/$()/transroute.org/
 TT_REALM_URL_prod = https:/$()/sso.transroute.org/realms/transroute/
 TT_OAUTH_CLIENT_ID_prod = trucktrack-mobile
 TT_APP_SCHEME_prod = com.momosi.trucktrack
+TT_APP_ICON_NAME_prod = AppIcon
 
 TT_BUNDLE_IDENTIFIER = $(TT_BUNDLE_IDENTIFIER_$(APP_ENVIRONMENT))
 TT_DISPLAY_NAME = $(TT_DISPLAY_NAME_$(APP_ENVIRONMENT))
@@ -20,3 +22,4 @@ TT_API_BASE_URL = $(TT_API_BASE_URL_$(APP_ENVIRONMENT))
 TT_REALM_URL = $(TT_REALM_URL_$(APP_ENVIRONMENT))
 TT_OAUTH_CLIENT_ID = $(TT_OAUTH_CLIENT_ID_$(APP_ENVIRONMENT))
 TT_APP_SCHEME = $(TT_APP_SCHEME_$(APP_ENVIRONMENT))
+TT_APP_ICON_NAME = $(TT_APP_ICON_NAME_$(APP_ENVIRONMENT))
