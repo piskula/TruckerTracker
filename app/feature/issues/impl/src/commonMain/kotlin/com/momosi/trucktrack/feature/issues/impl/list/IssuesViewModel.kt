@@ -79,7 +79,7 @@ class IssuesViewModel(private val userRepository: UserRepository, private val is
     )
 
     fun onAction(action: IssuesAction) {
-        Logger.i("Action:Issues", action.toString())
+        Logger.d("Action:Issues", action.toString())
         when (action) {
             is IssuesAction.SelectFilter -> selectedFilter.value = action.filter
             is IssuesAction.Retry -> refreshTrigger.tryEmit(Unit)

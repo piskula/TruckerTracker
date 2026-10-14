@@ -1,6 +1,6 @@
 # TruckTrack Privacy Policy
 
-Last updated: October 8, 2026
+Last updated: October 14, 2026
 
 ## Who runs TruckTrack
 
@@ -10,7 +10,7 @@ TruckTrack is built and run by Momosi, a small group of independent developers. 
 
 - **Account details**: name, username and email, used for signing in.
 - **What users enter**: vehicles, issues, comments, attached photos and files, and the history of changes. Other users in the same company can see these, together with the author's name.
-- **Crash reports**: if the app crashes, Firebase Crashlytics sends the crash details, device model, system version and app version.
+- **Crash and error reports**: if the app crashes or hits an error, Firebase Crashlytics sends the crash details, device model, system version and app version, together with a short log of recent app activity, the screen that was open, the connection type, the user's ID and role, and a random identifier created when the app is installed. Reports are linked to the user's account so problems can be traced, but contain no issue content or photos.
 - **Server logs**: IP address and request times, kept for security and fixing problems.
 
 The app does not collect location or contacts, has no ads, and does not track users. Momosi never sells personal data.

@@ -67,7 +67,7 @@ class ProfileViewModel(
     )
 
     fun onAction(action: ProfileAction) {
-        Logger.i("Action:Profile", action.toString())
+        Logger.d("Action:Profile", action.toString())
         when (action) {
             is ProfileAction.SignOut -> signOut()
             is ProfileAction.ShowVersionInfo -> showVersionInfo()

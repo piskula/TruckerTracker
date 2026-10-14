@@ -20,7 +20,7 @@ class SignInViewModel(private val authManager: AuthManager) : ViewModel() {
     val event = _event.receiveAsFlow()
 
     fun onAction(action: SignInAction) {
-        Logger.i("Action:SignIn", action.toString())
+        Logger.d("Action:SignIn", action.toString())
         when (action) {
             SignInAction.SignInClick -> signIn()
         }

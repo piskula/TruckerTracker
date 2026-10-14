@@ -6,6 +6,8 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.crashlytics.crashlytics
 
 internal class CrashlyticsLogWriter : LogWriter() {
+    override fun isLoggable(tag: String, severity: Severity): Boolean = severity >= Severity.Info
+
     override fun log(
         severity: Severity,
         message: String,
