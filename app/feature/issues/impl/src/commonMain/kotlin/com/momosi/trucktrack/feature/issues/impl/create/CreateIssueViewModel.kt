@@ -75,7 +75,7 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
     }
 
     fun onAction(action: CreateIssueAction) {
-        Logger.i("Action:CreateIssue", action.toString())
+        Logger.d("Action:CreateIssue", action.toString())
         when (action) {
             is CreateIssueAction.SelectVehicle -> selectVehicle(action.vehicle)
             is CreateIssueAction.UpdateTitle -> title.value = action.title

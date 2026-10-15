@@ -23,7 +23,7 @@ class FullScreenPhotoViewModel(private val source: PhotoSource, private val issu
     )
 
     fun onAction(action: FullScreenPhotoAction) {
-        Logger.i("Action:FullScreenPhoto", action.toString())
+        Logger.d("Action:FullScreenPhoto", action.toString())
         when (action) {
             FullScreenPhotoAction.SavePhoto -> savePhoto()
         }

@@ -43,7 +43,7 @@ class IssueSearchViewModel(private val issueRepository: IssueRepository) : ViewM
     )
 
     fun onAction(action: IssueSearchAction) {
-        Logger.i("Action:IssueSearch", action.toString())
+        Logger.d("Action:IssueSearch", action.toString())
         when (action) {
             is IssueSearchAction.ChangeQuery -> query.value = action.query.toIssueIdQuery()
         }

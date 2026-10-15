@@ -27,7 +27,7 @@ class StartWorkingViewModel(private val issueId: Long, private val issueReposito
     val events = _events.receiveAsFlow()
 
     fun onAction(action: StartWorkingAction) {
-        Logger.i("Action:StartWorking", action.toString())
+        Logger.d("Action:StartWorking", action.toString())
         when (action) {
             is StartWorkingAction.SelectRepairType -> _state.update { it.copy(selectedRepairType = action.repairType) }
             is StartWorkingAction.SelectVehicleSystem -> _state.update { it.copy(selectedVehicleSystem = action.vehicleSystem) }

@@ -47,7 +47,7 @@ class IssueDetailViewModel(
     }
 
     fun onAction(action: IssueDetailAction) {
-        Logger.i("Action:IssueDetail", action.toString())
+        Logger.d("Action:IssueDetail", action.toString())
         when (action) {
             is IssueDetailAction.UpdateComment -> _state.update { it.copy(commentText = action.text) }
             is IssueDetailAction.UploadPhoto -> uploadPhoto(action.file)

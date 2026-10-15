@@ -78,7 +78,7 @@ class EditIssueViewModel(
     }
 
     fun onAction(action: EditIssueAction) {
-        Logger.i("Action:EditIssue", action.toString())
+        Logger.d("Action:EditIssue", action.toString())
         when (action) {
             is EditIssueAction.SelectVehicle -> selectVehicle(action.vehicle)
             is EditIssueAction.ToggleVehicleDropdown -> vehicleDropdownExpanded.update { !it }
