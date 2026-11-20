@@ -175,6 +175,15 @@ class AuthManagerImpl(
         AuthenticationState.Guest -> TokenResponse.GuestWithoutToken
     }
 
+    override suspend fun invalidateSession(rejectedAccessToken: String) {
+        refreshTokenMutex.withLock {
+            if (userStorage.tokens?.accessToken == rejectedAccessToken) {
+                Logger.w(TAG, "API rejected the current access token, clearing local session")
+                invalidateAuth()
+            }
+        }
+    }
+
     private suspend fun getFreshAccessToken(): TokenResponse = refreshTokenMutex.withLock {
         val tokens = userStorage.tokens
             ?: return TokenResponse.TokenError(IllegalStateException("Authorized user without stored tokens"))

@@ -6,7 +6,7 @@ Handles authentication (OAuth/OIDC against a Keycloak realm via [kotlin-multipla
 
 | Symbol | Description |
 |--------|-------------|
-| `AuthManager` | Interface. Exposes `authenticationState: StateFlow<AuthenticationState>`, `authenticationInProgress: StateFlow<Boolean>`, `signIn()`, `signOut()`, `token(): TokenResponse`. |
+| `AuthManager` | Interface. Exposes `authenticationState: StateFlow<AuthenticationState>`, `authenticationInProgress: StateFlow<Boolean>`, `signIn()`, `signOut()`, `token(): TokenResponse`, `invalidateSession(rejectedAccessToken)`. |
 | `UserRepository` | Interface. Exposes `user: StateFlow<User?>`. |
 | `AuthenticationState` | Enum: `Guest`, `Authorized`. |
 | `AuthActionResult` | Sealed class: `Success`, `Failed` (`UserCancelled`, `NoInternet`, `NoActivity`, `Error`). |
@@ -41,6 +41,8 @@ iosMain/
 `AndroidCodeAuthFlowFactory` must be registered against the app's single Activity — `app:android`'s `TruckTrackActivity.onCreate()` injects it and calls `registerActivity(this)` before the redirect scheme (`oidcRedirectScheme` Gradle manifest placeholder) can resolve. iOS needs no such registration — `ASWebAuthenticationSession` is used internally by `IosCodeAuthFlowFactory` and needs no manifest/plist setup.
 
 Token verification intentionally keeps today's Keycloak-specific `{realm}` endpoint (raw PEM public key) rather than switching to standard JWKS — that's a separate potential follow-up, not required by the OIDC library migration itself.
+
+`invalidateSession` clears local tokens and user data without launching browser logout. It is serialized with token refresh and only invalidates the matching access token, so a delayed 401 cannot clear a newer session.
 
 ## Depends On
 

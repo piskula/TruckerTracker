@@ -241,7 +241,8 @@ The Kotlin Multiplatform migration is complete — every module uses KMP source 
 
 ## Unit Testing
 
-No tests exist yet. When adding the first ones:
+`core:network` has shared session-invalidation regression tests in `src/commonTest`, runnable with
+`:core:network:testAndroidHostTest`. When adding further tests:
 
 * **MockK** for mocking, **Turbine** for `Flow` testing, **kotlinx-coroutines-test** (`runTest`) for
   coroutines.

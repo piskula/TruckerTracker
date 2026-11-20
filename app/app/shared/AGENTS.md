@@ -20,6 +20,7 @@ iosMain/
 ## Responsibilities
 
 - `TruckTrackApp()` — the single root Composable both `app:android`'s `TruckTrackActivity` and `app:ios`'s `MainViewController` render. Owns navigation state, the shared-element transition scope, and routes to each feature's `*Entries` via `entryProvider { }`.
+- Authentication changes to `Guest` reset the backstack to sign-in, including failed token refreshes and API session invalidation. Back navigation cannot reopen the previous authenticated screens.
 - `AppModule.kt` — the only place Koin modules are aggregated (`allModules`). Every `core`/`feature` module's own Koin module gets listed here; nothing else calls `startKoin` directly.
 - `AppInitializer`/`IosAppInitializer` — platform-specific bootstrap, but both ultimately call into this module's `startKoin { modules(allModules) }`.
 

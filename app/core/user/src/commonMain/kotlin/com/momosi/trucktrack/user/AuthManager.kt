@@ -14,4 +14,5 @@ interface AuthManager {
     suspend fun signOut()
 
     suspend fun token(): TokenResponse
+    suspend fun invalidateSession(rejectedAccessToken: String)
 }
