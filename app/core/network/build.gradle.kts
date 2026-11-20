@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.trucktrack.library)
+    alias(libs.plugins.trucktrack.test)
     alias(libs.plugins.trucktrack.koin)
     alias(libs.plugins.trucktrack.ktor)
 }
@@ -7,7 +8,6 @@ plugins {
 kotlin {
     android {
         namespace = "com.momosi.trucktrack.core.network"
-        withHostTestBuilder {}
     }
     sourceSets {
         commonMain.dependencies {
@@ -16,9 +16,7 @@ kotlin {
             implementation(projects.core.user)
         }
         commonTest.dependencies {
-            implementation(kotlin("test"))
             implementation(libs.ktor.client.mock)
-            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }

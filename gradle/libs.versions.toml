@@ -85,6 +85,7 @@ koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", ver
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinx-collections-immutable" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 # Ktor
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -149,6 +150,7 @@ compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-m
 parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 trucktrack-library = { id = "trucktrack.library" }
+trucktrack-test = { id = "trucktrack.test" }
 trucktrack-feature-api = { id = "trucktrack.feature.api" }
 trucktrack-feature-impl = { id = "trucktrack.feature.impl" }
 trucktrack-koin = { id = "trucktrack.koin" }

@@ -45,4 +45,6 @@ commonMain/
 
 `src/commonTest` covers final unauthorized responses, successful authentication retries, forbidden
 and server errors, connectivity failures, and unauthenticated requests using Ktor's mock engine.
+`trucktrack.test` provides the shared test dependencies and Android host-test target; this module
+adds only the Ktor mock-engine dependency.
 Run `.\gradlew.bat :core:network:testAndroidHostTest` from `app/` on Windows.
