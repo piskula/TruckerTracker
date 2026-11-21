@@ -192,6 +192,12 @@ files:
 
 * `trucktrack.library` — base KMP library (Android target with compileSdk/minSdk, JDK 25 toolchain,
   Spotless).
+* `trucktrack.test` — opt-in client KMP library testing: enables Android host tests and adds Kotlin
+  test assertions and `kotlinx-coroutines-test` to `commonTest` when the Android KMP library plugin
+  is applied. Does not apply production plugins and is independent of plugin application order.
+  Apply `alias(libs.plugins.trucktrack.test)` in modules with tests; keep specialized test
+  dependencies such as Ktor's mock engine in the module. This plugin belongs to the client build,
+  not the independent server or shared DTO builds.
 * `trucktrack.feature.api` — feature API module (library + serialization + Navigation 3 runtime).
 * `trucktrack.feature.impl` — feature impl module (library + Koin + Compose + `:core:ui-library` +
   `:core:navigation`).
@@ -241,7 +247,8 @@ The Kotlin Multiplatform migration is complete — every module uses KMP source 
 
 ## Unit Testing
 
-No tests exist yet. When adding the first ones:
+`core:network` has shared session-invalidation regression tests in `src/commonTest`, runnable with
+`:core:network:testAndroidHostTest`. When adding further tests:
 
 * **MockK** for mocking, **Turbine** for `Flow` testing, **kotlinx-coroutines-test** (`runTest`) for
   coroutines.

@@ -49,6 +49,14 @@ fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel 
     val resultStore = rememberResultStore()
     val errorSnackbarHostState = rememberErrorSnackbarHostState()
 
+    LaunchedEffect(viewModel, navigator) {
+        viewModel.authenticationState.collect { authenticationState ->
+            if (authenticationState == AuthenticationState.Guest) {
+                navigator.navigateToRoot(SignInNavKey)
+            }
+        }
+    }
+
     LaunchedEffect(navigationState.currentKey) {
         Logger.i("Nav", "-> ${navigationState.currentKey}")
         CrashReporting.setCustomKey("screen", navigationState.currentKey.toString())

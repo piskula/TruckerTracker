@@ -30,7 +30,7 @@ private suspend fun HttpResponse.readUserMessage(): String? = runCatchingCancell
     errorJson.decodeFromString<ErrorDto>(bodyAsText()).userMessage
 }.getOrNull()?.takeIf { it.isNotBlank() }
 
-fun HttpClientConfig<*>.installApiExceptionMapping(onFailure: (cause: Throwable, request: HttpRequest) -> Unit = { _, _ -> }) {
+fun HttpClientConfig<*>.installApiExceptionMapping(onFailure: suspend (cause: Throwable, request: HttpRequest) -> Unit = { _, _ -> }) {
     install(HttpCallValidator) {
         handleResponseExceptionWithRequest { cause, request ->
             onFailure(cause, request)

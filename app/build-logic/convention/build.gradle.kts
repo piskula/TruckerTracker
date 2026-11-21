@@ -24,6 +24,10 @@ gradlePlugin {
             id = "trucktrack.library"
             implementationClass = "com.momosi.trucktrack.LibraryPlugin"
         }
+        register("trucktrack.test") {
+            id = "trucktrack.test"
+            implementationClass = "com.momosi.trucktrack.TestPlugin"
+        }
         register("trucktrack.feature.api") {
             id = "trucktrack.feature.api"
             implementationClass = "com.momosi.trucktrack.FeatureApiPlugin"

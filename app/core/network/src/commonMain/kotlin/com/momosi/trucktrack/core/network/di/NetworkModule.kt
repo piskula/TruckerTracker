@@ -11,6 +11,7 @@ import com.momosi.trucktrack.user.model.TokenResponse
 import de.jensklingenberg.ktorfit.Ktorfit
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
@@ -20,6 +21,8 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
@@ -68,12 +71,13 @@ val networkModule = module {
     }
 }
 
-private fun buildHttpClient(
+internal fun buildHttpClient(
     authManager: AuthManager,
     appCoroutineScope: CoroutineScope,
+    engineFactory: HttpClientEngineFactory<*> = httpClientEngineFactory(),
     block: HttpClientConfig<*>.() -> Unit = {},
 ): HttpClient {
-    val client = HttpClient(httpClientEngineFactory()) {
+    val client = HttpClient(engineFactory) {
         expectSuccess = true
 
         block()
@@ -107,6 +111,12 @@ private fun buildHttpClient(
                 "Request failed: ${request.method.value} ${request.url.encodedPath}" +
                     (response?.let { " status=${it.status.value} durationMs=$durationMs" } ?: " (no response)"),
             )
+            if (response?.status == HttpStatusCode.Unauthorized) {
+                response.call.request.headers[HttpHeaders.Authorization]
+                    ?.takeIf { it.startsWith("Bearer ") }
+                    ?.removePrefix("Bearer ")
+                    ?.let { authManager.invalidateSession(it) }
+            }
         }
     }
 
