@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.momosi.trucktrack.core.common.network.ApiException
+import com.momosi.trucktrack.core.common.network.FailureReason
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
 import com.momosi.trucktrack.core.uilibrary.resources.Res
 import com.momosi.trucktrack.core.uilibrary.resources.error_no_connection
@@ -24,13 +24,13 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ErrorState(
-    error: Throwable?,
+    reason: FailureReason,
     message: String,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
     retryButtonModifier: Modifier = Modifier,
 ) {
-    val isNoConnection = error is ApiException.NoConnection
+    val isNoConnection = reason == FailureReason.NoConnection
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -65,7 +65,7 @@ fun ErrorState(
 private fun ErrorStatePreview() {
     TruckTrackTheme {
         ErrorState(
-            error = null,
+            reason = FailureReason.Other,
             message = "Could not load issue details",
             onRetry = {},
         )
@@ -77,7 +77,7 @@ private fun ErrorStatePreview() {
 private fun ErrorStateNoConnectionPreview() {
     TruckTrackTheme {
         ErrorState(
-            error = ApiException.NoConnection,
+            reason = FailureReason.NoConnection,
             message = "Could not load issue details",
             onRetry = {},
         )

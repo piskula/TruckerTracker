@@ -62,7 +62,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.momosi.trucktrack.core.common.network.ApiException
+import com.momosi.trucktrack.core.common.network.FailureReason
 import com.momosi.trucktrack.core.issue.model.ActionCapabilities
 import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueCapabilities
@@ -308,10 +308,10 @@ private fun IssueDetailScreenContent(
                 IssueDetailPhase.Loading -> IssueDetailSkeleton()
 
                 IssueDetailPhase.Error -> {
-                    var lastError by remember { mutableStateOf<Throwable?>(null) }
-                    (state.content as? IssueDetailContent.Error)?.let { lastError = it.error }
+                    var lastFailureReason by remember { mutableStateOf(FailureReason.Other) }
+                    (state.content as? IssueDetailContent.Error)?.let { lastFailureReason = it.reason }
                     ErrorState(
-                        error = lastError,
+                        reason = lastFailureReason,
                         message = stringResource(Res.string.issue_detail_error),
                         onRetry = onRetry,
                         retryButtonModifier = Modifier.testTag("issue_detail_retry_button"),
@@ -1364,7 +1364,7 @@ private fun IssueDetailNoConnectionPreview() {
         IssueDetailScreenContent(
             state = IssueDetailState(
                 issueId = previewIssue.id,
-                content = IssueDetailContent.Error(ApiException.NoConnection),
+                content = IssueDetailContent.Error(FailureReason.NoConnection),
             ),
             onBack = {},
             onRetry = {},

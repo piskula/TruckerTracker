@@ -1,6 +1,7 @@
 package com.momosi.trucktrack.feature.issues.impl.detail
 
 import androidx.compose.runtime.Immutable
+import com.momosi.trucktrack.core.common.network.FailureReason
 import com.momosi.trucktrack.core.issue.model.IssueCapabilities
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStatus
@@ -32,7 +33,7 @@ sealed interface IssueDetailContent {
     data object Loading : IssueDetailContent
 
     @Immutable
-    data class Error(val error: Throwable) : IssueDetailContent
+    data class Error(val reason: FailureReason) : IssueDetailContent
 
     @Immutable
     data class Loaded(val issue: IssueUi, val history: ImmutableList<IssueHistoryUi>) : IssueDetailContent

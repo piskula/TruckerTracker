@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.momosi.trucktrack.core.common.error.ErrorReporter
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
 import com.momosi.trucktrack.core.common.logger.Logger
+import com.momosi.trucktrack.core.common.network.toFailureReason
 import com.momosi.trucktrack.core.issue.IssueAttachmentRepository
 import com.momosi.trucktrack.core.issue.IssueCapabilityRepository
 import com.momosi.trucktrack.core.issue.IssueRepository
@@ -74,7 +75,7 @@ class IssueDetailViewModel(
             val historyDeferred = async { fetchHistory() }
 
             val issue = issueDeferred.await().getOrElse { error ->
-                _state.update { it.copy(content = IssueDetailContent.Error(error)) }
+                _state.update { it.copy(content = IssueDetailContent.Error(error.toFailureReason())) }
                 return@launch
             }
             _state.update {

@@ -33,6 +33,8 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
 import com.momosi.trucktrack.core.common.network.ApiException
+import com.momosi.trucktrack.core.common.network.FailureReason
+import com.momosi.trucktrack.core.common.network.toFailureReason
 import com.momosi.trucktrack.core.issue.model.Account
 import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssuePriority
@@ -130,7 +132,7 @@ private fun IssuesScreenContent(
         .distinct()
         .sorted()
         .toImmutableList()
-    var lastRefreshError by remember { mutableStateOf<Throwable?>(null) }
+    var lastRefreshFailureReason by remember { mutableStateOf(FailureReason.Other) }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -163,7 +165,7 @@ private fun IssuesScreenContent(
                 is LoadState.Loading -> IssuesContentPhase.Loading
 
                 is LoadState.Error -> {
-                    lastRefreshError = refreshState.error
+                    lastRefreshFailureReason = refreshState.error.toFailureReason()
                     IssuesContentPhase.Error
                 }
 
@@ -177,7 +179,7 @@ private fun IssuesScreenContent(
                 when (phase) {
                     IssuesContentPhase.Loading -> LoadingContent()
 
-                    IssuesContentPhase.Error -> ErrorContent(error = lastRefreshError, onRetry = onRetry)
+                    IssuesContentPhase.Error -> ErrorContent(reason = lastRefreshFailureReason, onRetry = onRetry)
 
                     IssuesContentPhase.Empty -> EmptyContent()
 
@@ -278,12 +280,12 @@ private val skeletonTitleWidthFractions = listOf(0.85f, 0.6f, 0.75f, 0.5f, 0.7f)
 
 @Composable
 private fun ErrorContent(
-    error: Throwable?,
+    reason: FailureReason,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     ErrorState(
-        error = error,
+        reason = reason,
         message = stringResource(Res.string.my_issues_error_message),
         onRetry = onRetry,
         modifier = modifier,
