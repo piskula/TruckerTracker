@@ -24,6 +24,7 @@ import androidx.compose.material.icons.rounded.Comment
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.EmojiPeople
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.GroupAdd
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Language
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.WifiOff
 import com.momosi.trucktrack.core.uilibrary.icons.vectors.Stat2VectorIcon
 import com.momosi.trucktrack.core.uilibrary.icons.vectors.TrailerVectorIcon
 import com.momosi.trucktrack.core.uilibrary.icons.vectors.TruckVectorIcon
@@ -78,4 +80,6 @@ data object TruckTrackIcons {
     val ChatBubbleOutline = Icons.Outlined.ChatBubbleOutline
     val Download = Icons.Rounded.Download
     val Lock = Icons.Rounded.Lock
+    val Error = Icons.Rounded.ErrorOutline
+    val NoConnection = Icons.Rounded.WifiOff
 }
