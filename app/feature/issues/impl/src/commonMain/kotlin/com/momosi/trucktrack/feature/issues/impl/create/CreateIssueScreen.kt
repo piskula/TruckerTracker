@@ -65,9 +65,9 @@ import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_title
 import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_vehicle
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_error_title_required
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_error_vehicle_required
-import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.core.PickerMode
-import io.github.vinceglb.filekit.core.PickerType
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
@@ -107,8 +107,9 @@ private fun CreateIssueContent(
     modifier: Modifier = Modifier,
 ) {
     val photoPickerLauncher = rememberFilePickerLauncher(
-        type = PickerType.Image,
-        mode = PickerMode.Multiple(),
+        type = FileKitType.Image,
+        mode = FileKitMode.Multiple(),
+        onError = { onAction(CreateIssueAction.PhotoPickerFailed(it)) },
         onResult = { files -> if (!files.isNullOrEmpty()) onAction(CreateIssueAction.AddPhotos(files)) },
     )
 

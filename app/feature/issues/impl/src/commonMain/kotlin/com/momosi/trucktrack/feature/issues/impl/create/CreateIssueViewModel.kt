@@ -3,6 +3,7 @@ package com.momosi.trucktrack.feature.issues.impl.create
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.momosi.trucktrack.core.common.coroutines.combine
+import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
 import com.momosi.trucktrack.core.common.error.ErrorReporter
 import com.momosi.trucktrack.core.common.io.PhotoData
 import com.momosi.trucktrack.core.common.logger.Logger
@@ -15,7 +16,9 @@ import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.feature.issues.impl.SubmitStatus
 import com.momosi.trucktrack.feature.issues.impl.VehiclesContent
 import com.momosi.trucktrack.feature.issues.impl.toVehiclesContent
-import io.github.vinceglb.filekit.core.PlatformFile
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.readBytes
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -82,6 +85,7 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
             is CreateIssueAction.UpdateDescription -> description.value = action.description
             is CreateIssueAction.SelectPriority -> selectedPriority.value = action.priority
             is CreateIssueAction.AddPhotos -> addPhotos(action.files)
+            is CreateIssueAction.PhotoPickerFailed -> errorReporter.report(action.cause)
             is CreateIssueAction.RemovePhoto -> removePhoto(action.fileName)
             is CreateIssueAction.Submit -> submit()
             is CreateIssueAction.ToggleVehicleDropdown -> vehicleDropdownExpanded.update { !it }
@@ -109,16 +113,21 @@ class CreateIssueViewModel(private val vehicleRepository: VehicleRepository, pri
 
     private fun addPhotos(files: List<PlatformFile>) {
         viewModelScope.launch {
-            val newPhotos = files.map { file ->
-                PhotoData(
-                    bytes = file.readBytes(),
-                    fileName = file.name,
-                    mimeType = mimeTypeFromFileName(file.name),
-                )
+            runCatchingCancellable {
+                files.map { file ->
+                    PhotoData(
+                        bytes = file.readBytes(),
+                        fileName = file.name,
+                        mimeType = mimeTypeFromFileName(file.name),
+                    )
+                }
             }
-            photos.update { current ->
-                (current + newPhotos).distinctBy { it.fileName }.toImmutableList()
-            }
+                .onSuccess { newPhotos ->
+                    photos.update { current ->
+                        (current + newPhotos).distinctBy { it.fileName }.toImmutableList()
+                    }
+                }
+                .onFailure { errorReporter.report(it) }
         }
     }
 

@@ -21,6 +21,7 @@ class KtorPlugin : Plugin<Project> {
             implementation(libs.findLibrary("ktor-client-auth").get())
             implementation(libs.findLibrary("ktor-client-logging").get())
             implementation(libs.findLibrary("ktor-serialization-kotlinx-json").get())
+            implementation(libs.findLibrary("kotlinx-serialization-json-mobile").get())
             implementation(libs.findLibrary("ktorfit-lib").get())
         }
         androidMainDependencies {

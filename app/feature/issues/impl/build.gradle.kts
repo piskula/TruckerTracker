@@ -21,7 +21,7 @@ kotlin {
             implementation(projects.core.vehicle)
             implementation(libs.kotlinx.collections.immutable)
             implementation(libs.coil.compose)
-            implementation(libs.filekit.compose)
+            implementation(libs.filekit.dialogs.compose)
             implementation(libs.androidx.paging.compose)
         }
     }
