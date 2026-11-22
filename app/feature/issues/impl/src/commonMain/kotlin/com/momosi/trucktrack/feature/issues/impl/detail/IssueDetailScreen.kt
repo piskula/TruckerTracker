@@ -144,9 +144,9 @@ import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_engine
 import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_other
 import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_tarp
 import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_tires
-import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.core.PickerType
-import io.github.vinceglb.filekit.core.PlatformFile
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
@@ -192,6 +192,7 @@ internal fun IssueDetailScreen(
         onReassignToMe = { viewModel.onAction(IssueDetailAction.ReassignToMe) },
         onCancelIssue = { viewModel.onAction(IssueDetailAction.CancelIssue) },
         onUploadPhoto = { viewModel.onAction(IssueDetailAction.UploadPhoto(it)) },
+        onPhotoPickerError = { viewModel.onAction(IssueDetailAction.PhotoPickerFailed(it)) },
         onDeletePhoto = { viewModel.onAction(IssueDetailAction.DeletePhoto(it)) },
         onNavigateToFullScreenPhoto = onNavigateToFullScreenPhoto,
     )
@@ -212,6 +213,7 @@ private fun IssueDetailScreenContent(
     onReassignToMe: () -> Unit,
     onCancelIssue: () -> Unit,
     onUploadPhoto: (PlatformFile) -> Unit,
+    onPhotoPickerError: (Throwable) -> Unit,
     onDeletePhoto: (Long) -> Unit,
     onNavigateToFullScreenPhoto: (PhotoItem) -> Unit,
     modifier: Modifier = Modifier,
@@ -345,6 +347,7 @@ private fun IssueDetailScreenContent(
                         onReassignToMe = onReassignToMe,
                         onCancelIssue = { showCancelConfirmation = true },
                         onUploadPhoto = onUploadPhoto,
+                        onPhotoPickerError = onPhotoPickerError,
                         onPhotoClick = onNavigateToFullScreenPhoto,
                         onPhotoDeleteClick = { photoPendingDeletion = it },
                     )
@@ -374,12 +377,14 @@ private fun LoadedContent(
     onReassignToMe: () -> Unit,
     onCancelIssue: () -> Unit,
     onUploadPhoto: (PlatformFile) -> Unit,
+    onPhotoPickerError: (Throwable) -> Unit,
     onPhotoClick: (PhotoItem) -> Unit,
     onPhotoDeleteClick: (PhotoItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val photoPickerLauncher = rememberFilePickerLauncher(
-        type = PickerType.Image,
+        type = FileKitType.Image,
+        onError = onPhotoPickerError,
         onResult = { file -> file?.let { onUploadPhoto(it) } },
     )
 
@@ -1307,6 +1312,7 @@ private fun IssueDetailLoadedPreview() {
             onReassignToMe = {},
             onCancelIssue = {},
             onUploadPhoto = {},
+            onPhotoPickerError = {},
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
@@ -1333,6 +1339,7 @@ private fun IssueDetailHistoryEmptyPreview() {
             onReassignToMe = {},
             onCancelIssue = {},
             onUploadPhoto = {},
+            onPhotoPickerError = {},
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
@@ -1355,6 +1362,7 @@ private fun IssueDetailFullLoadingPreview() {
             onReassignToMe = {},
             onCancelIssue = {},
             onUploadPhoto = {},
+            onPhotoPickerError = {},
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
@@ -1385,6 +1393,7 @@ private fun IssueDetailLoadedLargeFontScalePreview() {
                 onReassignToMe = {},
                 onCancelIssue = {},
                 onUploadPhoto = {},
+                onPhotoPickerError = {},
                 onDeletePhoto = {},
                 onNavigateToFullScreenPhoto = {},
             )

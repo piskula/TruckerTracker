@@ -1,5 +1,6 @@
 ﻿import com.android.build.api.dsl.ProductFlavor
 import com.momosi.trucktrack.utils.stringProperty
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 plugins {
     alias(libs.plugins.android.application)
@@ -67,6 +68,7 @@ android {
     }
 
     lint {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(25))
         sarifReport = true
     }
 }
@@ -90,6 +92,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.coil.compose)
+    implementation(libs.filekit.dialogs)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 }
