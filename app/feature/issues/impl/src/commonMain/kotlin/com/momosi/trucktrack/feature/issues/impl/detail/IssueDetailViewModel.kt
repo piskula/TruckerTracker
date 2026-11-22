@@ -73,11 +73,8 @@ class IssueDetailViewModel(
             val issueDeferred = async { issueRepository.getIssue(issueId) }
             val historyDeferred = async { fetchHistory() }
 
-            val issueResult = issueDeferred.await()
-            val issue = issueResult.getOrNull()
-            if (issue == null) {
-                _state.update { it.copy(content = IssueDetailContent.Error) }
-                issueResult.onFailure { errorReporter.report(it) }
+            val issue = issueDeferred.await().getOrElse { error ->
+                _state.update { it.copy(content = IssueDetailContent.Error(error)) }
                 return@launch
             }
             _state.update {

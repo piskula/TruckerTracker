@@ -30,7 +30,9 @@ data class IssueDetailState(
 @Immutable
 sealed interface IssueDetailContent {
     data object Loading : IssueDetailContent
-    data object Error : IssueDetailContent
+
+    @Immutable
+    data class Error(val error: Throwable) : IssueDetailContent
 
     @Immutable
     data class Loaded(val issue: IssueUi, val history: ImmutableList<IssueHistoryUi>) : IssueDetailContent

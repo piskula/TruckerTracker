@@ -17,6 +17,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -24,16 +27,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
+import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
+import com.momosi.trucktrack.core.common.network.ApiException
 import com.momosi.trucktrack.core.issue.model.Account
 import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueStatus
-import com.momosi.trucktrack.core.uilibrary.components.Button
 import com.momosi.trucktrack.core.uilibrary.components.DashboardTopBar
+import com.momosi.trucktrack.core.uilibrary.components.ErrorState
 import com.momosi.trucktrack.core.uilibrary.components.FilterChipRow
 import com.momosi.trucktrack.core.uilibrary.components.FloatingActionButton
 import com.momosi.trucktrack.core.uilibrary.components.LoadingSpinner
@@ -56,7 +61,6 @@ import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_my_i
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_my_resolved
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_my_work
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_filter_open
-import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_retry
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_subtitle_driver
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_subtitle_mechanic
 import com.momosi.trucktrack.user.model.UserRole
@@ -126,6 +130,7 @@ private fun IssuesScreenContent(
         .distinct()
         .sorted()
         .toImmutableList()
+    var lastRefreshError by remember { mutableStateOf<Throwable?>(null) }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -154,10 +159,13 @@ private fun IssuesScreenContent(
                 labelSelector = { it.label() },
                 onSelect = onSelectFilter,
             )
-            val contentPhase = when (pagingItems.loadState.refresh) {
+            val contentPhase = when (val refreshState = pagingItems.loadState.refresh) {
                 is LoadState.Loading -> IssuesContentPhase.Loading
 
-                is LoadState.Error -> IssuesContentPhase.Error
+                is LoadState.Error -> {
+                    lastRefreshError = refreshState.error
+                    IssuesContentPhase.Error
+                }
 
                 is LoadState.NotLoading -> if (pagingItems.itemCount == 0) {
                     IssuesContentPhase.Empty
@@ -169,7 +177,7 @@ private fun IssuesScreenContent(
                 when (phase) {
                     IssuesContentPhase.Loading -> LoadingContent()
 
-                    IssuesContentPhase.Error -> ErrorContent(onRetry = onRetry)
+                    IssuesContentPhase.Error -> ErrorContent(error = lastRefreshError, onRetry = onRetry)
 
                     IssuesContentPhase.Empty -> EmptyContent()
 
@@ -269,25 +277,18 @@ private const val SKELETON_ITEM_COUNT = 6
 private val skeletonTitleWidthFractions = listOf(0.85f, 0.6f, 0.75f, 0.5f, 0.7f)
 
 @Composable
-private fun ErrorContent(onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = stringResource(Res.string.my_issues_error_message),
-                style = AppTheme.typography.bodyLarge,
-                color = AppTheme.colors.onSurface,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                text = stringResource(Res.string.my_issues_retry),
-                onClick = onRetry,
-                modifier = Modifier.testTag("issues_retry_button"),
-            )
-        }
-    }
+private fun ErrorContent(
+    error: Throwable?,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ErrorState(
+        error = error,
+        message = stringResource(Res.string.my_issues_error_message),
+        onRetry = onRetry,
+        modifier = modifier,
+        retryButtonModifier = Modifier.testTag("issues_retry_button"),
+    )
 }
 
 @Composable
@@ -432,6 +433,40 @@ private fun IssuesEmptyPreview() {
             state = IssuesState(
                 userInfo = IssuesUserInfo(
                     name = "Test User",
+                    roles = persistentListOf(UserRole.Driver),
+                ),
+            ),
+            pagingItems = pagingItems,
+            dateFormatter = DateFormatter(),
+            onSelectFilter = {},
+            onRetry = {},
+            onRefresh = {},
+            onNavigateToProfile = {},
+            onNavigateToCreateIssue = {},
+            onNavigateToSearch = {},
+            onNavigateToIssueDetail = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun IssuesNoConnectionPreview() {
+    val notLoading = LoadState.NotLoading(endOfPaginationReached = false)
+    val pagingItems = flowOf(
+        PagingData.empty<Issue>(
+            sourceLoadStates = LoadStates(
+                refresh = LoadState.Error(ApiException.NoConnection),
+                prepend = notLoading,
+                append = notLoading,
+            ),
+        ),
+    ).collectAsLazyPagingItems()
+    TruckTrackTheme {
+        IssuesScreenContent(
+            state = IssuesState(
+                userInfo = IssuesUserInfo(
+                    name = "Michael Schumacher",
                     roles = persistentListOf(UserRole.Driver),
                 ),
             ),

@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.momosi.trucktrack.core.common.network.ApiException
 import com.momosi.trucktrack.core.issue.model.ActionCapabilities
 import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueCapabilities
@@ -75,6 +76,7 @@ import com.momosi.trucktrack.core.uilibrary.components.Button
 import com.momosi.trucktrack.core.uilibrary.components.ButtonRole
 import com.momosi.trucktrack.core.uilibrary.components.ButtonStyle
 import com.momosi.trucktrack.core.uilibrary.components.ConfirmationDialog
+import com.momosi.trucktrack.core.uilibrary.components.ErrorState
 import com.momosi.trucktrack.core.uilibrary.components.Icon
 import com.momosi.trucktrack.core.uilibrary.components.LoadingSpinner
 import com.momosi.trucktrack.core.uilibrary.components.SkeletonBox
@@ -130,7 +132,6 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_cancelle
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_done
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_in_progress
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_open
-import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_retry
 import com.momosi.trucktrack.feature.issues.impl.resources.repair_type_damage
 import com.momosi.trucktrack.feature.issues.impl.resources.repair_type_fault
 import com.momosi.trucktrack.feature.issues.impl.resources.repair_type_installation
@@ -306,20 +307,15 @@ private fun IssueDetailScreenContent(
             when (targetPhase) {
                 IssueDetailPhase.Loading -> IssueDetailSkeleton()
 
-                IssueDetailPhase.Error -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = stringResource(Res.string.issue_detail_error),
-                            style = AppTheme.typography.bodyLarge,
-                            color = AppTheme.colors.onSurface,
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            text = stringResource(Res.string.my_issues_retry),
-                            onClick = onRetry,
-                            modifier = Modifier.testTag("issue_detail_retry_button"),
-                        )
-                    }
+                IssueDetailPhase.Error -> {
+                    var lastError by remember { mutableStateOf<Throwable?>(null) }
+                    (state.content as? IssueDetailContent.Error)?.let { lastError = it.error }
+                    ErrorState(
+                        error = lastError,
+                        message = stringResource(Res.string.issue_detail_error),
+                        onRetry = onRetry,
+                        retryButtonModifier = Modifier.testTag("issue_detail_retry_button"),
+                    )
                 }
 
                 IssueDetailPhase.Loaded -> {
@@ -1345,6 +1341,31 @@ private fun IssueDetailFullLoadingPreview() {
     TruckTrackTheme {
         IssueDetailScreenContent(
             state = IssueDetailState(issueId = previewIssue.id),
+            onBack = {},
+            onRetry = {},
+            onEdit = {},
+            onUpdateComment = {},
+            onSendComment = {},
+            onIssueStart = {},
+            onResolveIssue = {},
+            onReassignToMe = {},
+            onCancelIssue = {},
+            onUploadPhoto = {},
+            onDeletePhoto = {},
+            onNavigateToFullScreenPhoto = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun IssueDetailNoConnectionPreview() {
+    TruckTrackTheme {
+        IssueDetailScreenContent(
+            state = IssueDetailState(
+                issueId = previewIssue.id,
+                content = IssueDetailContent.Error(ApiException.NoConnection),
+            ),
             onBack = {},
             onRetry = {},
             onEdit = {},

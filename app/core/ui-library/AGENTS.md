@@ -17,7 +17,7 @@ KMP module: components in `commonMain`, `@Preview` functions in `androidMain`.
 
 `TruckTrackIcons` — single object containing all icon references. Always add new icons here, never import Material icon classes directly in feature modules.
 
-Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `RadioButtonUnchecked`, `ArrowUpward`, `ArrowDownward`, `Remove`, `Truck` (custom), `Trailer` (custom), `Search`, `MoreVert`, `Send`, `ChatBubbleOutline`, `Info`, `Language`.
+Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `RadioButtonUnchecked`, `ArrowUpward`, `ArrowDownward`, `Remove`, `Truck` (custom), `Trailer` (custom), `Search`, `MoreVert`, `Send`, `ChatBubbleOutline`, `Info`, `Language`, `Error`, `NoConnection`.
 
 ## Components
 
@@ -34,6 +34,7 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `ConfirmationDialog` | Two-button confirmation dialog |
 | `InfoDialog` | Single-dismiss-button read-only info dialog with a generic content slot |
 | `LoadingSpinner` | Full-screen loading indicator |
+| `ErrorState` | Full-screen load-failure state: icon, message, Retry button, with side padding. Shows a no-internet icon and message when the `error` is `ApiException.NoConnection`, otherwise an error icon with the caller's `message`. `retryButtonModifier` carries the screen's test tag |
 | `SkeletonBox` | Shimmer loading placeholder |
 | `ShimmerGroup` (composable, `modifier` package) | Wraps a subtree so every `SkeletonBox`/`Modifier.shimmer()` inside shares one synchronized animation instead of pulsing independently |
 | `PullToRefresh` | Pull-to-refresh wrapper |
