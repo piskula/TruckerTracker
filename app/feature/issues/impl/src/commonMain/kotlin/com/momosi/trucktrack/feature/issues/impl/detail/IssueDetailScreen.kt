@@ -1384,6 +1384,7 @@ private fun IssueDetailNoConnectionPreview() {
             onReassignToMe = {},
             onCancelIssue = {},
             onUploadPhoto = {},
+            onPhotoPickerError = {},
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
