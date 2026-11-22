@@ -18,7 +18,7 @@ val userModule = module {
         val appConfig: AppConfig = get()
         OpenIdConnectClient(discoveryUri = "${appConfig.realmUrl}.well-known/openid-configuration") {
             clientId = appConfig.oauthClientId
-            scope = "openid"
+            scope = "openid offline_access"
             redirectUri = appConfig.oauthRedirectUrl
             postLogoutRedirectUri = appConfig.oauthLogoutRedirectUrl
         }
