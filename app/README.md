@@ -10,6 +10,7 @@ Kotlin Multiplatform client for TruckTrack, targeting Android and iOS from one s
 - [Features](#features)
 - [Tech stack](#tech-stack)
 - [Getting started](#getting-started)
+- [Supported deep links](#supported-deep-links)
 - [Continuous integration](#continuous-integration)
 - [Project structure](#project-structure)
 - [Testing](#testing)
@@ -45,6 +46,22 @@ Kotlin Multiplatform client for TruckTrack, targeting Android and iOS from one s
 ## Getting started
 
 ### Verified issue links
+
+#### Supported deep links
+
+| URL pattern | Example | Destination |
+|---|---|---|
+| `https://transroute.org/issue/{id}` | [Open issue 5](https://transroute.org/issue/5) | Issue detail; Back returns to the issues list. |
+
+- `{id}` must contain ASCII digits and represent a positive 64-bit integer (`1` to `9223372036854775807`).
+- Only HTTPS on `transroute.org` is accepted. Paths are case-sensitive; other routes and subdomains are unsupported.
+- One trailing slash is allowed. Query parameters and fragments are ignored, so
+  `https://transroute.org/issue/5/?source=chat#details` also opens issue 5.
+- Supported on Android and iOS, in both staging and production. Each installed build loads the issue
+  from its own configured API environment, subject to the signed-in user's access.
+- The user must already be signed in. Links received while signed out are discarded, not opened after sign-in.
+
+#### Platform integration
 
 Android handles HTTPS links through a verified manifest intent filter and a `singleTask` activity,
 so links from other apps reuse the existing activity through `onNewIntent`; iOS uses the
