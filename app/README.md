@@ -21,6 +21,9 @@ Kotlin Multiplatform client for TruckTrack, targeting Android and iOS from one s
 - **Sign in** — OAuth/OIDC authentication via [kotlin-multiplatform-oidc](https://github.com/kalinjul/kotlin-multiplatform-oidc).
 - **Issues** — drivers and mechanics report, view, and track vehicle issues by status and priority.
 - **Profile** — user account details.
+- **Issue links** — `https://transroute.org/issue/{id}` opens an issue on Android and iOS.
+  Links are handled only when signed in; signed-out links are discarded. Both staging and production builds
+  accept these links and load the issue from their own configured API environment.
 - **Vehicles** — vehicle records backing issue tracking (domain layer today; no dedicated screen
   yet).
 
@@ -40,6 +43,50 @@ Kotlin Multiplatform client for TruckTrack, targeting Android and iOS from one s
 | Contract DTOs | `com.momosi.trucktrack:shared` — see `../shared/README.md` |
 
 ## Getting started
+
+### Verified issue links
+
+Android handles HTTPS links through a verified manifest intent filter and a `singleTask` activity,
+so links from other apps reuse the existing activity through `onNewIntent`; iOS uses the
+`applinks:transroute.org` Associated Domains entitlement and SwiftUI browsing-web activities.
+Both platform shells forward links to the same Koin-injected `AppLinksManager` singleton, whose implementation
+receives `AuthManager` and rejects signed-out URLs immediately. Android injects it directly;
+iOS calls the Kotlin `openIosAppLink` bridge. Only positive numeric issue IDs are accepted.
+The `core:app-links` module exposes the `AppLinksManager` interface with `openUrl` and an `actions` flow.
+Its internal `AppLinksManagerImpl` uses a private parser with Ktor URL parsing
+and branches on the exact host and path to emit an `AppLinkAction`, such as `Issue(issueId)`.
+The implementation also owns authentication checks and action delivery, depending on `core:user` for
+`AuthManager` and `core:common` for logging. Its Koin binding lives in `appLinksModule`.
+It has no navigation dependencies; the root app consumer translates actions into root/destination keys,
+and `Navigator.navigate(root, destination)` handles backstack replacement and duplicate prevention.
+A conflated event channel bridges delivery before Compose starts. The root ViewModel exposes
+the event flow only while the host lifecycle is resumed, so background app instances cannot consume
+foreground links; links are consumed once and authentication is rechecked on delivery. Signed-out
+links are discarded without saving a destination or continuing after login.
+Back from a linked issue returns to the issues list.
+Normal API authorization still applies.
+
+The domain must publicly serve `/.well-known/assetlinks.json` and
+`/.well-known/apple-app-site-association` over HTTPS without redirects. Android associations must
+cover the installed build's application ID and signing certificate. Apple associations must cover
+both builds' application identifiers, and signing profiles must permit Associated Domains.
+The hosted Apple file currently allows all paths; unsupported links are logged and leave the
+current app navigation unchanged. OAuth callback schemes remain separate and unchanged.
+
+To support another route, add an `AppLinkAction` variant and its host/path branch in
+`core:app-links`'s private `AppLinksManagerImpl.parse`, then map the action to root/destination keys
+in `TruckTrackApp.kt` and call `Navigator.navigate(root, destination)`.
+Extend Android's manifest path filters for the new route.
+Register any new navigation key in `AppNavKeySerializers.kt` as usual. The existing iOS
+handler and all-path website association need no per-route changes. Unsupported paths stay
+unsupported until explicitly added to the parser.
+
+On Android, test a signed build by tapping a link or using
+`adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d "https://transroute.org/issue/5"`.
+Inspect verification with `adb shell pm get-app-links <application-id>`. On iOS, test a
+properly provisioned device build by tapping a link in Notes or Messages. Cover cold and warm
+launches, signed-out links being ignored without replay after login, repeated links, and missing or forbidden
+issues. iOS Universal Links may remain in Safari for same-domain browsing or user preferences.
 
 ### Prerequisites
 
@@ -156,6 +203,7 @@ graph TD
     end
 
     subgraph Core["core"]
+        appLinks["core:app-links"]
         common["core:common"]
         network["core:network"]
         user["core:user"]
@@ -175,6 +223,9 @@ graph TD
     shared --> issuesImpl
     shared --> profileImpl
     shared --> common
+    shared --> appLinks
+    appLinks --> user
+    appLinks --> common
     shared --> navigation
     shared --> network
     shared --> uiLibrary
@@ -213,8 +264,8 @@ Solid arrows are `implementation`/`api` project dependencies (`settings.gradle.k
 feature's */api` edges, each carrying nothing but the destination feature's `NavKey` so an entry
 provider can register it as a navigation target. That is the sanctioned use of an `api` module —
 depending on another feature's `impl` is not. `core` modules form a DAG rooted at
-`core:common` (everything depends on it, directly or transitively; nothing depends back), and
-`core:navigation` has no internal dependencies at all.
+`core:common` for domain/network infrastructure (nothing depends back). `core:navigation`
+has no internal project dependencies.
 
 Network DTOs (`IssueDto`, `VehicleDto`, `PageDto`, etc.) come from the separate `shared` build
 (`../shared/`), not from any `core` module — see `../shared/README.md`.

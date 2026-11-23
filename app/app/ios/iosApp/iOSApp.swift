@@ -21,6 +21,10 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+                    guard let url = activity.webpageURL else { return }
+                    IosAppInitializerKt.openIosAppLink(url: url.absoluteString)
+                }
         }
     }
 

@@ -35,6 +35,7 @@ include(
     ":app:android",
     ":app:shared",
     ":core:common",
+    ":core:app-links",
     ":core:ui-library",
     ":core:navigation",
     ":core:network",

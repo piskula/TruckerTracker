@@ -21,6 +21,8 @@ iosMain/
 
 - `TruckTrackApp()` — the single root Composable both `app:android`'s `TruckTrackActivity` and `app:ios`'s `MainViewController` render. Owns navigation state, the shared-element transition scope, and routes to each feature's `*Entries` via `entryProvider { }`.
 - Authentication changes to `Guest` reset the backstack to sign-in, including failed token refreshes and API session invalidation. Back navigation cannot reopen the previous authenticated screens.
+- Collect the singleton app-link flow only inside `repeatOnLifecycle(Lifecycle.State.RESUMED)`. Background roots must not consume one-shot links intended for the foreground root.
+- `core:app-links` owns the Koin singleton `AppLinksManager`, backed by internal `AppLinksManagerImpl` for URL parsing, authentication checks, logging, and action delivery. Aggregate its `appLinksModule` here. Android injects the interface directly; iOS uses the `openIosAppLink` bootstrap bridge. Signed-out URLs are rejected immediately. A conflated channel bridges delivery before Compose starts, rechecks authentication when consumed, and never replays handled links. The root collects `AppLinkAction`s through `TruckTrackViewModel` and translates them into root/destination keys in `TruckTrackApp.kt`. Delegate backstack replacement and duplicate prevention to `Navigator.navigate(root, destination)` in `core:navigation`. Keep navigation out of `core:app-links`.
 - `AppModule.kt` — the only place Koin modules are aggregated (`allModules`). Every `core`/`feature` module's own Koin module gets listed here; nothing else calls `startKoin` directly.
 - `AppInitializer`/`IosAppInitializer` — platform-specific bootstrap, but both ultimately call into this module's `startKoin { modules(allModules) }`.
 

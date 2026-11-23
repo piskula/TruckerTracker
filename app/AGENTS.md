@@ -29,7 +29,11 @@ addressed from the *repo* root via the composite build.
 * **`feature/*`** — one product feature each, always split into `api` (navigation keys only) and
   `impl` (ViewModel, Composables, state/actions/events). Today: `sign-in`, `issues`, `profile`.
 * **`core/*`** — shared domain logic and infrastructure: `common`, `network`, `user`, `issue`,
-  `vehicle`, `navigation`, `ui-library`.
+  `vehicle`, `navigation`, `ui-library`, `app-links`.
+* **`core/app-links`** — parses URLs into typed `AppLinkAction`s and delivers them through the
+  Koin singleton `AppLinksManager` backed by internal `AppLinksManagerImpl`, with `AuthManager`
+  from `core:user` and logging from `core:common`.
+  Signed-out links are ignored; navigation mapping stays in the app-layer consumer.
 
 Every module has its own `AGENTS.md` describing its responsibilities and public API — read it before
 changing that module, and record module-specific rules there rather than here.

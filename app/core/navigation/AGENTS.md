@@ -7,7 +7,7 @@ Wraps Navigation 3 (`androidx.navigation3`) to provide a simple backstack-based 
 | Symbol | Description |
 |--------|-------------|
 | `NavigationState` | Holds `backStack: NavBackStack<NavKey>` and `currentKey`. Created via `rememberNavigationState(startKey)`. |
-| `Navigator` | Imperative navigation: `navigate(key)`, `navigateToRoot(key)`, `goBack()`. Inject via Koin `single`. |
+| `Navigator` | Imperative navigation: `navigate(key)`, `navigate(root, destination)`, `navigateToRoot(key)`, `goBack()`. Inject via Koin `single`. |
 | `NavigationState.toEntries(entryProvider)` | Composable extension. Converts the backstack to decorated `NavEntry` list with ViewModel + SaveableState support. |
 | `ResultStore` | Mechanism to pass results back to the previous screen. |
 
@@ -24,6 +24,12 @@ commonMain/
 
 - `androidx.navigation3:navigation3-runtime`
 - `androidx.lifecycle:lifecycle-viewmodel-navigation3`
+
+`navigate(root, destination)` atomically replaces the backstack with the supplied root and destination
+inside a mutable Compose snapshot, preserving the remembered backstack instance,
+without duplicating a destination that is already current or adding the root twice when it is
+the destination. Callers translate app-specific actions into navigation keys; this module has no
+app-link or feature dependencies. Shared navigation tests run with `:core:navigation:testAndroidHostTest`.
 
 ## Usage Pattern
 

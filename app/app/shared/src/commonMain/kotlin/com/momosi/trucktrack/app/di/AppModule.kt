@@ -2,6 +2,7 @@ package com.momosi.trucktrack.app.di
 
 import com.momosi.trucktrack.app.CrashReportingSync
 import com.momosi.trucktrack.app.TruckTrackViewModel
+import com.momosi.trucktrack.core.applinks.di.appLinksModule
 import com.momosi.trucktrack.core.common.di.commonModule
 import com.momosi.trucktrack.core.common.di.platformCommonModule
 import com.momosi.trucktrack.core.issue.di.issueModule
@@ -22,7 +23,7 @@ import org.koin.dsl.module
 val appModule = module {
     single { CoroutineScope(SupervisorJob()) }
     single(createdAtStart = true) { CrashReportingSync(get(), get(), get()) }
-    viewModel { TruckTrackViewModel(get(), get()) }
+    viewModel { TruckTrackViewModel(get(), get(), get()) }
 }
 
 val allModules: List<Module> = listOf(
@@ -31,6 +32,7 @@ val allModules: List<Module> = listOf(
     networkModule,
     userModule,
     platformUserModule(),
+    appLinksModule,
     vehicleModule,
     platformVehicleModule(),
     issueModule,

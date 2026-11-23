@@ -98,6 +98,11 @@
 				TargetAttributes = {
 					62F0C741CC42D0CC8942E642 = {
 						CreatedOnToolsVersion = 14.3.1;
+						SystemCapabilities = {
+							com.apple.AssociatedDomains = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -290,6 +295,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "$(TT_APP_ICON_NAME)";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -322,6 +328,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "$(TT_APP_ICON_NAME)";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
