@@ -30,6 +30,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.coil.singleton)
             implementation(libs.coil.network.ktor)
+            implementation(projects.core.appLinks)
             implementation(projects.core.common)
             implementation(projects.core.navigation)
             implementation(projects.core.network)

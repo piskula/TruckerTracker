@@ -17,12 +17,14 @@ One flavor dimension, `environment`: `staging` (default, app ID `com.momosi.truc
 
 - `TruckTrackApplication`: initializes Koin via `initializeApp()` from `app:shared`, sets up Coil image loader.
 - `TruckTrackActivity`: calls `setContent { TruckTrackApp() }` — the shared root Composable from `app:shared`. Extends `AppCompatActivity` (not a plain `ComponentActivity`) specifically so `AppCompatDelegate.setApplicationLocales()` (used by `core:common`'s `LanguageRepository`) auto-recreates it when the in-app language changes — AppCompat only does this for `AppCompatActivity` subclasses, so don't change the base class back without re-solving that. This requires `AppTheme` (`res/values/themes.xml`) to descend from `Theme.AppCompat.*` — `AppCompatActivity.setContentView`/`setContent` throws `IllegalStateException` at startup with a non-AppCompat parent theme (e.g. a plain `android:Theme.Material.*`).
+- Use `singleTask` for `TruckTrackActivity` so external links reuse the existing app activity through `onNewIntent`, instead of creating another instance in the caller's task that competes for the singleton app-link channel.
 
 ## Depends On
 
 - `:app:shared` — shared KMP app module (root Composable, Koin wiring, all feature/core transitives)
 - `:core:common` — Logger initialization
 - `:core:network` — Coil/Ktor image loader setup
+- `:core:app-links` — delivers incoming Android app links through the shared `AppLinksManager` singleton
 
 ## Rules
 

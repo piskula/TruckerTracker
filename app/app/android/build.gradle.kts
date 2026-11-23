@@ -85,6 +85,7 @@ kotlin {
 
 dependencies {
     implementation(projects.app.shared)
+    implementation(projects.core.appLinks)
     implementation(projects.core.common)
     implementation(projects.core.network)
     implementation(projects.core.user)
