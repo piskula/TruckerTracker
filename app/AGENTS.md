@@ -126,6 +126,9 @@ One package per feature screen, related files together: `IssuesScreen.kt`, `Issu
 * Never build a user-facing error string in a ViewModel. Composables convert a `Throwable` with
   `toMessage(rememberApiErrorMessages())` in `:core:ui-library`, which picks the localized string
   and only trusts `serverMessage` for 4xx responses.
+* Never put a `Throwable` in UI `State`. When a screen needs to tell failures apart, the ViewModel
+  maps it with `toFailureReason()` (`core:common/network`) and the state carries the `FailureReason`.
+  Full-screen load failures render with `ErrorState` from `:core:ui-library`.
 
 ### Navigation
 

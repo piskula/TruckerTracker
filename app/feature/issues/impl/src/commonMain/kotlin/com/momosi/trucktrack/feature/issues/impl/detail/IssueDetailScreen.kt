@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.momosi.trucktrack.core.common.network.FailureReason
 import com.momosi.trucktrack.core.issue.model.ActionCapabilities
 import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueCapabilities
@@ -75,6 +76,7 @@ import com.momosi.trucktrack.core.uilibrary.components.Button
 import com.momosi.trucktrack.core.uilibrary.components.ButtonRole
 import com.momosi.trucktrack.core.uilibrary.components.ButtonStyle
 import com.momosi.trucktrack.core.uilibrary.components.ConfirmationDialog
+import com.momosi.trucktrack.core.uilibrary.components.ErrorState
 import com.momosi.trucktrack.core.uilibrary.components.Icon
 import com.momosi.trucktrack.core.uilibrary.components.LoadingSpinner
 import com.momosi.trucktrack.core.uilibrary.components.SkeletonBox
@@ -130,7 +132,6 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_cancelle
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_done
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_in_progress
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_status_open
-import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_retry
 import com.momosi.trucktrack.feature.issues.impl.resources.repair_type_damage
 import com.momosi.trucktrack.feature.issues.impl.resources.repair_type_fault
 import com.momosi.trucktrack.feature.issues.impl.resources.repair_type_installation
@@ -144,9 +145,9 @@ import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_engine
 import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_other
 import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_tarp
 import com.momosi.trucktrack.feature.issues.impl.resources.vehicle_system_tires
-import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.core.PickerType
-import io.github.vinceglb.filekit.core.PlatformFile
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
@@ -192,6 +193,7 @@ internal fun IssueDetailScreen(
         onReassignToMe = { viewModel.onAction(IssueDetailAction.ReassignToMe) },
         onCancelIssue = { viewModel.onAction(IssueDetailAction.CancelIssue) },
         onUploadPhoto = { viewModel.onAction(IssueDetailAction.UploadPhoto(it)) },
+        onPhotoPickerError = { viewModel.onAction(IssueDetailAction.PhotoPickerFailed(it)) },
         onDeletePhoto = { viewModel.onAction(IssueDetailAction.DeletePhoto(it)) },
         onNavigateToFullScreenPhoto = onNavigateToFullScreenPhoto,
     )
@@ -212,6 +214,7 @@ private fun IssueDetailScreenContent(
     onReassignToMe: () -> Unit,
     onCancelIssue: () -> Unit,
     onUploadPhoto: (PlatformFile) -> Unit,
+    onPhotoPickerError: (Throwable) -> Unit,
     onDeletePhoto: (Long) -> Unit,
     onNavigateToFullScreenPhoto: (PhotoItem) -> Unit,
     modifier: Modifier = Modifier,
@@ -306,20 +309,15 @@ private fun IssueDetailScreenContent(
             when (targetPhase) {
                 IssueDetailPhase.Loading -> IssueDetailSkeleton()
 
-                IssueDetailPhase.Error -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = stringResource(Res.string.issue_detail_error),
-                            style = AppTheme.typography.bodyLarge,
-                            color = AppTheme.colors.onSurface,
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            text = stringResource(Res.string.my_issues_retry),
-                            onClick = onRetry,
-                            modifier = Modifier.testTag("issue_detail_retry_button"),
-                        )
-                    }
+                IssueDetailPhase.Error -> {
+                    var lastFailureReason by remember { mutableStateOf(FailureReason.Other) }
+                    (state.content as? IssueDetailContent.Error)?.let { lastFailureReason = it.reason }
+                    ErrorState(
+                        reason = lastFailureReason,
+                        message = stringResource(Res.string.issue_detail_error),
+                        onRetry = onRetry,
+                        retryButtonModifier = Modifier.testTag("issue_detail_retry_button"),
+                    )
                 }
 
                 IssueDetailPhase.Loaded -> {
@@ -345,6 +343,7 @@ private fun IssueDetailScreenContent(
                         onReassignToMe = onReassignToMe,
                         onCancelIssue = { showCancelConfirmation = true },
                         onUploadPhoto = onUploadPhoto,
+                        onPhotoPickerError = onPhotoPickerError,
                         onPhotoClick = onNavigateToFullScreenPhoto,
                         onPhotoDeleteClick = { photoPendingDeletion = it },
                     )
@@ -374,12 +373,14 @@ private fun LoadedContent(
     onReassignToMe: () -> Unit,
     onCancelIssue: () -> Unit,
     onUploadPhoto: (PlatformFile) -> Unit,
+    onPhotoPickerError: (Throwable) -> Unit,
     onPhotoClick: (PhotoItem) -> Unit,
     onPhotoDeleteClick: (PhotoItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val photoPickerLauncher = rememberFilePickerLauncher(
-        type = PickerType.Image,
+        type = FileKitType.Image,
+        onError = onPhotoPickerError,
         onResult = { file -> file?.let { onUploadPhoto(it) } },
     )
 
@@ -1307,6 +1308,7 @@ private fun IssueDetailLoadedPreview() {
             onReassignToMe = {},
             onCancelIssue = {},
             onUploadPhoto = {},
+            onPhotoPickerError = {},
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
@@ -1333,6 +1335,7 @@ private fun IssueDetailHistoryEmptyPreview() {
             onReassignToMe = {},
             onCancelIssue = {},
             onUploadPhoto = {},
+            onPhotoPickerError = {},
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
@@ -1355,6 +1358,33 @@ private fun IssueDetailFullLoadingPreview() {
             onReassignToMe = {},
             onCancelIssue = {},
             onUploadPhoto = {},
+            onPhotoPickerError = {},
+            onDeletePhoto = {},
+            onNavigateToFullScreenPhoto = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun IssueDetailNoConnectionPreview() {
+    TruckTrackTheme {
+        IssueDetailScreenContent(
+            state = IssueDetailState(
+                issueId = previewIssue.id,
+                content = IssueDetailContent.Error(FailureReason.NoConnection),
+            ),
+            onBack = {},
+            onRetry = {},
+            onEdit = {},
+            onUpdateComment = {},
+            onSendComment = {},
+            onIssueStart = {},
+            onResolveIssue = {},
+            onReassignToMe = {},
+            onCancelIssue = {},
+            onUploadPhoto = {},
+            onPhotoPickerError = {},
             onDeletePhoto = {},
             onNavigateToFullScreenPhoto = {},
         )
@@ -1385,6 +1415,7 @@ private fun IssueDetailLoadedLargeFontScalePreview() {
                 onReassignToMe = {},
                 onCancelIssue = {},
                 onUploadPhoto = {},
+                onPhotoPickerError = {},
                 onDeletePhoto = {},
                 onNavigateToFullScreenPhoto = {},
             )

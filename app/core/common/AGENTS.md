@@ -24,6 +24,7 @@ commonMain/
   coroutines/DispatcherProvider.kt
   coroutines/Flows.kt              ← Flow utility extensions
   network/ConnectivityManager.kt   ← Interface (pure Kotlin)
+  network/FailureReason.kt         ← enum NoConnection/Other + Throwable.toFailureReason(), what UI state carries instead of a Throwable
   config/AppConfig.kt             ← Per-environment URLs / OAuth client / scheme, provided via Koin
   environment/AppEnvironment.kt    ← Singleton object holding isDebug
   version/AppVersionProvider.kt    ← Interface (pure Kotlin)

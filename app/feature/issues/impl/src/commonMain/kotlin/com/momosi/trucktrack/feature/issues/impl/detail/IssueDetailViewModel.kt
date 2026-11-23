@@ -2,9 +2,11 @@ package com.momosi.trucktrack.feature.issues.impl.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
 import com.momosi.trucktrack.core.common.error.ErrorReporter
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
 import com.momosi.trucktrack.core.common.logger.Logger
+import com.momosi.trucktrack.core.common.network.toFailureReason
 import com.momosi.trucktrack.core.issue.IssueAttachmentRepository
 import com.momosi.trucktrack.core.issue.IssueCapabilityRepository
 import com.momosi.trucktrack.core.issue.IssueRepository
@@ -12,7 +14,9 @@ import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueCapabilities
 import com.momosi.trucktrack.core.issue.model.IssueHistory
 import com.momosi.trucktrack.user.UserRepository
-import io.github.vinceglb.filekit.core.PlatformFile
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.readBytes
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -51,6 +55,7 @@ class IssueDetailViewModel(
         when (action) {
             is IssueDetailAction.UpdateComment -> _state.update { it.copy(commentText = action.text) }
             is IssueDetailAction.UploadPhoto -> uploadPhoto(action.file)
+            is IssueDetailAction.PhotoPickerFailed -> errorReporter.report(action.cause)
             is IssueDetailAction.DeletePhoto -> deletePhoto(action.attachmentId)
             is IssueDetailAction.SendComment -> sendComment()
             is IssueDetailAction.Retry -> loadIssueDetail()
@@ -73,11 +78,8 @@ class IssueDetailViewModel(
             val issueDeferred = async { issueRepository.getIssue(issueId) }
             val historyDeferred = async { fetchHistory() }
 
-            val issueResult = issueDeferred.await()
-            val issue = issueResult.getOrNull()
-            if (issue == null) {
-                _state.update { it.copy(content = IssueDetailContent.Error) }
-                issueResult.onFailure { errorReporter.report(it) }
+            val issue = issueDeferred.await().getOrElse { error ->
+                _state.update { it.copy(content = IssueDetailContent.Error(error.toFailureReason())) }
                 return@launch
             }
             _state.update {
@@ -238,14 +240,19 @@ class IssueDetailViewModel(
         if (_state.value.isUploadingPhoto) return
         _state.update { it.copy(isUploadingPhoto = true) }
         viewModelScope.launch {
-            issueAttachmentRepository.uploadPhoto(
-                issueId = issueId,
-                fileName = file.name,
-                fileBytes = file.readBytes(),
-                contentType = mimeTypeFromFileName(file.name),
-            )
-                .onFailure { errorReporter.report(it) }
-            _state.update { it.copy(isUploadingPhoto = false) }
+            try {
+                runCatchingCancellable {
+                    issueAttachmentRepository.uploadPhoto(
+                        issueId = issueId,
+                        fileName = file.name,
+                        fileBytes = file.readBytes(),
+                        contentType = mimeTypeFromFileName(file.name),
+                    ).getOrThrow()
+                }
+                    .onFailure { errorReporter.report(it) }
+            } finally {
+                _state.update { it.copy(isUploadingPhoto = false) }
+            }
             loadPhotos()
         }
     }

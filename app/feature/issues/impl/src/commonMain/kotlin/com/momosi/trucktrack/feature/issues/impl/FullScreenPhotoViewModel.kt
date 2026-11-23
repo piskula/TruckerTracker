@@ -2,11 +2,14 @@ package com.momosi.trucktrack.feature.issues.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.momosi.trucktrack.core.common.coroutines.mapCatchingCancellable
 import com.momosi.trucktrack.core.common.error.ErrorReporter
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.issue.IssueAttachmentRepository
 import com.momosi.trucktrack.feature.issues.impl.navigation.PhotoSource
-import io.github.vinceglb.filekit.core.FileKit
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.dialogs.openFileSaver
+import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,20 +36,22 @@ class FullScreenPhotoViewModel(private val source: PhotoSource, private val issu
         if (_isSaving.value) return
         _isSaving.value = true
         viewModelScope.launch {
-            val bytesResult = when (val current = source) {
-                is PhotoSource.Bytes -> Result.success(current.bytes)
-                is PhotoSource.Attachment -> issueAttachmentRepository.downloadPhoto(current.issueId, current.attachmentId)
-            }
-            bytesResult
-                .onSuccess {
-                    FileKit.saveFile(
-                        bytes = it,
-                        baseName = source.fileName.substringBeforeLast('.', source.fileName),
-                        extension = source.fileName.substringAfterLast('.', "jpg"),
-                    )
+            try {
+                val bytesResult = when (val current = source) {
+                    is PhotoSource.Bytes -> Result.success(current.bytes)
+                    is PhotoSource.Attachment -> issueAttachmentRepository.downloadPhoto(current.issueId, current.attachmentId)
                 }
-                .onFailure { errorReporter.report(it) }
-            _isSaving.value = false
+                bytesResult
+                    .mapCatchingCancellable { bytes ->
+                        FileKit.openFileSaver(
+                            suggestedName = source.fileName.substringBeforeLast('.', source.fileName),
+                            defaultExtension = source.fileName.substringAfterLast('.', "jpg"),
+                        )?.write(bytes)
+                    }
+                    .onFailure { errorReporter.report(it) }
+            } finally {
+                _isSaving.value = false
+            }
         }
     }
 }

@@ -43,6 +43,18 @@ Kotlin Multiplatform client for TruckTrack, targeting Android and iOS from one s
 | Auth / OIDC | [kotlin-multiplatform-oidc](https://github.com/kalinjul/kotlin-multiplatform-oidc) |
 | Contract DTOs | `com.momosi.trucktrack:shared` — see `../shared/README.md` |
 
+Dependency versions live in `../gradle/libs.versions.toml`. Mobile Kotlin and serialization use
+separate `*-mobile` versions so client updates do not change the server's Kotlin or runtime
+dependencies. Android Gradle Plugin stays aligned with the shared contract's Android target,
+as required by AGP. The client Gradle wrapper is updated independently.
+
+Android Lint uses an explicit JDK 25 toolchain in the Android shell and KMP library convention.
+This matches the client compilation target even when the composite build's Gradle daemon uses JDK 21.
+
+Photo picking and saving use FileKit's `filekit-dialogs-compose` API. The Android shell registers
+FileKit with its activity for suspend save dialogs; picker and file I/O failures use the existing
+error reporter. iOS Firebase pods remain unpinned and resolve the latest releases with `pod update`.
+
 ## Getting started
 
 ### Verified issue links

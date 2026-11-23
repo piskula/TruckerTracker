@@ -7,6 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.momosi.trucktrack.app.TruckTrackApp
 import com.momosi.trucktrack.core.applinks.AppLinksManager
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.dialogs.init
 import org.koin.android.ext.android.inject
 import org.publicvalue.multiplatform.oidc.appsupport.AndroidCodeAuthFlowFactory
 
@@ -17,6 +19,7 @@ class TruckTrackActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FileKit.init(this)
         codeAuthFlowFactory.registerActivity(this)
         if (savedInstanceState == null) {
             handleAppLink(intent)

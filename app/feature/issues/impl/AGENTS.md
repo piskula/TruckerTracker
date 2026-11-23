@@ -8,7 +8,7 @@ UI and logic for the issues feature. Screens: list, search, detail, create, edit
 
 | File | Description |
 |------|-------------|
-| `IssuesScreen.kt` | Top-level screen + `IssueList`, `LoadingContent` (shimmering skeleton list), `ErrorContent`, `EmptyContent` composables |
+| `IssuesScreen.kt` | Top-level screen + `IssueList`, `LoadingContent` (shimmering skeleton list), `ErrorContent` (`ErrorState` fed with the paging refresh error mapped to a `FailureReason`), `EmptyContent` composables |
 | `IssuesViewModel.kt` | Loads issues, handles filter selection and refresh |
 | `IssuesState.kt` | `IssuesState` (sealed: `Loading`, `Error`, `Empty`, `Issues`) + `IssuesContent`, `IssueFilter` |
 | `IssuesAction.kt` | `SelectFilter`, `Retry`, `Refresh` |
@@ -48,7 +48,7 @@ found issue opens its detail exactly like a list row does.
 | `IssueDetailScreen.kt` | Shows full issue: status, priority, description, history, photos, action buttons |
 | `IssueDetailSkeleton.kt` | Shimmer skeleton mirroring the loaded layout (people strip, header, history, photos), shown while `content` is `Loading` |
 | `IssueDetailViewModel.kt` | Loads issue + history + attachments, handles status transitions |
-| `IssueDetailState.kt` | Sealed state with loading/error/content variants |
+| `IssueDetailState.kt` | Sealed state with loading/error/content variants; `IssueDetailContent.Error` carries a `FailureReason` so the screen's `ErrorState` can tell "no internet connection" apart from other failures |
 | `IssueDetailAction.kt` | `StartIssue`, `ResolveIssue`, `AssignIssue`, `AddComment`, `UploadPhoto`, `DeletePhoto`, `ResolveConfirmDismiss` |
 
 #### Start Working (`detail/startworking/`)
