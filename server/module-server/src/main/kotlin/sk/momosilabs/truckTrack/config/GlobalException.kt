@@ -15,6 +15,12 @@ open class GlobalUnprocessableException(
     override val cause: Throwable? = null,
 ) : GlobalException(userMessage, detailMessage, HttpStatus.UNPROCESSABLE_ENTITY, cause)
 
+open class GlobalBadRequestException(
+    override val userMessage: String,
+    override val detailMessage: String = "",
+    override val cause: Throwable? = null,
+) : GlobalException(userMessage, detailMessage, HttpStatus.BAD_REQUEST, cause)
+
 open class GlobalForbiddenException(
     override val userMessage: String,
     override val detailMessage: String = "",
@@ -26,3 +32,9 @@ open class GlobalNotFoundException(
     override val detailMessage: String = "",
     override val cause: Throwable? = null,
 ) : GlobalException(userMessage, detailMessage, HttpStatus.NOT_FOUND, cause)
+
+open class GlobalServerErrorException(
+    override val userMessage: String,
+    override val detailMessage: String = "",
+    override val cause: Throwable? = null,
+) : GlobalException(userMessage, detailMessage, HttpStatus.INTERNAL_SERVER_ERROR, cause)

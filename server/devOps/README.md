@@ -128,3 +128,27 @@ The decoded payload should include:
 ```
 
 Confirm `ROLE_DRIVER` or `ROLE_MECHANIC` is present before testing the API.
+
+---
+
+## Reverse-Proxy Rate Limiting — `/api/v1/push/backchannel-logout`
+
+`POST /api/v1/push/backchannel-logout` is `permitAll` in `SecurityConfig`: the endpoint validates the
+Keycloak-issued logout token itself, so unauthenticated traffic reaches the application and is only
+rejected after signature verification (which can trigger a JWKS fetch). Shed that traffic at the
+reverse proxy instead.
+
+Generic NGINX example — a shared zone keyed on the client IP, a few requests per second with a small
+burst. Declare the zone in the `http` block and the location in the `server` block:
+
+```nginx
+limit_req_zone $binary_remote_addr zone=backchannel_logout:10m rate=2r/s;
+
+location = /api/v1/push/backchannel-logout {
+    limit_req zone=backchannel_logout burst=10 nodelay;
+    proxy_pass http://<app-upstream>;
+}
+```
+
+Keycloak sends one logout request per signed-out session, so 1–5 r/s per IP is well above legitimate
+volume; requests beyond the burst are rejected with `503` before reaching the app.

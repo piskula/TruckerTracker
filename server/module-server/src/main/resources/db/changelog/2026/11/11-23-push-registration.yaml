@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1795445351641-01
+      author: piskula
+      changes:
+        - createTable:
+            tableName: push_registration
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: account_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    unique: true
+                    foreignKeyName: fk_push_registration_account
+                    references: account(id)
+              - column:
+                  name: installation_id
+                  type: varchar(1024)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: platform
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: device_label
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+                    defaultValue: ""
+              - column:
+                  name: registered_at_utc
+                  type: timestamp
+                  constraints:
+                    nullable: false

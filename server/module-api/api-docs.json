@@ -663,6 +663,75 @@
           }
         }
       }
+    },
+    "/api/v1/push": {
+      "post": {
+        "tags": [
+          "Push"
+        ],
+        "summary": "Register Firebase push identifiers for the current account",
+        "operationId": "updateRegisteredDeviceForPushNotifications",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushRegistrationDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Push"
+        ],
+        "summary": "Remove the stored Firebase push identifiers of the current account",
+        "operationId": "removeRegisteredDeviceForPushNotifications",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/push/backchannel-logout": {
+      "post": {
+        "tags": [
+          "Push"
+        ],
+        "summary": "Handle an OpenID Connect back-channel logout notification from Keycloak",
+        "operationId": "processBackchannelLogout",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "required": [
+                  "logout_token"
+                ],
+                "type": "object",
+                "properties": {
+                  "logout_token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": []
+      }
     }
   },
   "components": {
@@ -1231,6 +1300,28 @@
             }
           }
         }
+      },
+      "PushRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "installationId": {
+            "type": "string"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/PushPlatformDto"
+          },
+          "deviceLabel": {
+            "type": "string"
+          }
+        }
+      },
+      "PushPlatformDto": {
+        "type": "string",
+        "enum": [
+          "ANDROID",
+          "IOS",
+          "UNKNOWN"
+        ]
       }
     },
     "securitySchemes": {

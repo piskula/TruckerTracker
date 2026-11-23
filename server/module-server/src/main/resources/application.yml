@@ -18,7 +18,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://sso.momosi.org/realms/trucktrack
+          issuer-uri: ${app.keycloak.issuer}
   servlet:
     multipart:
       enabled: true
@@ -30,6 +30,12 @@ s3:
   region: ${S3_REGION:us-east-1}
   access-key: ${S3_ACCESS_KEY:minioadmin}
   secret-key: ${S3_SECRET_KEY:minioadmin}
+
+app:
+  keycloak:
+    issuer: ${KEYCLOAK_URL:https://sso.momosi.org}/realms/${KEYCLOAK_REALM:trucktrack}
+    jwks-uri: ${app.keycloak.issuer}/protocol/openid-connect/certs
+    audience: ${KEYCLOAK_AUDIENCE:trucktrack-app}
 
 server:
   port: 8085

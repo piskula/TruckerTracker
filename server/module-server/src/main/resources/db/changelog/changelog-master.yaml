@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/2026/10/10-09-initial-schema.yaml
+  - include:
+      file: db/changelog/2026/11/11-23-push-registration.yaml
