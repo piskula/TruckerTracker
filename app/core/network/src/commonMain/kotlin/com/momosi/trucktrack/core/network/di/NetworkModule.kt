@@ -5,6 +5,7 @@ import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.common.network.installApiExceptionMapping
 import com.momosi.trucktrack.core.common.network.isTransientNetworkFailure
 import com.momosi.trucktrack.core.network.httpClientEngineFactory
+import com.momosi.trucktrack.core.network.installOptInRequestRetry
 import com.momosi.trucktrack.core.network.invalidateAuthTokensOn
 import com.momosi.trucktrack.user.AuthManager
 import com.momosi.trucktrack.user.model.TokenResponse
@@ -92,6 +93,8 @@ internal fun buildHttpClient(
                 }
             }
         }
+
+        installOptInRequestRetry()
 
         install(Logging) {
             level = LogLevel.BODY

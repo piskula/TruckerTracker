@@ -16,10 +16,13 @@ import com.momosi.trucktrack.user.model.User
 import com.momosi.trucktrack.user.model.UserRole
 import com.momosi.trucktrack.user.model.toStoredTokens
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -38,6 +41,7 @@ class AuthManagerImpl(
     private val userStorage: UserStorage,
     private val tokenVerifier: TokenVerifier,
     appCoroutineScope: CoroutineScope,
+    private val signOutHooks: () -> List<SignOutHook>,
 ) : AuthManager {
 
     override val authenticationState: StateFlow<AuthenticationState>
@@ -47,6 +51,9 @@ class AuthManagerImpl(
 
     override val authenticationInProgress: StateFlow<Boolean>
         field = MutableStateFlow(false)
+
+    private val completedLogins = Channel<Unit>(Channel.UNLIMITED)
+    override val loginCompletions: Flow<Unit> = completedLogins.receiveAsFlow()
 
     private val refreshTokenMutex = Mutex()
 
@@ -72,7 +79,7 @@ class AuthManagerImpl(
             if (authFlow.canContinueLogin()) {
                 Logger.d(TAG, "Resuming pending login after process restart")
                 verifyAndStore(authFlow.continueLogin())
-                authenticationState.value = AuthenticationState.Authorized
+                completeLogin()
             }
         }
             .onNoConnectionFailure { Logger.w(TAG, it, "Failed to resume pending login (offline)") }
@@ -106,7 +113,7 @@ class AuthManagerImpl(
             .mapCatchingCancellable { tokens ->
                 verifyAndStore(tokens)
                 authenticationInProgress.value = false
-                authenticationState.value = AuthenticationState.Authorized
+                completeLogin()
                 AuthActionResult.Success(AuthenticationState.Authorized)
             }
             .getOrElse { exception ->
@@ -135,39 +142,55 @@ class AuthManagerImpl(
             }
     }
 
-    override suspend fun signOut() {
-        if (authenticationState.value != AuthenticationState.Authorized) return
+    override suspend fun signOut(): AuthActionResult {
+        if (authenticationState.value != AuthenticationState.Authorized) return AuthActionResult.Success(AuthenticationState.Guest)
 
         if (!connectivityManager.isNetworkAvailable) {
-            invalidateAuth()
-            return
+            Logger.w(TAG, "Sign-out needs a connection, keeping the session")
+            return AuthActionResult.Failed.NoInternet
         }
 
         authenticationInProgress.value = true
+        val refreshedToken = getFreshAccessToken(forceRefresh = true)
+        if (refreshedToken is TokenResponse.TokenError && refreshedToken.exception.isTransientNetworkFailure()) {
+            authenticationInProgress.value = false
+            return AuthActionResult.Failed.NoInternet
+        }
+        if (authenticationState.value != AuthenticationState.Authorized) return AuthActionResult.Success(AuthenticationState.Guest)
         val idToken = userStorage.tokens?.idToken
 
         Logger.d(TAG, "Start end session")
 
-        runCatchingCancellable {
+        return runCatchingCancellable {
             authFlowFactory.createEndSessionFlow(client).endSession(idToken)
-        }
-            .onSuccess {
+        }.fold(
+            onSuccess = {
                 Logger.d(TAG, "End session successful")
-                invalidateAuth()
-            }
-            .onFailure { exception ->
-                if (exception is OpenIdConnectException.AuthenticationCancelled) {
-                    Logger.d(TAG, "User cancelled end session")
-                    authenticationInProgress.value = false
-                } else {
-                    if (exception.isTransientNetworkFailure()) {
-                        Logger.w(TAG, exception, "End session failed (offline)")
-                    } else {
-                        Logger.e(TAG, exception, "End session failed")
-                    }
-                    invalidateAuth()
-                }
-            }
+                clearSession()
+                AuthActionResult.Success(AuthenticationState.Guest)
+            },
+            onFailure = { exception -> onEndSessionFailure(exception) },
+        )
+    }
+
+    private suspend fun onEndSessionFailure(exception: Throwable): AuthActionResult = when {
+        exception is OpenIdConnectException.AuthenticationCancelled -> {
+            Logger.d(TAG, "User cancelled end session")
+            authenticationInProgress.value = false
+            AuthActionResult.Failed.UserCancelled
+        }
+
+        exception.isTransientNetworkFailure() -> {
+            Logger.w(TAG, exception, "End session failed (offline), keeping the session")
+            authenticationInProgress.value = false
+            AuthActionResult.Failed.NoInternet
+        }
+
+        else -> {
+            Logger.e(TAG, exception, "End session failed")
+            clearSession()
+            AuthActionResult.Failed.Error(exception)
+        }
     }
 
     override suspend fun token(): TokenResponse = when (authenticationState.value) {
@@ -184,11 +207,11 @@ class AuthManagerImpl(
         }
     }
 
-    private suspend fun getFreshAccessToken(): TokenResponse = refreshTokenMutex.withLock {
+    private suspend fun getFreshAccessToken(forceRefresh: Boolean = false): TokenResponse = refreshTokenMutex.withLock {
         val tokens = userStorage.tokens
             ?: return TokenResponse.TokenError(IllegalStateException("Authorized user without stored tokens"))
 
-        if (!tokens.needsRefresh()) {
+        if (!forceRefresh && !tokens.needsRefresh()) {
             return TokenResponse.Token(tokens.accessToken)
         }
 
@@ -224,6 +247,19 @@ class AuthManagerImpl(
         Logger.d(TAG, "Token verified")
         userStorage.user = jwt.toUser()
         userStorage.tokens = tokens.toStoredTokens()
+    }
+
+    private fun completeLogin() {
+        authenticationState.value = AuthenticationState.Authorized
+        completedLogins.trySend(Unit)
+    }
+
+    private suspend fun clearSession() {
+        signOutHooks().forEach { hook ->
+            runCatchingCancellable { hook.beforeSessionCleared() }
+                .onFailure { Logger.w(TAG, it, "Sign-out hook failed before clearing the session") }
+        }
+        invalidateAuth()
     }
 
     private fun invalidateAuth() {

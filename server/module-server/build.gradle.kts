@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.spring.boot.starter.liquibase)
     implementation(platform(libs.awssdk.bom))
     implementation(libs.awssdk.s3)
+    implementation(libs.firebase.admin)
 
     runtimeOnly(libs.postgresql)
 

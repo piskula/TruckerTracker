@@ -13,6 +13,10 @@ Every new or changed user-facing string must be added in **both** supported lang
 change: English in the module's default `values/strings.xml` and Slovak in the matching
 `values-sk/strings.xml`. A string added to only one of the two is an incomplete change.
 
+Compose resources are not Android resources: write apostrophes and quotes as-is (`Couldn't`), never
+escape them (`Couldn\'t`) — Compose shows the backslash literally. Escaping is only needed in Android
+`res/values/strings.xml` files under `androidMain`.
+
 When writing string resources, act as a technical copywriter — precise about domain concepts, but
 writing for a non-developer fleet operator.
 

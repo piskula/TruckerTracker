@@ -15,5 +15,15 @@
     <string name="profile_language_slovak">Slovak</string>
     <string name="profile_language_restart_title">Restart Required</string>
     <string name="profile_language_restart_message">Close and reopen the app to switch to the new language.</string>
+    <string name="profile_push_title">Push Notifications</string>
+    <string name="profile_push_this_device">Receive notifications on this device</string>
+    <string name="profile_push_other_device">Notifications currently go to %1$s.</string>
+    <string name="profile_push_load_failed">Couldn't check which device gets your notifications.</string>
+    <string name="profile_push_no_connection">No internet connection. Check your network and try again.</string>
+    <string name="profile_push_retry">Try Again</string>
+    <string name="profile_push_takeover_title">Move Notifications Here?</string>
+    <string name="profile_push_takeover_message">Notifications will stop on %1$s.</string>
+    <string name="profile_push_takeover_confirm">Move Here</string>
+    <string name="profile_push_takeover_dismiss">Cancel</string>
 </resources>
 

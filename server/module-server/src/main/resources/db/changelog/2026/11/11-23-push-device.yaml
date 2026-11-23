@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1795392000000-01
+      author: piskula
+      changes:
+        - createTable:
+            tableName: push_device
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: account_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_push_device_account
+                    foreignKeyName: fk_push_device_account
+                    references: account(id)
+              - column:
+                  name: firebase_installation_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_push_device_firebase_installation
+              - column:
+                  name: device_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: platform
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: registered_at_utc
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at_utc
+                  type: timestamp
+                  constraints:
+                    nullable: false

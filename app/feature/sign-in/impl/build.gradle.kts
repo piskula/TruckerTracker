@@ -14,7 +14,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.feature.signIn.api)
-            implementation(projects.feature.issues.api)
             implementation(projects.core.common)
             implementation(projects.core.user)
         }

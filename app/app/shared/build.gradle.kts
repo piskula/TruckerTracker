@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.trucktrack.library)
+    alias(libs.plugins.trucktrack.test)
     alias(libs.plugins.trucktrack.compose)
     alias(libs.plugins.trucktrack.koin)
 }
@@ -38,12 +39,15 @@ kotlin {
             implementation(projects.core.user)
             implementation(projects.core.vehicle)
             implementation(projects.core.issue)
+            implementation(projects.core.push)
 
             implementation(projects.feature.signIn.api)
             implementation(projects.feature.signIn.impl)
             implementation(projects.feature.issues.api)
             implementation(projects.feature.issues.impl)
             implementation(projects.feature.profile.impl)
+            implementation(projects.feature.notificationPermission.api)
+            implementation(projects.feature.notificationPermission.impl)
         }
     }
 }

@@ -3,6 +3,7 @@ package com.momosi.trucktrack.user.di
 import com.momosi.trucktrack.core.common.config.AppConfig
 import com.momosi.trucktrack.user.AuthManager
 import com.momosi.trucktrack.user.AuthManagerImpl
+import com.momosi.trucktrack.user.SignOutHook
 import com.momosi.trucktrack.user.UserRepository
 import com.momosi.trucktrack.user.UserRepositoryImpl
 import com.momosi.trucktrack.user.internal.TokenVerifier
@@ -26,5 +27,5 @@ val userModule = module {
     single { AuthApi(get()) }
     single { TokenVerifier(get(), get(), get()) }
     single<UserRepository> { UserRepositoryImpl(get()) }
-    single<AuthManager> { AuthManagerImpl(get(), get(), get(), get(), get(), get()) }
+    single<AuthManager> { AuthManagerImpl(get(), get(), get(), get(), get(), get(), signOutHooks = { getAll<SignOutHook>() }) }
 }

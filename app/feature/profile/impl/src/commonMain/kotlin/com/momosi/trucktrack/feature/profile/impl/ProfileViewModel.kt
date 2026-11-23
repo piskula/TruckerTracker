@@ -3,19 +3,27 @@ package com.momosi.trucktrack.feature.profile.impl
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.momosi.trucktrack.core.common.coroutines.combine
+import com.momosi.trucktrack.core.common.error.ErrorReporter
 import com.momosi.trucktrack.core.common.formatter.DateFormatter
 import com.momosi.trucktrack.core.common.language.AppLanguage
 import com.momosi.trucktrack.core.common.language.LanguageRepository
 import com.momosi.trucktrack.core.common.logger.Logger
+import com.momosi.trucktrack.core.common.network.ApiException
+import com.momosi.trucktrack.core.common.network.FailureReason
+import com.momosi.trucktrack.core.common.network.toFailureReason
 import com.momosi.trucktrack.core.common.version.AppVersionProvider
 import com.momosi.trucktrack.core.common.version.VersionRepository
+import com.momosi.trucktrack.core.push.registration.PushDeviceState
+import com.momosi.trucktrack.core.push.registration.PushRegistrationManager
 import com.momosi.trucktrack.user.AuthManager
 import com.momosi.trucktrack.user.UserRepository
+import com.momosi.trucktrack.user.model.AuthActionResult
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -28,6 +36,8 @@ class ProfileViewModel(
     private val dateFormatter: DateFormatter,
     private val testCrashManager: TestCrashManager,
     private val languageRepository: LanguageRepository,
+    private val pushRegistrationManager: PushRegistrationManager,
+    private val errorReporter: ErrorReporter,
 ) : ViewModel() {
 
     private val _event = Channel<ProfileEvent>(Channel.BUFFERED)
@@ -40,6 +50,16 @@ class ProfileViewModel(
     private val serverVersion = MutableStateFlow<ServerVersionContent>(ServerVersionContent.Loading)
     private val isLanguageDialogVisible = MutableStateFlow(false)
     private val isRestartNoticeVisible = MutableStateFlow(false)
+    private val pushLoadFailure = MutableStateFlow<FailureReason?>(null)
+    private val pushRequest = MutableStateFlow<PushNotificationsRequest>(PushNotificationsRequest.Idle)
+
+    private val pushNotifications: Flow<PushNotificationsState> = combine(
+        pushRegistrationManager.state,
+        pushLoadFailure,
+        pushRequest,
+    ) { deviceState, loadFailure, request ->
+        PushNotificationsState(target = deviceState.toPushNotificationsTarget(loadFailure), request = request)
+    }
 
     val state: StateFlow<ProfileState> = combine(
         userRepository.user,
@@ -49,7 +69,8 @@ class ProfileViewModel(
         languageRepository.language,
         isLanguageDialogVisible,
         isRestartNoticeVisible,
-    ) { user, signingOut, versionDialogVisible, serverVersionState, language, languageDialogVisible, restartNoticeVisible ->
+        pushNotifications,
+    ) { user, signingOut, versionDialogVisible, serverVersionState, language, languageDialogVisible, restartNoticeVisible, pushNotificationsState ->
         ProfileState(
             user = user,
             isSigningOut = signingOut,
@@ -59,12 +80,17 @@ class ProfileViewModel(
             language = language,
             isLanguageDialogVisible = languageDialogVisible,
             isRestartNoticeVisible = restartNoticeVisible,
+            pushNotifications = pushNotificationsState,
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = ProfileState(appVersion = appVersion),
     )
+
+    init {
+        refreshPushNotifications()
+    }
 
     fun onAction(action: ProfileAction) {
         Logger.d("Action:Profile", action.toString())
@@ -77,6 +103,10 @@ class ProfileViewModel(
             is ProfileAction.DismissLanguageSelector -> isLanguageDialogVisible.value = false
             is ProfileAction.SelectLanguage -> selectLanguage(action.language)
             is ProfileAction.DismissRestartNotice -> isRestartNoticeVisible.value = false
+            is ProfileAction.ChangeReceivePushNotifications -> changeReceivePushNotifications(action.enabled)
+            is ProfileAction.ConfirmPushNotificationsTakeover -> updatePushRegistration { pushRegistrationManager.registerThisDevice() }
+            is ProfileAction.DismissPushNotificationsTakeover -> pushRequest.value = PushNotificationsRequest.Idle
+            is ProfileAction.RetryPushNotifications -> refreshPushNotifications()
         }
     }
 
@@ -104,12 +134,53 @@ class ProfileViewModel(
         }
     }
 
+    private fun changeReceivePushNotifications(enabled: Boolean) {
+        if (pushRequest.value != PushNotificationsRequest.Idle) return
+        val currentDevice = pushRegistrationManager.state.value
+        when {
+            !enabled -> updatePushRegistration { pushRegistrationManager.unregisterThisDevice() }
+            currentDevice is PushDeviceState.OtherDevice -> pushRequest.value = PushNotificationsRequest.ConfirmingTakeover(currentDevice.deviceName)
+            else -> updatePushRegistration { pushRegistrationManager.registerThisDevice() }
+        }
+    }
+
+    private fun updatePushRegistration(change: suspend () -> Result<Unit>) {
+        viewModelScope.launch {
+            pushRequest.value = PushNotificationsRequest.Updating
+            change().onFailure { errorReporter.report(it) }
+            loadPushDeviceState()
+            pushRequest.value = PushNotificationsRequest.Idle
+        }
+    }
+
+    private fun refreshPushNotifications() {
+        pushLoadFailure.value = null
+        viewModelScope.launch { loadPushDeviceState() }
+    }
+
+    private suspend fun loadPushDeviceState() {
+        pushRegistrationManager.refreshState()
+            .onSuccess { pushLoadFailure.value = null }
+            .onFailure { pushLoadFailure.value = it.toFailureReason() }
+    }
+
     private fun signOut() {
         viewModelScope.launch {
             isSigningOut.value = true
-            authManager.signOut()
+            val result = authManager.signOut()
             isSigningOut.value = false
-            _event.send(ProfileEvent.NavigateToSignIn)
+            when (result) {
+                is AuthActionResult.Success -> _event.send(ProfileEvent.NavigateToSignIn)
+                AuthActionResult.Failed.NoInternet -> errorReporter.report(ApiException.NoConnection)
+                else -> Unit
+            }
         }
     }
+}
+
+private fun PushDeviceState.toPushNotificationsTarget(loadFailure: FailureReason?): PushNotificationsTarget = when (this) {
+    PushDeviceState.Unknown -> loadFailure?.let { PushNotificationsTarget.LoadFailed(it) } ?: PushNotificationsTarget.Loading
+    PushDeviceState.ThisDevice -> PushNotificationsTarget.ThisDevice
+    is PushDeviceState.OtherDevice -> PushNotificationsTarget.OtherDevice(deviceName)
+    PushDeviceState.None -> PushNotificationsTarget.NoDevice
 }

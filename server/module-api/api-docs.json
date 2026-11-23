@@ -728,6 +728,119 @@
           }
         }
       }
+    },
+    "/api/v1/push-device": {
+      "get": {
+        "tags": [
+          "Push Devices"
+        ],
+        "summary": "Get registered push device",
+        "operationId": "getPushDevice",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushDeviceDto"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No push device is registered"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Push Devices"
+        ],
+        "summary": "Register push device, taking over from the previously registered device",
+        "operationId": "registerPushDevice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushDeviceRegistrationDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushDeviceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/push-device/{firebaseInstallationId}": {
+      "delete": {
+        "tags": [
+          "Push Devices"
+        ],
+        "summary": "Delete push device if this Firebase Installation ID holds the push device slot",
+        "operationId": "deletePushDevice",
+        "parameters": [
+          {
+            "name": "firebaseInstallationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Push Devices"
+        ],
+        "summary": "Update Firebase Installation ID of the registered push device",
+        "description": "The path holds the Firebase Installation ID the app registered last, the body the current one.",
+        "operationId": "updatePushDevice",
+        "parameters": [
+          {
+            "name": "firebaseInstallationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushDeviceUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "409": {
+            "description": "The Firebase Installation ID in the path does not hold the push device slot"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1413,6 +1526,54 @@
             "items": {
               "$ref": "#/components/schemas/ChecklistAnswerDto"
             }
+          }
+        }
+      },
+      "PushDeviceRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "firebaseInstallationId": {
+            "type": "string"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "ANDROID",
+              "IOS"
+            ]
+          }
+        }
+      },
+      "PushDeviceUpdateDto": {
+        "type": "object",
+        "properties": {
+          "firebaseInstallationId": {
+            "type": "string"
+          }
+        }
+      },
+      "PushDeviceDto": {
+        "type": "object",
+        "properties": {
+          "firebaseInstallationId": {
+            "type": "string"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "ANDROID",
+              "IOS"
+            ]
+          },
+          "registeredAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }

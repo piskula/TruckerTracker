@@ -2,23 +2,12 @@ package com.momosi.trucktrack.core.network.di
 
 import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
 import com.momosi.trucktrack.core.common.network.ApiException
-import com.momosi.trucktrack.user.AuthManager
-import com.momosi.trucktrack.user.model.AuthActionResult
 import com.momosi.trucktrack.user.model.AuthenticationState
-import com.momosi.trucktrack.user.model.TokenResponse
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.HttpClientEngineFactory
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.MockEngineConfig
-import io.ktor.client.engine.mock.MockRequestHandler
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.get
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -104,47 +93,4 @@ class SessionInvalidationTest {
             assertNull(authManager.rejectedAccessToken)
         }
     }
-
-    private suspend fun TestScope.withClient(
-        authManager: AuthManager,
-        handler: MockRequestHandler,
-        block: suspend (HttpClient) -> Unit,
-    ) {
-        val factory = object : HttpClientEngineFactory<MockEngineConfig> {
-            override fun create(block: MockEngineConfig.() -> Unit): HttpClientEngine = MockEngine.create {
-                block()
-                addHandler(handler)
-            }
-        }
-        val client = buildHttpClient(authManager, backgroundScope, factory)
-        try {
-            block(client)
-        } finally {
-            client.close()
-        }
-    }
-}
-
-private class FakeAuthManager(private val tokens: List<String> = listOf("access-token")) : AuthManager {
-    override val authenticationState = MutableStateFlow(AuthenticationState.Authorized)
-    override val authenticationInProgress = MutableStateFlow(false)
-    var rejectedAccessToken: String? = null
-        private set
-    private var tokenRequests = 0
-
-    override suspend fun token(): TokenResponse {
-        if (tokens.isEmpty()) return TokenResponse.GuestWithoutToken
-        val token = tokens[minOf(tokenRequests, tokens.lastIndex)]
-        tokenRequests++
-        return TokenResponse.Token(token)
-    }
-
-    override suspend fun invalidateSession(rejectedAccessToken: String) {
-        this.rejectedAccessToken = rejectedAccessToken
-        authenticationState.value = AuthenticationState.Guest
-    }
-
-    override suspend fun signIn(): AuthActionResult = error("Unexpected sign-in")
-
-    override suspend fun signOut(): Unit = error("Unauthorized responses must not launch browser logout")
 }

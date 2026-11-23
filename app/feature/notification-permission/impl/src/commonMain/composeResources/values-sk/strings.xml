@@ -1,0 +1,8 @@
+<resources>
+    <string name="notification_permission_title">Zapnite upozornenia</string>
+    <string name="notification_permission_rationale">TruckTrack vám hneď oznámi, keď vám pridelia hlásenie alebo sa zmení jeho stav, aby vám neušla žiadna oprava.</string>
+    <string name="notification_permission_settings_hint">Upozornenia pre TruckTrack sú vypnuté. Otvorte Nastavenia a povoľte ich, aby ste mohli pokračovať.</string>
+    <string name="notification_permission_allow">Povoliť upozornenia</string>
+    <string name="notification_permission_open_settings">Otvoriť nastavenia</string>
+    <string name="notification_permission_sign_out">Odhlásiť sa</string>
+</resources>

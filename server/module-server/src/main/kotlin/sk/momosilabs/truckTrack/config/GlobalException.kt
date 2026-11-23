@@ -26,3 +26,9 @@ open class GlobalNotFoundException(
     override val detailMessage: String = "",
     override val cause: Throwable? = null,
 ) : GlobalException(userMessage, detailMessage, HttpStatus.NOT_FOUND, cause)
+
+open class GlobalConflictException(
+    override val userMessage: String,
+    override val detailMessage: String = "",
+    override val cause: Throwable? = null,
+) : GlobalException(userMessage, detailMessage, HttpStatus.CONFLICT, cause)

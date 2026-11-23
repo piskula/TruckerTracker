@@ -4,6 +4,8 @@ use_frameworks!
 target 'iosApp' do
   pod 'FirebaseCore'
   pod 'FirebaseCrashlytics'
+  pod 'FirebaseMessaging'
+  pod 'DeviceKit'
 end
 
 post_install do |installer|

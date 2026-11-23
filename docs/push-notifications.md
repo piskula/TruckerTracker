@@ -1,0 +1,299 @@
+# Push Notifications
+
+How TruckTrack delivers push notifications from the backend to the Android and iOS apps.
+
+## Rules
+
+- **One push device per user.** Registering a device takes over from the device that held the slot
+  before; that device receives a "notifications moved to …" notice.
+- **Every login registers the device**, regardless of the OS notification permission — whichever way
+  the login completes (including a login the app resumes after Android killed it during the browser
+  step). The Profile toggle registers it too. App start and identifier refresh never register — they
+  can only update the identifier of a device that already holds the slot, so an old device can't
+  steal the slot back.
+- **The app requires notification permission.** Without it, a blocking screen explains why and
+  offers "Allow" / "Open settings" and "Sign out". Nothing else is reachable.
+- **The Firebase Installation ID is the only device identifier.** FCM registers each app
+  installation under a Firebase Installation ID; the backend targets pushes with it, and the app
+  identifies itself with it. It changes on reinstall, cleared app data, or restore to a new device —
+  all of which also end the login, so the next login registers the new id. If it rotates while the
+  user stays logged in, the app proves it held the slot by sending the previous id it registered.
+- **FCM on both platforms.** FCM delivers to iOS through APNs, so the backend only talks to FCM.
+  Registration follows the current Firebase guides (Firebase Installation ID registration, not the
+  deprecated registration token).
+- **Notification text is generic** and always in Slovak — the backend renders it from
+  `messages.properties`, the app sends no language. A stray notification on a shared device reveals
+  almost nothing. Today the only push is the move notice ("Upozornenia boli presunuté" /
+  "Upozornenia z TruckTrack teraz prichádzajú na zariadenie {0}."); future pushes should stay as
+  vague, e.g. "Máte pridelenú novú požiadavku".
+
+## Overview
+
+```mermaid
+flowchart LR
+  subgraph Phone["Phone (KMP app)"]
+    UI["Sign-in / Profile / permission gate"] --> PRM["PushRegistrationManager (core:push)"]
+    PRM --> FIREBASE_INSTALLATION["Firebase Installation ID (FCM SDK)"]
+    UI --> PERM["NotificationPermission"]
+    TRAY["OS notification tray"]
+  end
+  subgraph Backend["Spring Boot backend"]
+    API["push controller + use cases"] --> DB[("push_device")]
+    DOMAIN["Other use cases, e.g. issue assigned"] --> PNS["PushNotificationService (FCM)"]
+    API -- "PushDeviceReplacedEvent (after commit)" --> PNS
+    PNS --> DB
+  end
+  PRM -- "PUT / PATCH / GET / DELETE /api/v1/push-device" --> API
+  PNS -- "FCM HTTP v1" --> FCM["Firebase Cloud Messaging"]
+  FCM -- "Android: direct, iOS: via APNs" --> TRAY
+```
+
+## App flow
+
+```mermaid
+flowchart TD
+  START["App start or resume"] --> AUTH{"Signed in?"}
+  AUTH -- "no" --> SIGNIN["Sign-in screen"]
+  SIGNIN -- "login ok" --> REG["PUT /push-device (always, takes over)"]
+  REG --> PERM{"Notification permission?"}
+  AUTH -- "yes, restored session" --> SYNC["PushRegistrationManager: PATCH only if the Firebase Installation ID changed"]
+  SYNC --> PERM
+  PERM -- "granted" --> MAIN["Main app"]
+  PERM -- "not asked yet" --> ASK["Gate: illustration + rationale, buttons Allow and Sign out"]
+  PERM -- "denied" --> DENIED["Gate: illustration + rationale, buttons Open settings and Sign out"]
+  ASK -- "Allow" --> SYS["System permission dialog"]
+  SYS -- "granted" --> MAIN
+  SYS -- "denied" --> DENIED
+  DENIED -- "Open settings" --> OS["OS notification settings"]
+  OS -- "back in app (resume)" --> PERM
+  ASK -- "Sign out" --> OUT["Keycloak logout, then DELETE /push-device, then clear the session"]
+  DENIED -- "Sign out" --> OUT
+  OUT --> SIGNIN
+```
+
+## Login on a new device (takeover)
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor U as Driver
+  participant B as Phone B (new)
+  participant KC as Keycloak
+  participant BE as Backend
+  participant DB as push_device
+  participant FCM as FCM / APNs
+  participant A as Phone A (old)
+
+  U->>B: Sign in
+  B->>KC: OIDC login
+  KC-->>B: tokens
+  B->>FCM: Register installation
+  FCM-->>B: Firebase Installation ID B
+  B->>BE: PUT /push-device (firebaseInstallationId B, name, platform)
+  BE->>DB: Lock account row
+  BE->>DB: Delete rows with Firebase Installation ID B on other accounts
+  BE->>DB: Replace this account's row (A to B)
+  BE-->>B: 200 PushDeviceDto
+  Note over BE: After commit, async
+  BE->>FCM: "Notifications moved to Pixel 8" to Firebase Installation ID A
+  FCM->>A: Notification
+  A->>A: Show it, never re-register
+  B->>B: Permission gate (see App flow)
+```
+
+## Everyday device flows
+
+```mermaid
+sequenceDiagram
+  participant P as Phone
+  participant BE as Backend
+
+  Note over P,BE: App start with restored session, or Firebase Installation ID change
+  P->>P: Firebase Installation ID changed since last sent?
+  opt changed and something was sent before
+    P->>BE: PATCH /push-device/{last sent id} (current id)
+    alt last sent id holds the slot
+      BE-->>P: 200, id updated
+    else another device holds it
+      BE-->>P: 409, nothing changes
+    end
+    P->>P: Remember sent id
+  end
+
+  Note over P,BE: Profile screen
+  P->>BE: GET /push-device
+  BE-->>P: firebaseInstallationId + deviceName (checked if it is mine)
+  P->>BE: Toggle on: confirm takeover, then PUT /push-device
+  P->>BE: Toggle off: DELETE /push-device/{firebaseInstallationId}
+
+  Note over P,BE: Explicit logout (needs a connection — offline it is refused with "No connection")
+  P->>P: Refresh the access token, then Keycloak logout in the browser
+  alt user closed the logout page
+    P->>P: Still signed in, registration untouched
+  else logged out
+    P->>BE: DELETE /push-device/{firebaseInstallationId} (best effort, access token still valid)
+    P->>P: Clear the local session
+  end
+```
+
+## Sending a notification
+
+```mermaid
+sequenceDiagram
+  participant UC as Use case, e.g. assign issue
+  participant PNS as PushNotificationService
+  participant DB as push_device
+  participant FCM as FCM / APNs
+  participant P as Registered phone
+
+  UC->>PNS: Event published, sent after commit
+  PNS->>DB: Find row by account
+  alt no row
+    PNS->>PNS: Skip
+  else row found
+    PNS->>FCM: Generic Slovak text + data type
+    alt FCM rejects the id (UNREGISTERED, INVALID_ARGUMENT, SENDER_ID_MISMATCH)
+      PNS->>DB: Delete where firebase_installation_id = sent id
+    else delivered
+      FCM->>P: Notification
+    end
+  end
+```
+
+## API contract
+
+DTOs live in `shared` (`com.momosi.trucktrack.shared.push`) for the client and are mirrored
+field-for-field in `server/module-api` (`sk.momosilabs.truckTrack.api.push.dto`), like every other
+domain.
+
+| Endpoint | Request | Response |
+|---|---|---|
+| `PUT /api/v1/push-device` | `PushDeviceRegistrationDto(firebaseInstallationId, deviceName, platform)` | `200 PushDeviceDto`. Takes the slot over. |
+| `PATCH /api/v1/push-device/{firebaseInstallationId}` | `PushDeviceUpdateDto(firebaseInstallationId)` — the path holds the id the app sent last, the body the current one | `200` when the path id holds the slot, otherwise `409`. Never takes the slot over. |
+| `GET /api/v1/push-device` | – | `200 PushDeviceDto(firebaseInstallationId, deviceName, platform, registeredAt)`, or `204` when no device is registered. |
+| `DELETE /api/v1/push-device/{firebaseInstallationId}` | – | `200`. Deletes only if this id holds the slot. |
+
+Only the registration `PUT` is retried by the app (on connection errors and 5xx, a few times with
+backoff); every other request fails immediately.
+
+### Push payload
+
+Every push is an FCM *notification* message (so the OS shows it while the app is in the background)
+with a `data` block:
+
+| Key | Value |
+|---|---|
+| `type` | A `PushMessageTypeDto` name, e.g. `DEVICE_UNREGISTERED` |
+| `deviceName` | `DEVICE_UNREGISTERED` only: the device that took over |
+
+Android messages use the notification channel `trucktrack_notifications`; the app creates that
+channel at startup and declares it as FCM's default channel.
+
+## Backend
+
+- Table `push_device`: `id`, `account_id` (unique), `firebase_installation_id` (unique),
+  `device_name`, `platform`, `registered_at_utc`, `updated_at_utc`.
+  The unique `account_id` enforces one device per user; the unique `firebase_installation_id`
+  enforces that a shared device belongs to only one account.
+- `registerPushDevice` locks the account row, deletes this Firebase Installation ID from other
+  accounts, replaces this account's row, and publishes `PushDeviceReplacedEvent` when the device
+  changed.
+- `PushNotificationService` sends through the Firebase Admin SDK (`Message.setFid`) after the
+  transaction commits. When FCM rejects the id (`UNREGISTERED`, `INVALID_ARGUMENT`,
+  `SENDER_ID_MISMATCH`), the row is deleted — but only if it still holds that id. Other failures are
+  only logged.
+- Without Firebase credentials configured, sending is disabled, so local development works without
+  them. Startup then logs `FIREBASE_CREDENTIALS_BASE64 is not set, push notifications are disabled`.
+
+## Client
+
+- `core:push` — Firebase Installation ID access, notification permission, the API client,
+  `PushRegistrationManager` (`state`, `registerThisDevice`, `unregisterThisDevice`, `refreshState`)
+  and `PushMessageDispatcher` for incoming pushes.
+- `feature:notification-permission` — the blocking permission gate. It is an ordinary root
+  destination (`NotificationPermissionNavKey`) and never navigates itself: `app:shared` derives one
+  `AppAccess` from the login and the permission (signed out › permission missing › ready) and
+  navigates to sign-in, the gate or the issues list whenever it changes. App links wait until access
+  is ready. Being the root of the back stack, Android back exits the app.
+- `PushRegistrationManager` is the single owner of everything the app sends about this device: it
+  registers on every completed login (also a login resumed after process death), sends the new
+  Firebase Installation ID when it changes (PATCH, only while this device holds the slot), resets
+  its state on sign-out, and serves the Profile toggle (`registerThisDevice` / `unregisterThisDevice`
+  / `refreshState`). Registration waits for the Firebase Installation ID; if the request still fails
+  after its retries, the error is shown and the user can retry from Profile — there are no delayed
+  retries, so an old device can never take the slot back later.
+- Incoming pushes go through `PushMessageDispatcher`, which parses them and hands them to every
+  `PushMessageHandler` (features implement one per message type) and to its `messages` flow for the UI.
+  `DEVICE_UNREGISTERED` only refreshes the registration state; it never registers.
+- Sign-out needs a connection: offline, it keeps the session and shows "No connection". Online, it
+  logs out of Keycloak first and only then unregisters the device, using the access token that is
+  still valid (it is refreshed right before the logout page opens), and finally clears the local
+  session. If the user closes the logout page, nothing happens to the registration.
+- Firebase Installation ID registration is enabled with `firebase_messaging_installation_id_enabled`
+  (Android manifest) and `FirebaseMessagingInstallationIdEnabled` (iOS `Info.plist`); the id arrives
+  in `FirebaseMessagingService.onRegistered` and `MessagingDelegate.messaging(_:didReceiveRegistration:)`.
+- Foreground: Android builds the notification itself in `onMessageReceived`; iOS returns
+  `[.banner, .sound, .list]` from `willPresent`. Message handlers only run while the app is in the
+  foreground; in the background the OS shows the notification by itself. Tapping a notification
+  only opens the app — there is no per-message navigation yet.
+- The id the app sent last is excluded from backups (Android Auto Backup, iOS backup), so a phone
+  restored from backup can't present another phone's id.
+- Device names: Android uses [AndroidDeviceNames](https://github.com/jaredrummler/AndroidDeviceNames)
+  (its database ends in 2022; newer phones fall back to manufacturer + model), iOS uses
+  [DeviceKit](https://github.com/devicekit/DeviceKit) (e.g. "iPhone 15 Pro").
+
+## Accepted limitation
+
+An expired Keycloak session doesn't unregister the device. Pushes keep arriving until the user logs
+out, another device takes over, or FCM reports the Firebase Installation ID as invalid. Generic notification text keeps
+this harmless. A Keycloak event listener (`LOGOUT`, `USER_SESSION_DELETED`) could be added later
+without changing anything else.
+
+## App Store note
+
+App Store Review Guideline 4.5.4 says push notifications "must not be required for the app to
+function". The permission gate is fine for Firebase App Distribution and internal TestFlight testers,
+but a public App Store or external TestFlight review will likely reject it.
+
+## Setup outside the repository
+
+### Backend
+
+`FIREBASE_CREDENTIALS_BASE64` holds the Firebase service-account key: Firebase console → Project
+settings → Service accounts → *Generate new private key*, then base64 the JSON on one line
+(`base64 -w0 key.json`). Never commit it and never log it. Both apps (staging and prod) are in the
+same Firebase project, so one key serves both servers.
+
+- Production: add it to `/opt/trucktrack/app/app.env`, see the truckTrack-devOps runbook (doc 07,
+  section 7.2).
+- Staging (`trucker-service.service`, deployed by `build-server.yml`): put the line in a root-only
+  file and load it with a systemd drop-in:
+  ```bash
+  sudo install -m 600 /dev/null /etc/trucker-service-firebase.env   # then paste the line into it
+  sudo mkdir -p /etc/systemd/system/trucker-service.service.d
+  printf '[Service]\nEnvironmentFile=/etc/trucker-service-firebase.env\n' | sudo tee /etc/systemd/system/trucker-service.service.d/firebase.conf
+  sudo systemctl daemon-reload
+  ```
+
+The variable takes effect on the next restart or deploy.
+
+### Android
+
+Nothing extra: `google-services.json` already lists both application ids. The FCM HTTP v1 API is on
+by default (Firebase console → Project settings → Cloud Messaging shows it as *Enabled*).
+
+### iOS
+
+1. Apple Developer portal → Keys → **+** → *Apple Push Notifications service (APNs)* → download the
+   `.p8` (only downloadable once) and note its Key ID and the Team ID (Membership details).
+2. Firebase console → Project settings → Cloud Messaging → for **both** iOS apps, upload it under
+   *APNs Authentication Key* with the Key ID and Team ID. Don't use APNs certificates — the key never
+   expires and covers both apps and both APNs environments.
+3. Apple Developer portal → Identifiers → `com.momosi.trucktrack` and `com.momosi.trucktrack.staging`
+   → tick *Push Notifications* → Save. Ignore *Configure* and its "Client SSL Certificate" text; the
+   `.p8` replaces it.
+4. That invalidates the provisioning profiles: regenerate the staging ad-hoc, prod ad-hoc and prod
+   App Store profiles and update `IOS_STAGING_ADHOC_PROFILE_BASE64`, `IOS_PROD_ADHOC_PROFILE_BASE64`
+   and `IOS_PROD_APPSTORE_PROFILE_BASE64` (see the `manage-ios-signing` skill). With an old profile
+   the CI archive fails with "Provisioning profile … doesn't include the aps-environment
+   entitlement".

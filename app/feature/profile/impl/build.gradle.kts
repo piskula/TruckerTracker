@@ -17,6 +17,7 @@ kotlin {
             implementation(projects.feature.signIn.api)
             implementation(projects.core.common)
             implementation(projects.core.user)
+            implementation(projects.core.push)
         }
     }
 }

@@ -25,11 +25,14 @@ addressed from the *repo* root via the composite build.
   consumes `app:shared`'s Kotlin/Native `Shared.framework` via
   `:app:app:shared:embedAndSignAppleFrameworkForXcode`.
 * **`app/shared`** (`:app:shared`) — root Composable, root ViewModel, Koin aggregation, platform
-  bootstrap. The wiring point every other module feeds into.
+  bootstrap. The wiring point every other module feeds into. Its root observer sends signed-out users
+  to sign-in and signed-in users without notification permission to the blocking notification
+  permission gate, an ordinary root destination.
 * **`feature/*`** — one product feature each, always split into `api` (navigation keys only) and
-  `impl` (ViewModel, Composables, state/actions/events). Today: `sign-in`, `issues`, `profile`.
+  `impl` (ViewModel, Composables, state/actions/events). Today: `sign-in`, `issues`, `profile`,
+  `notification-permission`.
 * **`core/*`** — shared domain logic and infrastructure: `common`, `network`, `user`, `issue`,
-  `vehicle`, `navigation`, `ui-library`, `app-links`.
+  `vehicle`, `push`, `navigation`, `ui-library`, `app-links`.
 * **`core/app-links`** — parses URLs into typed `AppLinkAction`s and delivers them through the
   Koin singleton `AppLinksManager` backed by internal `AppLinksManagerImpl`, with `AuthManager`
   from `core:user` and logging from `core:common`.
@@ -135,6 +138,31 @@ One package per feature screen, related files together: `IssuesScreen.kt`, `Issu
 * **Navigation 3** (`androidx.navigation3`) for all navigation.
 * Navigation keys are `@Serializable` objects implementing `NavKey`, in `feature/*/api`.
 * Screen entries registered via `EntryProviderScope<NavKey>` extensions in `feature/*/impl/navigation/`.
+* Every `NavKey` that can end up in a back stack is registered in `app:shared`'s
+  `AppNavKeySerializers.kt`.
+* App-wide gates are root destinations, never pushed on top of other screens. As the only entry of
+  the back stack, a gate leaves nothing else reachable and Android back leaves the app. **Only
+  `app:shared` navigates between them**, from a single `AppAccess` (`AppAccess.kt`) with fixed
+  precedence — signed out (sign-in) › notification permission missing (the gate) › ready (the
+  issues list) — whenever it changes. Sign-in and the gate never navigate away themselves: they
+  sign in or request the permission, and the access change moves the user on (this also covers a
+  login resumed after process death and a permission revoked in the OS settings). App links are
+  only delivered while access is `Ready`; until then they wait in `AppLinksManager`.
+
+### Push Notifications
+
+* `core:push` owns device registration, the Firebase Installation ID, the notification permission and
+  incoming push messages — see its `AGENTS.md` and `../docs/push-notifications.md`. It starts itself:
+  `PushRegistrationManager` is the single owner of every registration request and reacts to logins,
+  restored sessions and Firebase Installation ID changes on its own, and `PushMessageDispatcher`
+  delivers incoming messages. Neither needs feature or `app:shared` code.
+* A feature reacts to a push message type by implementing `core:push`'s `PushMessageHandler` and
+  registering it in its Koin module with `bind PushMessageHandler::class`; UI that only needs to
+  observe messages collects `PushMessageDispatcher.messages`.
+* Features sign out with `AuthManager.signOut()`. Work that must still run with a valid login
+  (e.g. `core:push` unregistering the device) is a `SignOutHook` (`core:user`) registered in the
+  owning module's Koin module with `bind SignOutHook::class`; `AuthManager` runs every hook after
+  the Keycloak logout and before clearing the local session, and never when the user cancels it.
 
 ### Koin Dependency Injection
 
@@ -177,14 +205,26 @@ One package per feature screen, related files together: `IssuesScreen.kt`, `Issu
   Android and `ktor-client-darwin` on iOS.
 * Serialization: Kotlinx Serialization JSON via `ktor-client-content-negotiation` +
   `ktor-serialization-kotlinx-json`.
-* API clients live in the relevant `core` module (e.g. `core:issue`, `core:user`); request/response
+* API clients live in the relevant `core` module (e.g. `core:issue`, `core:push`); request/response
   types come from `com.momosi.trucktrack:shared`, never module-local DTOs.
+* **Every backend API client is a Ktorfit interface.** Apply the `trucktrack.ktor` plugin (KSP +
+  Ktorfit + Ktor), declare the endpoints with Ktorfit annotations (`@GET`, `@PATCH`, `@Path`,
+  `@Body`, …) and create the client in the module's Koin module with
+  `single { get<Ktorfit>().createXxxApi() }`, which reuses the authenticated client from
+  `core:network`. Hand-written Ktor `HttpClient` calls are not allowed. The only exceptions are the
+  unauthenticated bootstrap clients that can't depend on `core:network` — `core:common`'s `VersionApi`
+  and `core:user`'s `AuthApi` (see their `AGENTS.md`).
 * Backend URLs (API base, Keycloak realm), the OAuth client ID and the redirect scheme come from the
   Koin-injected `AppConfig` (`core:common`) — never hardcode them. Values are per-environment build
   config (Android product flavors, iOS `Environment.xcconfig`), see `README.md` → "Build variants".
 * Authentication: bearer token injected via Ktor's `Auth` plugin, wired to `AuthManager`.
-* To use Ktor in a module: apply the `trucktrack.ktor` plugin, or add `implementation(libs.bundles.ktor)`
-  to `commonMain` dependencies.
+* Retries are **off by default**. `core:network` installs Ktor's `HttpRequestRetry` with
+  `noRetry()`, so a failed request fails once and surfaces immediately. A request opts in
+  individually — a `@ReqBuilder` parameter on the Ktorfit method, filled with
+  `HttpRequestBuilder.retry { }` and a named policy in the owning module (only idempotent methods,
+  only transport errors and 5xx, never 4xx or cancellation, a few seconds of backoff at most). Never
+  turn retries on for the whole client. Today only `core:push`'s registration `PUT` opts in.
+* To use Ktor in a module: apply the `trucktrack.ktor` plugin.
 
 ### Serialization
 
@@ -210,10 +250,12 @@ files:
   `:core:navigation`).
 * `trucktrack.koin` — Koin core (`commonMain`) + Koin Android and Koin Compose (`androidMain`).
 * `trucktrack.compose` — Compose Multiplatform plugin + Material3 + icons + resources + Navigation 3.
-* `trucktrack.ktor` — Ktor Client core + serialization for KMP.
+* `trucktrack.ktor` — KSP + Ktorfit + Ktor Client core + serialization for KMP. Required by every
+  module that declares a backend API client.
 * `trucktrack.spotless` — ktlint via Spotless (auto-included by `trucktrack.library`).
 * `trucktrack.android.signing` — release signing config for `app:android`.
-* `trucktrack.firebase` — Firebase (Crashlytics) wiring.
+* `trucktrack.firebase` — Firebase (Crashlytics) wiring. Firebase Cloud Messaging is not part of it:
+  `core:push` adds `firebase-messaging` to its own `androidMain` through the Firebase BOM.
 
 ### Style & Conventions
 
@@ -255,7 +297,8 @@ The Kotlin Multiplatform migration is complete — every module uses KMP source 
 ## Unit Testing
 
 `core:network` has shared session-invalidation regression tests in `src/commonTest`, runnable with
-`:core:network:testAndroidHostTest`. When adding further tests:
+`:core:network:testAndroidHostTest`; `core:push` has push registration tests, runnable with
+`:core:push:testAndroidHostTest`. When adding further tests:
 
 * **MockK** for mocking, **Turbine** for `Flow` testing, **kotlinx-coroutines-test** (`runTest`) for
   coroutines.

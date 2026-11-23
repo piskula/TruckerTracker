@@ -15,5 +15,15 @@
     <string name="profile_language_slovak">Slovenčina</string>
     <string name="profile_language_restart_title">Vyžaduje sa reštart</string>
     <string name="profile_language_restart_message">Zatvorte a znova otvorte aplikáciu, aby sa zmena jazyka prejavila.</string>
+    <string name="profile_push_title">Upozornenia</string>
+    <string name="profile_push_this_device">Dostávať upozornenia na tomto zariadení</string>
+    <string name="profile_push_other_device">Upozornenia teraz chodia na zariadenie %1$s.</string>
+    <string name="profile_push_load_failed">Nepodarilo sa zistiť, ktoré zariadenie dostáva vaše upozornenia.</string>
+    <string name="profile_push_no_connection">Žiadne internetové pripojenie. Skontrolujte sieť a skúste to znova.</string>
+    <string name="profile_push_retry">Skúsiť znova</string>
+    <string name="profile_push_takeover_title">Presunúť upozornenia sem?</string>
+    <string name="profile_push_takeover_message">Na zariadení %1$s upozornenia prestanú chodiť.</string>
+    <string name="profile_push_takeover_confirm">Presunúť sem</string>
+    <string name="profile_push_takeover_dismiss">Zrušiť</string>
 </resources>
 

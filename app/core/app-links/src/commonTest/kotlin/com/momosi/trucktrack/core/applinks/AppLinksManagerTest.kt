@@ -6,6 +6,7 @@ import com.momosi.trucktrack.user.model.AuthenticationState
 import com.momosi.trucktrack.user.model.TokenResponse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -129,10 +130,11 @@ class AppLinksManagerTest {
     private class FakeAuthManager : AuthManager {
         override val authenticationState = MutableStateFlow(AuthenticationState.Authorized)
         override val authenticationInProgress = MutableStateFlow(false)
+        override val loginCompletions = emptyFlow<Unit>()
 
         override suspend fun signIn(): AuthActionResult = error("Not used")
 
-        override suspend fun signOut(): Unit = error("Not used")
+        override suspend fun signOut(): AuthActionResult = error("Not used")
 
         override suspend fun token(): TokenResponse = error("Not used")
 

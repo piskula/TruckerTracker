@@ -1,0 +1,8 @@
+<resources>
+    <string name="notification_permission_title">Turn on notifications</string>
+    <string name="notification_permission_rationale">TruckTrack tells you right away when an issue is assigned to you or its status changes, so you never miss a repair.</string>
+    <string name="notification_permission_settings_hint">Notifications are turned off for TruckTrack. Open Settings and allow them to continue.</string>
+    <string name="notification_permission_allow">Allow Notifications</string>
+    <string name="notification_permission_open_settings">Open Settings</string>
+    <string name="notification_permission_sign_out">Sign Out</string>
+</resources>

@@ -42,10 +42,13 @@ include(
     ":core:user",
     ":core:vehicle",
     ":core:issue",
+    ":core:push",
     ":feature:sign-in:api",
     ":feature:sign-in:impl",
     ":feature:issues:api",
     ":feature:issues:impl",
     ":feature:profile:api",
     ":feature:profile:impl",
+    ":feature:notification-permission:api",
+    ":feature:notification-permission:impl",
 )
