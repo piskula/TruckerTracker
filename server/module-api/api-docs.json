@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "TruckTrack API",
-    "version": "0.0.5"
+    "version": "1.0-rc1"
   },
   "servers": [
     {
@@ -180,48 +180,6 @@
         }
       }
     },
-    "/api/v1/issue/{id}": {
-      "patch": {
-        "tags": [
-          "Issues"
-        ],
-        "summary": "Update issue",
-        "operationId": "updateIssue",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/IssueUpdateDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/IssueDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/issue/{id}/start": {
       "post": {
         "tags": [
@@ -240,6 +198,16 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartIssueDto"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -261,38 +229,6 @@
         ],
         "summary": "Resolve issue",
         "operationId": "resolveIssue",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/IssueDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/issue/{id}/cancel": {
-      "post": {
-        "tags": [
-          "Issues"
-        ],
-        "summary": "Cancel issue",
-        "operationId": "cancelIssue",
         "parameters": [
           {
             "name": "id",
@@ -352,7 +288,61 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/IssueHistoryDto"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/AssigneeChange"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Comment"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DescriptionChange"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PriorityChange"
+                    },
+                    {
+                      "$ref": "#/components/schemas/StatusChange"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TitleChange"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VehicleChange"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/issue/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Cancel issue",
+        "operationId": "cancelIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueDto"
                 }
               }
             }
@@ -404,6 +394,48 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/IssueCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/issue/{id}": {
+      "patch": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Update issue",
+        "operationId": "updateIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueUpdateDto"
               }
             }
           },
@@ -723,6 +755,29 @@
           "assignedTo": {
             "$ref": "#/components/schemas/AccountDto"
           },
+          "repairType": {
+            "type": "string",
+            "enum": [
+              "DAMAGE",
+              "FAULT",
+              "INSTALLATION"
+            ]
+          },
+          "vehicleSystem": {
+            "type": "string",
+            "enum": [
+              "ELECTRICAL",
+              "TIRES",
+              "BODY",
+              "ENGINE",
+              "DRIVETRAIN",
+              "BRAKES",
+              "AIR",
+              "TARP",
+              "COOLING",
+              "OTHER"
+            ]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -815,121 +870,94 @@
           }
         }
       },
-      "IssueHistoryDto": {
+      "StartIssueDto": {
         "type": "object",
-        "discriminator": {
-          "propertyName": "type",
-          "mapping": {
-            "STATUS_CHANGE": "#/components/schemas/IssueHistoryDtoStatusChange",
-            "ASSIGNEE_CHANGE": "#/components/schemas/IssueHistoryDtoAssigneeChange",
-            "COMMENT": "#/components/schemas/IssueHistoryDtoComment",
-            "TITLE_CHANGE": "#/components/schemas/IssueHistoryDtoTitleChange",
-            "DESCRIPTION_CHANGE": "#/components/schemas/IssueHistoryDtoDescriptionChange",
-            "PRIORITY_CHANGE": "#/components/schemas/IssueHistoryDtoPriorityChange",
-            "VEHICLE_CHANGE": "#/components/schemas/IssueHistoryDtoVehicleChange"
+        "properties": {
+          "repairType": {
+            "type": "string",
+            "enum": [
+              "DAMAGE",
+              "FAULT",
+              "INSTALLATION"
+            ]
+          },
+          "vehicleSystem": {
+            "type": "string",
+            "enum": [
+              "ELECTRICAL",
+              "TIRES",
+              "BODY",
+              "ENGINE",
+              "DRIVETRAIN",
+              "BRAKES",
+              "AIR",
+              "TARP",
+              "COOLING",
+              "OTHER"
+            ]
           }
-        },
-        "oneOf": [
+        }
+      },
+      "AssigneeChange": {
+        "type": "object",
+        "allOf": [
           {
-            "$ref": "#/components/schemas/IssueHistoryDtoStatusChange"
+            "$ref": "#/components/schemas/IssueHistoryDto"
           },
           {
-            "$ref": "#/components/schemas/IssueHistoryDtoAssigneeChange"
-          },
-          {
-            "$ref": "#/components/schemas/IssueHistoryDtoComment"
-          },
-          {
-            "$ref": "#/components/schemas/IssueHistoryDtoTitleChange"
-          },
-          {
-            "$ref": "#/components/schemas/IssueHistoryDtoDescriptionChange"
-          },
-          {
-            "$ref": "#/components/schemas/IssueHistoryDtoPriorityChange"
-          },
-          {
-            "$ref": "#/components/schemas/IssueHistoryDtoVehicleChange"
+            "type": "object",
+            "properties": {
+              "assigneeFrom": {
+                "$ref": "#/components/schemas/AccountDto"
+              },
+              "assigneeTo": {
+                "$ref": "#/components/schemas/AccountDto"
+              }
+            }
           }
         ]
       },
-      "IssueHistoryDtoStatusChange": {
+      "Comment": {
         "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "STATUS_CHANGE"
-            ]
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/IssueHistoryDto"
           },
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "performedBy": {
-            "$ref": "#/components/schemas/AccountDto"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "statusFrom": {
-            "type": "string",
-            "enum": [
-              "OPEN",
-              "IN_PROGRESS",
-              "DONE",
-              "CANCELED"
-            ]
-          },
-          "statusTo": {
-            "type": "string",
-            "enum": [
-              "OPEN",
-              "IN_PROGRESS",
-              "DONE",
-              "CANCELED"
-            ]
+          {
+            "type": "object",
+            "properties": {
+              "commentText": {
+                "type": "string"
+              }
+            }
           }
-        }
+        ]
       },
-      "IssueHistoryDtoAssigneeChange": {
+      "DescriptionChange": {
         "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "ASSIGNEE_CHANGE"
-            ]
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/IssueHistoryDto"
           },
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "performedBy": {
-            "$ref": "#/components/schemas/AccountDto"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "assigneeFrom": {
-            "$ref": "#/components/schemas/AccountDto"
-          },
-          "assigneeTo": {
-            "$ref": "#/components/schemas/AccountDto"
+          {
+            "type": "object",
+            "properties": {
+              "descriptionFrom": {
+                "type": "string"
+              },
+              "descriptionTo": {
+                "type": "string"
+              }
+            }
           }
-        }
+        ]
       },
-      "IssueHistoryDtoComment": {
+      "IssueHistoryDto": {
+        "required": [
+          "type"
+        ],
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "COMMENT"
-            ]
-          },
           "id": {
             "type": "string",
             "format": "uuid"
@@ -941,131 +969,12 @@
             "type": "string",
             "format": "date-time"
           },
-          "commentText": {
+          "type": {
             "type": "string"
           }
-        }
-      },
-      "IssueHistoryDtoTitleChange": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "TITLE_CHANGE"
-            ]
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "performedBy": {
-            "$ref": "#/components/schemas/AccountDto"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "titleFrom": {
-            "type": "string"
-          },
-          "titleTo": {
-            "type": "string"
-          }
-        }
-      },
-      "IssueHistoryDtoDescriptionChange": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "DESCRIPTION_CHANGE"
-            ]
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "performedBy": {
-            "$ref": "#/components/schemas/AccountDto"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "descriptionFrom": {
-            "type": "string"
-          },
-          "descriptionTo": {
-            "type": "string"
-          }
-        }
-      },
-      "IssueHistoryDtoPriorityChange": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "PRIORITY_CHANGE"
-            ]
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "performedBy": {
-            "$ref": "#/components/schemas/AccountDto"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "priorityFrom": {
-            "type": "string",
-            "enum": [
-              "P1_HIGH",
-              "P3_MEDIUM",
-              "P5_LOW"
-            ]
-          },
-          "priorityTo": {
-            "type": "string",
-            "enum": [
-              "P1_HIGH",
-              "P3_MEDIUM",
-              "P5_LOW"
-            ]
-          }
-        }
-      },
-      "IssueHistoryDtoVehicleChange": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "VEHICLE_CHANGE"
-            ]
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "performedBy": {
-            "$ref": "#/components/schemas/AccountDto"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "vehicleFrom": {
-            "$ref": "#/components/schemas/IssueHistoryVehicleDto"
-          },
-          "vehicleTo": {
-            "$ref": "#/components/schemas/IssueHistoryVehicleDto"
-          }
+        },
+        "discriminator": {
+          "propertyName": "type"
         }
       },
       "IssueHistoryVehicleDto": {
@@ -1080,7 +989,105 @@
           }
         }
       },
-      "IssueUpdateDto": {
+      "PriorityChange": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/IssueHistoryDto"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "priorityFrom": {
+                "type": "string",
+                "enum": [
+                  "P1_HIGH",
+                  "P3_MEDIUM",
+                  "P5_LOW"
+                ]
+              },
+              "priorityTo": {
+                "type": "string",
+                "enum": [
+                  "P1_HIGH",
+                  "P3_MEDIUM",
+                  "P5_LOW"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "StatusChange": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/IssueHistoryDto"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "statusFrom": {
+                "type": "string",
+                "enum": [
+                  "OPEN",
+                  "IN_PROGRESS",
+                  "DONE",
+                  "CANCELED"
+                ]
+              },
+              "statusTo": {
+                "type": "string",
+                "enum": [
+                  "OPEN",
+                  "IN_PROGRESS",
+                  "DONE",
+                  "CANCELED"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "TitleChange": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/IssueHistoryDto"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "titleFrom": {
+                "type": "string"
+              },
+              "titleTo": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "VehicleChange": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/IssueHistoryDto"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "vehicleFrom": {
+                "$ref": "#/components/schemas/IssueHistoryVehicleDto"
+              },
+              "vehicleTo": {
+                "$ref": "#/components/schemas/IssueHistoryVehicleDto"
+              }
+            }
+          }
+        ]
+      },
+      "IssueCreateDto": {
         "type": "object",
         "properties": {
           "vehicleId": {
@@ -1103,7 +1110,7 @@
           }
         }
       },
-      "IssueCreateDto": {
+      "IssueUpdateDto": {
         "type": "object",
         "properties": {
           "vehicleId": {
@@ -1198,7 +1205,29 @@
           "content": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/IssueHistoryDto"
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AssigneeChange"
+                },
+                {
+                  "$ref": "#/components/schemas/Comment"
+                },
+                {
+                  "$ref": "#/components/schemas/DescriptionChange"
+                },
+                {
+                  "$ref": "#/components/schemas/PriorityChange"
+                },
+                {
+                  "$ref": "#/components/schemas/StatusChange"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleChange"
+                },
+                {
+                  "$ref": "#/components/schemas/VehicleChange"
+                }
+              ]
             }
           }
         }
