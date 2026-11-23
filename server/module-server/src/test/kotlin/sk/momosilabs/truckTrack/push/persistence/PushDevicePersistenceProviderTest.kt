@@ -90,6 +90,13 @@ class PushDevicePersistenceProviderTest {
     }
 
     @Test
+    fun `deleting all devices of an account runs the bulk delete for that account only`() {
+        provider.deleteAllForAccount(ownerAccountId)
+
+        verify(pushDeviceRepository).deleteAllByAccountId(ownerAccountId)
+    }
+
+    @Test
     fun `updating a push device that is no longer registered throws not found`() {
         `when`(pushDeviceRepository.findByAccountIdAndFirebaseInstallationId(ownerAccountId, OLD_FIREBASE_INSTALLATION_ID))
             .thenReturn(null)

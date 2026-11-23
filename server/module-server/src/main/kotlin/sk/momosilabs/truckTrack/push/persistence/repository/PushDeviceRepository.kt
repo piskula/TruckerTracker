@@ -30,6 +30,13 @@ interface PushDeviceRepository : JpaRepository<PushDeviceEntity, Long> {
     )
     fun deleteByIdAndFirebaseInstallationId(id: Long, firebaseInstallationId: String): Int
 
+    @Modifying
+    @Query(
+        "delete from push_device d " +
+            "where d.account.id = :accountId"
+    )
+    fun deleteAllByAccountId(accountId: UUID): Int
+
     fun findAllByAccountIdOrFirebaseInstallationId(accountId: UUID, firebaseInstallationId: String): List<PushDeviceEntity>
 
 }

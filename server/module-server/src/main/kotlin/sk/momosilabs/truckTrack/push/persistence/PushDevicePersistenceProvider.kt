@@ -62,6 +62,11 @@ class PushDevicePersistenceProvider(
     }
 
     @Transactional
+    override fun deleteAllForAccount(accountId: UUID) {
+        pushDeviceRepository.deleteAllByAccountId(accountId)
+    }
+
+    @Transactional
     override fun deleteAllForAccountOrFirebaseInstallationId(accountId: UUID, firebaseInstallationId: String) {
         val rows = pushDeviceRepository.findAllByAccountIdOrFirebaseInstallationId(accountId, firebaseInstallationId)
         if (rows.isNotEmpty()) {

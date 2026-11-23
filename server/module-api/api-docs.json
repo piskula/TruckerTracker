@@ -841,6 +841,42 @@
           }
         }
       }
+    },
+    "/api/v1/push/backchannel-logout": {
+      "post": {
+        "tags": [
+          "Push"
+        ],
+        "summary": "Handle an OpenID Connect back-channel logout notification from Keycloak",
+        "operationId": "processBackchannelLogout",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "required": [
+                  "logout_token"
+                ],
+                "type": "object",
+                "properties": {
+                  "logout_token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "The logout token is invalid"
+          }
+        },
+        "security": []
+      }
     }
   },
   "components": {

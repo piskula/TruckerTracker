@@ -4,4 +4,4 @@ databaseChangeLog:
   - include:
       file: db/changelog/2026/11/11-23-checklist.yaml
   - include:
-      file: db/changelog/2026/11/11-23-push-device.yaml
+      file: db/changelog/2026/11/11-24-push-device.yaml

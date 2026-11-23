@@ -27,6 +27,8 @@ The single method on the interface must not be named `execute`. Name it after th
 
 This is a hard rule — no use case method may be left without a security annotation. `@IsUser` is the default for operations accessible to all roles. Annotation goes above `@Transactional`.
 
+**Exemption:** a use case behind a `SecurityConfig` `permitAll` entry that authenticates itself — cryptographically validating a caller-supplied token before doing any work — may omit the annotation, since there is no authenticated principal to authorize against. Precedent: `getVersion` (public endpoint, nothing to protect) and `processBackchannelLogout` (validates the Keycloak logout token's signature and claims itself via `LogoutTokenVerifier`). Such a use case must fail closed on any verification failure.
+
 ## Entity & Persistence Patterns
 
 **Entity class:**
