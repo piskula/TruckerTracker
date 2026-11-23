@@ -42,7 +42,7 @@ class RegisterPushDeviceTest {
     }
 
     @Test
-    fun `registering the Firebase Installation ID that already holds the slot refreshes it without notifying anyone`() {
+    fun `registering the Firebase Installation ID that already holds the slot recreates the device without notifying anyone`() {
         val persistence = FakePushDevicePersistence(device(currentUser.id, OLD_FIREBASE_INSTALLATION_ID))
 
         useCase(persistence).register(command(OLD_FIREBASE_INSTALLATION_ID, deviceName = "Renamed phone"))
@@ -50,7 +50,7 @@ class RegisterPushDeviceTest {
         val device = persistence.devices.single()
         assertThat(device.deviceName).isEqualTo("Renamed phone")
         assertThat(device.platform).isEqualTo(PushPlatform.ANDROID)
-        assertThat(device.registeredAt).isEqualTo(REGISTERED_AT)
+        assertThat(device.registeredAt).isAfter(REGISTERED_AT)
         assertThat(device.updatedAt).isAfter(REGISTERED_AT)
         assertThat(publishedEvents).isEmpty()
     }
@@ -64,8 +64,76 @@ class RegisterPushDeviceTest {
         val device = persistence.devices.single()
         assertThat(device.accountId).isEqualTo(currentUser.id)
         assertThat(device.firebaseInstallationId).isEqualTo(NEW_FIREBASE_INSTALLATION_ID)
-        assertThat(persistence.findByAccountId(otherUserId)).isNull()
+        assertThat(persistence.findAllByAccountId(otherUserId)).isEmpty()
         assertThat(publishedEvents).isEmpty()
+    }
+
+    @Test
+    fun `registering without a device while another account holds the Firebase Installation ID adopts it silently`() {
+        val persistence = FakePushDevicePersistence(device(otherUserId, NEW_FIREBASE_INSTALLATION_ID))
+
+        val registered = useCase(persistence).register(command(NEW_FIREBASE_INSTALLATION_ID, deviceName = "Pixel 9"))
+
+        val device = persistence.devices.single()
+        assertThat(registered).isEqualTo(device)
+        assertThat(device.accountId).isEqualTo(currentUser.id)
+        assertThat(device.firebaseInstallationId).isEqualTo(NEW_FIREBASE_INSTALLATION_ID)
+        assertThat(device.deviceName).isEqualTo("Pixel 9")
+        assertThat(device.registeredAt).isAfter(REGISTERED_AT)
+        assertThat(persistence.findAllByAccountId(otherUserId)).isEmpty()
+        assertThat(publishedEvents).isEmpty()
+    }
+
+    @Test
+    fun `registering a new Firebase Installation ID replaces three previous devices and notifies every one of them`() {
+        val persistence = FakePushDevicePersistence(
+            device(currentUser.id, OLD_FIREBASE_INSTALLATION_ID),
+            device(currentUser.id, FIRST_FIREBASE_INSTALLATION_ID, REGISTERED_AT.plusHours(1)),
+            device(currentUser.id, SECOND_FIREBASE_INSTALLATION_ID, REGISTERED_AT.plusHours(2)),
+        )
+
+        useCase(persistence).register(command(NEW_FIREBASE_INSTALLATION_ID, deviceName = "Pixel 8"))
+
+        assertThat(publishedEvents).containsExactlyInAnyOrder(
+            PushDeviceReplacedEvent(
+                previousFirebaseInstallationId = OLD_FIREBASE_INSTALLATION_ID,
+                newDeviceName = "Pixel 8",
+            ),
+            PushDeviceReplacedEvent(
+                previousFirebaseInstallationId = FIRST_FIREBASE_INSTALLATION_ID,
+                newDeviceName = "Pixel 8",
+            ),
+            PushDeviceReplacedEvent(
+                previousFirebaseInstallationId = SECOND_FIREBASE_INSTALLATION_ID,
+                newDeviceName = "Pixel 8",
+            ),
+        )
+        assertThat(publishedEvents).noneMatch {
+            it is PushDeviceReplacedEvent && it.previousFirebaseInstallationId == NEW_FIREBASE_INSTALLATION_ID
+        }
+        val device = persistence.devices.single()
+        assertThat(device.accountId).isEqualTo(currentUser.id)
+        assertThat(device.firebaseInstallationId).isEqualTo(NEW_FIREBASE_INSTALLATION_ID)
+    }
+
+    @Test
+    fun `registering a Firebase Installation ID that already holds one of the previous devices notifies only the other ones`() {
+        val persistence = FakePushDevicePersistence(
+            device(currentUser.id, OLD_FIREBASE_INSTALLATION_ID),
+            device(currentUser.id, FIRST_FIREBASE_INSTALLATION_ID, REGISTERED_AT.plusHours(1)),
+        )
+
+        useCase(persistence).register(command(OLD_FIREBASE_INSTALLATION_ID, deviceName = "Renamed phone"))
+
+        assertThat(publishedEvents).containsExactly(
+            PushDeviceReplacedEvent(
+                previousFirebaseInstallationId = FIRST_FIREBASE_INSTALLATION_ID,
+                newDeviceName = "Renamed phone",
+            )
+        )
+        val device = persistence.devices.single()
+        assertThat(device.firebaseInstallationId).isEqualTo(OLD_FIREBASE_INSTALLATION_ID)
+        assertThat(device.deviceName).isEqualTo("Renamed phone")
     }
 
     private fun useCase(persistence: FakePushDevicePersistence): RegisterPushDevice {
@@ -83,19 +151,25 @@ class RegisterPushDeviceTest {
         platform = PushPlatform.ANDROID,
     )
 
-    private fun device(accountId: UUID, firebaseInstallationId: String) = PushDeviceModel(
+    private fun device(
+        accountId: UUID,
+        firebaseInstallationId: String,
+        registeredAt: OffsetDateTime = REGISTERED_AT,
+    ) = PushDeviceModel(
         id = 7L,
         accountId = accountId,
         firebaseInstallationId = firebaseInstallationId,
         deviceName = "Old phone",
         platform = PushPlatform.IOS,
-        registeredAt = REGISTERED_AT,
-        updatedAt = REGISTERED_AT,
+        registeredAt = registeredAt,
+        updatedAt = registeredAt,
     )
 
     private companion object {
         const val OLD_FIREBASE_INSTALLATION_ID = "cOldFirebaseInstallId1"
         const val NEW_FIREBASE_INSTALLATION_ID = "dNewFirebaseInstallId2"
+        const val FIRST_FIREBASE_INSTALLATION_ID = "eFirstFirebaseInstallId4"
+        const val SECOND_FIREBASE_INSTALLATION_ID = "fSecondFirebaseInstallId5"
         val REGISTERED_AT: OffsetDateTime = OffsetDateTime.of(2026, 1, 1, 8, 0, 0, 0, ZoneOffset.UTC)
     }
 }

@@ -37,11 +37,13 @@ class FcmPushNotificationService(
     }
 
     override fun sendToAccount(accountId: UUID, message: PushMessage) = sendSafely(message) {
-        val device = pushDevicePersistence.findByAccountId(accountId)
-        if (device == null) {
+        val devices = pushDevicePersistence.findAllByAccountId(accountId).mapTo(HashSet()) { it.firebaseInstallationId }
+        if (devices.isEmpty()) {
             LOG.debug { "No push device registered for account $accountId, ${message.type} push skipped" }
         } else {
-            send(firebaseInstallationId = device.firebaseInstallationId, message = message)
+            for (device in devices) {
+                send(firebaseInstallationId = device, message = message)
+            }
         }
     }
 

@@ -8,7 +8,13 @@ import java.util.UUID
 
 interface PushDeviceRepository : JpaRepository<PushDeviceEntity, Long> {
 
-    fun findByAccountId(accountId: UUID): PushDeviceEntity?
+    fun findAllByAccountIdOrderByRegisteredAtUtcAsc(accountId: UUID): List<PushDeviceEntity>
+
+    fun findAllByAccountIdAndFirebaseInstallationId(accountId: UUID, firebaseInstallationId: String): List<PushDeviceEntity>
+
+    fun findByAccountIdAndFirebaseInstallationId(accountId: UUID, firebaseInstallationId: String): PushDeviceEntity?
+
+    fun findByFirebaseInstallationId(firebaseInstallationId: String): PushDeviceEntity?
 
     @Modifying
     @Query(
@@ -20,11 +26,10 @@ interface PushDeviceRepository : JpaRepository<PushDeviceEntity, Long> {
     @Modifying
     @Query(
         "delete from push_device d " +
-            "where d.account.id = :accountId and d.firebaseInstallationId = :firebaseInstallationId"
+            "where d.id = :id and d.firebaseInstallationId = :firebaseInstallationId"
     )
-    fun deleteByAccountIdAndFirebaseInstallationId(accountId: UUID, firebaseInstallationId: String): Int
+    fun deleteByIdAndFirebaseInstallationId(id: Long, firebaseInstallationId: String): Int
 
-    @Modifying
-    @Query("delete from push_device d where d.firebaseInstallationId = :firebaseInstallationId")
-    fun deleteByFirebaseInstallationId(firebaseInstallationId: String): Int
+    fun findAllByAccountIdOrFirebaseInstallationId(accountId: UUID, firebaseInstallationId: String): List<PushDeviceEntity>
+
 }

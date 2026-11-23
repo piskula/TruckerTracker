@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import sk.momosilabs.truckTrack.api.push.PushDeviceApi
 import sk.momosilabs.truckTrack.push.service.deletePushDevice.DeletePushDeviceUseCase
-import sk.momosilabs.truckTrack.push.service.getPushDevice.GetPushDeviceUseCase
+import sk.momosilabs.truckTrack.push.service.getCurrentUserPushDevice.GetCurrentUserPushDeviceUseCase
 import sk.momosilabs.truckTrack.push.service.registerPushDevice.RegisterPushDeviceUseCase
 import sk.momosilabs.truckTrack.push.service.updatePushDevice.UpdatePushDeviceUseCase
 
@@ -15,7 +15,7 @@ import sk.momosilabs.truckTrack.push.service.updatePushDevice.UpdatePushDeviceUs
 class PushDeviceController(
     private val registerPushDevice: RegisterPushDeviceUseCase,
     private val updatePushDevice: UpdatePushDeviceUseCase,
-    private val getPushDevice: GetPushDeviceUseCase,
+    private val getCurrentUserPushDevice: GetCurrentUserPushDeviceUseCase,
     private val deletePushDevice: DeletePushDeviceUseCase,
 ) : PushDeviceApi {
 
@@ -29,7 +29,7 @@ class PushDeviceController(
         )
 
     override fun getPushDevice(): ResponseEntity<PushDeviceDto> =
-        getPushDevice.get()
+        getCurrentUserPushDevice.get()
             ?.let { ResponseEntity.ok(it.toDto()) }
             ?: ResponseEntity.noContent().build()
 

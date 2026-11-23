@@ -26,14 +26,14 @@ class PushDeviceEntity(
     var firebaseInstallationId: String,
 
     @field:NotNull
-    var deviceName: String,
+    val deviceName: String,
 
     @Enumerated(EnumType.STRING)
     @field:NotNull
-    var platform: PushPlatform,
+    val platform: PushPlatform,
 
     @field:NotNull
-    var registeredAtUtc: LocalDateTime,
+    val registeredAtUtc: LocalDateTime,
 
     @field:NotNull
     var updatedAtUtc: LocalDateTime,

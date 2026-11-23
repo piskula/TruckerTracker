@@ -4,8 +4,11 @@ How TruckTrack delivers push notifications from the backend to the Android and i
 
 ## Rules
 
-- **One push device per user.** Registering a device takes over from the device that held the slot
-  before; that device receives a "notifications moved to …" notice.
+- **One push device per user.** Registering a device takes over from the devices that held the slot
+  before; every previous device of the account receives exactly one "notifications moved to …"
+  notice, except the re-registering device itself, and the first-ever registration sends nothing.
+  The backend keeps one device per account by locking the account row on every change; the database
+  alone guarantees only that a Firebase Installation ID belongs to a single account.
 - **Every login registers the device**, regardless of the OS notification permission — whichever way
   the login completes (including a login the app resumes after Android killed it during the browser
   step). The Profile toggle registers it too. App start and identifier refresh never register — they
@@ -91,8 +94,8 @@ sequenceDiagram
   FCM-->>B: Firebase Installation ID B
   B->>BE: PUT /push-device (firebaseInstallationId B, name, platform)
   BE->>DB: Lock account row
-  BE->>DB: Delete rows with Firebase Installation ID B on other accounts
-  BE->>DB: Replace this account's row (A to B)
+  BE->>DB: Delete this account's row (A) and any other account's row holding Firebase Installation ID B
+  BE->>DB: Insert one brand-new row (B)
   BE-->>B: 200 PushDeviceDto
   Note over BE: After commit, async
   BE->>FCM: "Notifications moved to Pixel 8" to Firebase Installation ID A
@@ -170,8 +173,8 @@ domain.
 |---|---|---|
 | `PUT /api/v1/push-device` | `PushDeviceRegistrationDto(firebaseInstallationId, deviceName, platform)` | `200 PushDeviceDto`. Takes the slot over. |
 | `PATCH /api/v1/push-device/{firebaseInstallationId}` | `PushDeviceUpdateDto(firebaseInstallationId)` — the path holds the id the app sent last, the body the current one | `200` when the path id holds the slot, otherwise `409`. Never takes the slot over. |
-| `GET /api/v1/push-device` | – | `200 PushDeviceDto(firebaseInstallationId, deviceName, platform, registeredAt)`, or `204` when no device is registered. |
-| `DELETE /api/v1/push-device/{firebaseInstallationId}` | – | `200`. Deletes only if this id holds the slot. |
+| `GET /api/v1/push-device` | – | `200 PushDeviceDto(firebaseInstallationId, deviceName, platform, registeredAt)`, or `204` when no device is registered. With several rows the most recently registered one — the account's current device. |
+| `DELETE /api/v1/push-device/{firebaseInstallationId}` | – | `200`. Deletes every one of the account's rows holding this id, so a duplicate could never survive; other accounts' rows are untouched. |
 
 Only the registration `PUT` is retried by the app (on connection errors and 5xx, a few times with
 backoff); every other request fails immediately.
@@ -191,13 +194,30 @@ channel at startup and declares it as FCM's default channel.
 
 ## Backend
 
-- Table `push_device`: `id`, `account_id` (unique), `firebase_installation_id` (unique),
-  `device_name`, `platform`, `registered_at_utc`, `updated_at_utc`.
-  The unique `account_id` enforces one device per user; the unique `firebase_installation_id`
-  enforces that a shared device belongs to only one account.
-- `registerPushDevice` locks the account row, deletes this Firebase Installation ID from other
-  accounts, replaces this account's row, and publishes `PushDeviceReplacedEvent` when the device
-  changed.
+- Table `push_device`: `id` (PK), `account_id` (NOT NULL FK → `account.id`),
+  `firebase_installation_id` (unique, `uk_push_device_firebase_installation`), `device_name`,
+  `platform`, `registered_at_utc`, `updated_at_utc`. The unique `firebase_installation_id` is the
+  only uniqueness the database enforces — it guarantees a Firebase Installation ID belongs to
+  exactly one account. Multiple rows per account are allowed at DB level; one device per account is
+  an application-layer business rule, enforced because every mutating path (register, PATCH, delete,
+  FCM-rejection cleanup) first takes a pessimistic lock on the account row (`SELECT … FOR UPDATE`).
+  Deleting the account's rows by Firebase Installation ID removes every match rather than a single
+  row — a defensive tolerance, since the unique `uk_push_device_firebase_installation` keeps
+  duplicate `(account, firebase_installation_id)` rows unstorable today anyway.
+- `registerPushDevice` locks the account row, deletes every row whose `account_id` is the current
+  account or whose `firebase_installation_id` is the incoming one — the account's own previous row
+  plus any other account's row squatting that id — and inserts one brand-new row. `registered_at_utc`
+  therefore timestamps the current row: re-registering, even with the same Firebase Installation ID,
+  resets it, and the device name and platform are re-synced because it is a fresh insert. The
+  account's distinct Firebase Installation IDs are snapshotted before the delete and one
+  `PushDeviceReplacedEvent` is published per previous id that differs from the newly registered one
+  — so if several rows ever accumulated, every replaced device receives the "notifications moved
+  to …" push exactly once, after commit, asynchronously; the re-registering id never receives it
+  and the first-ever registration publishes no event at all.
+- `updatePushDevice` locks the account row, requires the path Firebase Installation ID to be the id
+  currently stored on the account's row (`409` otherwise), clears any other account's row holding
+  the new id and updates only `firebase_installation_id` and `updated_at_utc` — device name,
+  platform and registered time are immutable after insert.
 - `PushNotificationService` sends through the Firebase Admin SDK (`Message.setFid`) after the
   transaction commits. When FCM rejects the id (`UNREGISTERED`, `INVALID_ARGUMENT`,
   `SENDER_ID_MISMATCH`), the row is deleted — but only if it still holds that id. Other failures are

@@ -15,8 +15,10 @@ class DeletePushDevice(
     @IsUser
     @Transactional
     override fun delete(firebaseInstallationId: String) {
+        val accountId = currentUserService.currentUserId()
+        pushDevicePersistence.lockAccount(accountId)
         pushDevicePersistence.deleteByAccountIdAndFirebaseInstallationId(
-            accountId = currentUserService.currentUserId(),
+            accountId = accountId,
             firebaseInstallationId = firebaseInstallationId,
         )
     }

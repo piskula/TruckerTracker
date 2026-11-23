@@ -24,35 +24,27 @@ class RegisterPushDevice(
     override fun register(command: RegisterPushDeviceCommand): PushDeviceModel {
         val accountId = currentUserService.currentUser().id
         pushDevicePersistence.lockAccount(accountId)
-        pushDevicePersistence.deleteByFirebaseInstallationIdOfOtherAccounts(
-            firebaseInstallationId = command.firebaseInstallationId,
+
+        val currentDevices = pushDevicePersistence.findAllByAccountId(accountId).mapTo(HashSet()) { it.firebaseInstallationId }
+        pushDevicePersistence.deleteAllForAccountOrFirebaseInstallationId(
             accountId = accountId,
+            firebaseInstallationId = command.firebaseInstallationId,
         )
 
         val now = OffsetDateTime.now(ZoneOffset.UTC)
-        val currentDevice = pushDevicePersistence.findByAccountId(accountId)
-        return when {
-            currentDevice == null -> pushDevicePersistence.create(command.toNewDevice(accountId, now))
-            currentDevice.firebaseInstallationId == command.firebaseInstallationId ->
-                pushDevicePersistence.update(currentDevice.refreshedWith(command, now))
-            else -> replace(currentDevice, command, now)
-        }
+        val registered = pushDevicePersistence.create(command.toNewDevice(accountId, now))
+        publishDeviceReplacedEvents(currentDevices, command)
+        return registered
     }
 
-    private fun replace(previousDevice: PushDeviceModel, command: RegisterPushDeviceCommand, now: OffsetDateTime): PushDeviceModel {
-        val newDevice = pushDevicePersistence.update(
-            previousDevice.refreshedWith(command, now).copy(
-                firebaseInstallationId = command.firebaseInstallationId,
-                registeredAt = now,
-            )
-        )
-        eventPublisher.publishEvent(
-            PushDeviceReplacedEvent(
-                previousFirebaseInstallationId = previousDevice.firebaseInstallationId,
-                newDeviceName = command.deviceName,
-            )
-        )
-        return newDevice
+    private fun publishDeviceReplacedEvents(previousDevices: Set<String>, command: RegisterPushDeviceCommand) {
+        previousDevices
+            .filter { it != command.firebaseInstallationId }
+            .forEach { device ->
+                eventPublisher.publishEvent(
+                    PushDeviceReplacedEvent(previousFirebaseInstallationId = device, newDeviceName = command.deviceName)
+                )
+            }
     }
 
     private fun RegisterPushDeviceCommand.toNewDevice(accountId: UUID, now: OffsetDateTime) = PushDeviceModel(
@@ -62,12 +54,6 @@ class RegisterPushDevice(
         deviceName = deviceName,
         platform = platform,
         registeredAt = now,
-        updatedAt = now,
-    )
-
-    private fun PushDeviceModel.refreshedWith(command: RegisterPushDeviceCommand, now: OffsetDateTime) = copy(
-        deviceName = command.deviceName,
-        platform = command.platform,
         updatedAt = now,
     )
 }

@@ -34,6 +34,9 @@ class UpdatePushDeviceTest {
         val device = persistence.devices.single()
         assertThat(device.accountId).isEqualTo(currentUserId)
         assertThat(device.firebaseInstallationId).isEqualTo(CURRENT_FIREBASE_INSTALLATION_ID)
+        assertThat(device.deviceName).isEqualTo("Pixel 8")
+        assertThat(device.platform).isEqualTo(PushPlatform.ANDROID)
+        assertThat(device.registeredAt).isEqualTo(REGISTERED_AT)
         assertThat(device.updatedAt).isAfter(REGISTERED_AT)
         assertThat(persistence.lockedAccounts).containsExactly(currentUserId)
     }

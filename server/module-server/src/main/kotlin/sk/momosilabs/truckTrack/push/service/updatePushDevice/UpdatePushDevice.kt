@@ -20,21 +20,22 @@ class UpdatePushDevice(
     override fun update(registeredFirebaseInstallationId: String, firebaseInstallationId: String) {
         val accountId = currentUserService.currentUserId()
         pushDevicePersistence.lockAccount(accountId)
-        val device = pushDevicePersistence.findByAccountId(accountId)
-            ?.takeIf { it.firebaseInstallationId == registeredFirebaseInstallationId }
-            ?: throw GlobalConflictException(
-                "Firebase Installation ID $registeredFirebaseInstallationId does not hold the push device slot of the current user"
-            )
+        pushDevicePersistence.findByAccountIdAndFirebaseInstallationId(
+            accountId = accountId,
+            firebaseInstallationId = registeredFirebaseInstallationId,
+        ) ?: throw GlobalConflictException(
+            "Firebase Installation ID $registeredFirebaseInstallationId does not hold the push device slot of the current user"
+        )
 
         pushDevicePersistence.deleteByFirebaseInstallationIdOfOtherAccounts(
             firebaseInstallationId = firebaseInstallationId,
             accountId = accountId,
         )
         pushDevicePersistence.update(
-            device.copy(
-                firebaseInstallationId = firebaseInstallationId,
-                updatedAt = OffsetDateTime.now(ZoneOffset.UTC),
-            )
+            accountId = accountId,
+            registeredFirebaseInstallationId = registeredFirebaseInstallationId,
+            newFirebaseInstallationId = firebaseInstallationId,
+            updatedAt = OffsetDateTime.now(ZoneOffset.UTC),
         )
     }
 }
