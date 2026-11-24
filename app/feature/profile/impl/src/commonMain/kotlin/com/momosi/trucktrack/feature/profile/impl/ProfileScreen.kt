@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,6 +69,7 @@ import com.momosi.trucktrack.feature.profile.impl.resources.profile_username
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_app_label
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_dialog_title
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_dismiss
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_firebase_installation_id_label
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_loading
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_server_label
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_unavailable
@@ -211,21 +215,35 @@ private fun ProfileContent(
             dismissText = stringResource(Res.string.profile_version_dismiss),
             onDismiss = { onAction(ProfileAction.DismissVersionInfo) },
         ) {
-            VersionRow(
-                label = stringResource(Res.string.profile_version_app_label),
-                value = state.appVersion,
-                onClick = { onAction(ProfileAction.TapAppVersion) },
-                modifier = Modifier.testTag("profile_app_version_row"),
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            VersionRow(
-                label = stringResource(Res.string.profile_version_server_label),
-                value = when (val serverVersion = state.serverVersion) {
-                    ServerVersionContent.Loading -> stringResource(Res.string.profile_version_loading)
-                    is ServerVersionContent.Loaded -> serverVersion.text
-                    ServerVersionContent.Error -> stringResource(Res.string.profile_version_unavailable)
-                },
-            )
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                VersionRow(
+                    label = stringResource(Res.string.profile_version_app_label),
+                    value = state.appVersion,
+                    onClick = { onAction(ProfileAction.TapAppVersion) },
+                    modifier = Modifier.testTag("profile_app_version_row"),
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                VersionRow(
+                    label = stringResource(Res.string.profile_version_server_label),
+                    value = when (val serverVersion = state.serverVersion) {
+                        ServerVersionContent.Loading -> stringResource(Res.string.profile_version_loading)
+                        is ServerVersionContent.Loaded -> serverVersion.text
+                        ServerVersionContent.Error -> stringResource(Res.string.profile_version_unavailable)
+                    },
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                val firebaseInstallationId = state.firebaseInstallationId
+                VersionRow(
+                    label = stringResource(Res.string.profile_version_firebase_installation_id_label),
+                    value = when (firebaseInstallationId) {
+                        FirebaseInstallationIdContent.Loading -> stringResource(Res.string.profile_version_loading)
+                        is FirebaseInstallationIdContent.Loaded -> firebaseInstallationId.value
+                        FirebaseInstallationIdContent.Unavailable -> stringResource(Res.string.profile_version_unavailable)
+                    },
+                    selectable = firebaseInstallationId is FirebaseInstallationIdContent.Loaded,
+                    modifier = Modifier.testTag("profile_firebase_installation_id_row"),
+                )
+            }
         }
     }
 
@@ -297,6 +315,7 @@ private fun VersionRow(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
+    selectable: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
     Column(
@@ -309,11 +328,18 @@ private fun VersionRow(
             style = AppTheme.typography.labelMedium,
             color = AppTheme.colors.onSurfaceVariant,
         )
-        Text(
-            text = value,
-            style = AppTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = AppTheme.colors.onSurface,
-        )
+        val valueContent: @Composable () -> Unit = {
+            Text(
+                text = value,
+                style = AppTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = AppTheme.colors.onSurface,
+            )
+        }
+        if (selectable) {
+            SelectionContainer { valueContent() }
+        } else {
+            valueContent()
+        }
     }
 }
 
@@ -540,6 +566,7 @@ private fun ProfileVersionDialogPreview() {
                 user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", username = "mschumacher", roles = setOf(UserRole.Driver)),
                 appVersion = "1.4.2 (89)",
                 isVersionDialogVisible = true,
+                firebaseInstallationId = FirebaseInstallationIdContent.Loaded("example-firebase-installation-id"),
                 serverVersion = ServerVersionContent.Loaded("1.4.0 · Jul 20, 2026"),
             ),
             onAction = {},
