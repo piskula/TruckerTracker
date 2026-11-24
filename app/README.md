@@ -72,7 +72,7 @@ error reporter. iOS Firebase pods remain unpinned and resolve the latest release
 - Only HTTPS on `transroute.org` is accepted. Paths are case-sensitive; other routes and subdomains are unsupported.
 - One trailing slash is allowed. Query parameters and fragments are ignored, so
   `https://transroute.org/issue/5/?source=chat#details` also opens issue 5.
-- Android registers only `/checklist`, not `/checklist/`, for checklist links.
+- Android registers both `/checklist` and `/checklist/` as exact paths for checklist links.
 - Supported on Android and iOS, in both staging and production. Each installed build loads the issue
   from its own configured API environment, subject to the signed-in user's access.
 - The user must already be signed in. Links received while signed out are discarded, not opened after sign-in.
