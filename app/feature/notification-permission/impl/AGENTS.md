@@ -12,8 +12,11 @@ The blocking notification permission gate. TruckTrack requires notification perm
 | `NotificationPermissionAction.kt` | `RefreshPermission`, `OpenSettings`, `SignOut` |
 | `navigation/NotificationPermissionEntryProvider.kt` | `notificationPermissionEntries()` registers `NotificationPermissionNavKey` |
 | `di/NotificationPermissionModule.kt` | Koin `viewModel` binding |
-| `composeResources/drawable/notification_permission_illustration.xml` | Hand-authored vector: phone with issue notifications, a truck and a ringing bell, in the app's primary/positive/warning colours on a primary-container circle, so it reads on light and dark surfaces |
 | `androidMain/.../NotificationPermissionScreenPreview.kt` | Previews of `NotificationPermissionContent` |
+
+The illustration is `core:ui-library`'s `TruckTrackIllustrations.NotificationPermission`
+(`notification_permission_illustration.xml`): a hand-authored vector of a phone with issue notifications,
+a truck and a ringing bell on a primary-container circle, so it reads on light and dark surfaces.
 
 ## Rules
 

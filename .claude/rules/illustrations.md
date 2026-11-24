@@ -12,10 +12,9 @@ errors. Extend that family rather than introducing a new illustration style.
 ## References
 
 The original is `notification_permission_illustration.xml` in
-`app/feature/notification-permission/impl/src/commonMain/composeResources/drawable/` on PR #85.
-Until that feature is merged, retrieve it from the PR rather than assuming it exists locally.
-The error illustrations in `app/core/ui-library/src/commonMain/composeResources/drawable/`
-are local examples of the same family.
+`app/core/ui-library/src/commonMain/composeResources/drawable/`, exposed as
+`TruckTrackIllustrations.NotificationPermission`. The error illustrations in the same directory
+are further examples of the same family.
 
 Inspect the original or a local family member before creating an illustration. When using an image
 generation tool, supply that artwork as an actual image reference, not just this written description.

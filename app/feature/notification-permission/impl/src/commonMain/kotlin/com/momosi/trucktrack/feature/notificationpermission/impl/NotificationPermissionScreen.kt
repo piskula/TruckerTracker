@@ -30,10 +30,10 @@ import com.momosi.trucktrack.core.push.permission.rememberNotificationPermission
 import com.momosi.trucktrack.core.uilibrary.components.Button
 import com.momosi.trucktrack.core.uilibrary.components.ButtonStyle
 import com.momosi.trucktrack.core.uilibrary.components.Text
+import com.momosi.trucktrack.core.uilibrary.illustrations.TruckTrackIllustrations
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.feature.notificationpermission.impl.resources.Res
 import com.momosi.trucktrack.feature.notificationpermission.impl.resources.notification_permission_allow
-import com.momosi.trucktrack.feature.notificationpermission.impl.resources.notification_permission_illustration
 import com.momosi.trucktrack.feature.notificationpermission.impl.resources.notification_permission_open_settings
 import com.momosi.trucktrack.feature.notificationpermission.impl.resources.notification_permission_rationale
 import com.momosi.trucktrack.feature.notificationpermission.impl.resources.notification_permission_settings_hint
@@ -126,7 +126,7 @@ private fun NotificationPermissionExplanation(requestRoute: PermissionRequestRou
         verticalArrangement = Arrangement.Center,
     ) {
         Image(
-            painter = painterResource(Res.drawable.notification_permission_illustration),
+            painter = painterResource(TruckTrackIllustrations.NotificationPermission),
             contentDescription = null,
             modifier = Modifier.size(220.dp),
         )

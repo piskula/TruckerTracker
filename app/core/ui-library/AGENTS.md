@@ -77,4 +77,4 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 - Never expose `material3` types in public function signatures — wrap them.
 - Always add a `@Preview` for every new component in the same file as the composable.
 - Product illustrations follow `../../../.claude/rules/illustrations.md` and the notification-permission
-  artwork from PR #85. Shared error illustrations live in `commonMain/composeResources/drawable/`.
+  artwork from PR #85. All illustrations, including that one, live in `commonMain/composeResources/drawable/`.
