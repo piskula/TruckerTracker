@@ -27,7 +27,7 @@ addressed from the *repo* root via the composite build.
 * **`app/shared`** (`:app:shared`) — root Composable, root ViewModel, Koin aggregation, platform
   bootstrap. The wiring point every other module feeds into.
 * **`feature/*`** — one product feature each, always split into `api` (navigation keys only) and
-  `impl` (ViewModel, Composables, state/actions/events). Today: `sign-in`, `issues`, `profile`.
+  `impl` (ViewModel, Composables, state/actions/events). Today: `sign-in`, `issues`, `profile`, `checklist`.
 * **`core/*`** — shared domain logic and infrastructure: `common`, `network`, `user`, `issue`,
   `vehicle`, `checklist`, `navigation`, `ui-library`, `app-links`.
 * **`core/app-links`** — parses URLs into typed `AppLinkAction`s and delivers them through the

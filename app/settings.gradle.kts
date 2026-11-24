@@ -49,4 +49,6 @@ include(
     ":feature:issues:impl",
     ":feature:profile:api",
     ":feature:profile:impl",
+    ":feature:checklist:api",
+    ":feature:checklist:impl",
 )

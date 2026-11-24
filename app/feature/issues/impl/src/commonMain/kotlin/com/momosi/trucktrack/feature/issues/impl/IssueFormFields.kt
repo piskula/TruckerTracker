@@ -28,15 +28,11 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.uilibrary.components.Icon
-import com.momosi.trucktrack.core.uilibrary.components.LoadingSpinner
-import com.momosi.trucktrack.core.uilibrary.components.SectionLabel
 import com.momosi.trucktrack.core.uilibrary.components.Text
 import com.momosi.trucktrack.core.uilibrary.components.TextField
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.Shapes
-import com.momosi.trucktrack.core.vehicle.model.Vehicle
-import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import com.momosi.trucktrack.feature.issues.impl.resources.Res
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_high
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_high_hint
@@ -44,9 +40,6 @@ import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_low
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_low_hint
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_medium
 import com.momosi.trucktrack.feature.issues.impl.resources.issue_priority_medium_hint
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_select_vehicle
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_vehicle_section_all
-import com.momosi.trucktrack.feature.issues.impl.resources.issue_vehicle_section_recent
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -140,128 +133,6 @@ internal fun InputField(
                     )
                 }
             },
-        )
-    }
-}
-
-@Composable
-internal fun VehicleSelector(
-    vehicles: VehiclesContent,
-    selectedVehicle: Vehicle?,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    onSelect: (Vehicle) -> Unit,
-    testTagPrefix: String,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    Column(modifier = modifier) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(enabled = enabled, onClick = onToggle)
-                .padding(vertical = 8.dp)
-                .testTag("${testTagPrefix}_vehicle_selector"),
-        ) {
-            Icon(
-                imageVector = selectedVehicle?.type.vehicleIcon(),
-                tint = AppTheme.colors.primary,
-                modifier = Modifier.size(20.dp),
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            when {
-                vehicles is VehiclesContent.Loading -> {
-                    LoadingSpinner(size = 20.dp, strokeWidth = 2.dp)
-                }
-
-                selectedVehicle != null -> {
-                    Text(
-                        text = "${selectedVehicle.licensePlate} · ${selectedVehicle.make} ${selectedVehicle.model}",
-                        style = AppTheme.typography.titleSmall,
-                        color = AppTheme.colors.onSurface,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-
-                else -> {
-                    Text(
-                        text = stringResource(Res.string.issue_select_vehicle),
-                        style = AppTheme.typography.titleSmall,
-                        color = AppTheme.colors.onSurfaceVariant,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-            if (enabled) {
-                Icon(
-                    imageVector = TruckTrackIcons.ArrowDropDown,
-                    tint = AppTheme.colors.primary,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-        }
-        if (expanded && vehicles is VehiclesContent.Loaded) {
-            val preferredVehicles = listOfNotNull(vehicles.preferredTruck, vehicles.preferredTrailer)
-            Column {
-                if (preferredVehicles.isNotEmpty()) {
-                    SectionLabel(
-                        text = stringResource(Res.string.issue_vehicle_section_recent),
-                        color = AppTheme.colors.primary,
-                        modifier = Modifier.testTag("${testTagPrefix}_vehicle_section_recent"),
-                    )
-                }
-                preferredVehicles.forEach { vehicle ->
-                    VehicleOption(
-                        vehicle = vehicle,
-                        onSelect = onSelect,
-                        testTag = "${testTagPrefix}_vehicle_preferred_${vehicle.id}",
-                    )
-                }
-                if (preferredVehicles.isNotEmpty() && vehicles.otherVehicles.isNotEmpty()) {
-                    SectionLabel(
-                        text = stringResource(Res.string.issue_vehicle_section_all),
-                        color = AppTheme.colors.primary,
-                        modifier = Modifier.padding(top = 8.dp).testTag("${testTagPrefix}_vehicle_section_all"),
-                    )
-                }
-                vehicles.otherVehicles.forEach { vehicle ->
-                    VehicleOption(
-                        vehicle = vehicle,
-                        onSelect = onSelect,
-                        testTag = "${testTagPrefix}_vehicle_option_${vehicle.id}",
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun VehicleOption(
-    vehicle: Vehicle,
-    onSelect: (Vehicle) -> Unit,
-    testTag: String,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onSelect(vehicle) }
-            .padding(vertical = 10.dp, horizontal = 4.dp)
-            .testTag(testTag),
-    ) {
-        Icon(
-            imageVector = vehicle.type.vehicleIcon(),
-            tint = AppTheme.colors.onSurfaceVariant,
-            modifier = Modifier.size(18.dp),
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "${vehicle.licensePlate} · ${vehicle.make} ${vehicle.model}",
-            style = AppTheme.typography.bodyMedium,
-            color = AppTheme.colors.onSurface,
         )
     }
 }
@@ -409,9 +280,4 @@ private fun IssuePriority.hintRes() = when (this) {
     IssuePriority.High -> Res.string.issue_priority_high_hint
     IssuePriority.Medium -> Res.string.issue_priority_medium_hint
     IssuePriority.Low -> Res.string.issue_priority_low_hint
-}
-
-internal fun VehicleType?.vehicleIcon() = when (this) {
-    VehicleType.Trailer -> TruckTrackIcons.Trailer
-    VehicleType.Truck, null -> TruckTrackIcons.Truck
 }

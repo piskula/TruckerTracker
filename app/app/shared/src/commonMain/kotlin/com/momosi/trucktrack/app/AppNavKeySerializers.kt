@@ -2,6 +2,7 @@ package com.momosi.trucktrack.app
 
 import androidx.navigation3.runtime.NavKey
 import androidx.savedstate.serialization.SavedStateConfiguration
+import com.momosi.trucktrack.feature.checklist.api.ChecklistNavKey
 import com.momosi.trucktrack.feature.issues.api.IssuesNavKey
 import com.momosi.trucktrack.feature.issues.impl.navigation.CreateIssueNavKey
 import com.momosi.trucktrack.feature.issues.impl.navigation.FullScreenPhotoNavKey
@@ -21,6 +22,7 @@ val appSavedStateConfiguration = SavedStateConfiguration {
             subclass(CreateIssueNavKey::class, CreateIssueNavKey.serializer())
             subclass(FullScreenPhotoNavKey::class, FullScreenPhotoNavKey.serializer())
             subclass(ProfileNavKey::class, ProfileNavKey.serializer())
+            subclass(ChecklistNavKey::class, ChecklistNavKey.serializer())
         }
     }
 }

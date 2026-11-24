@@ -1,7 +1,6 @@
 package com.momosi.trucktrack.core.uilibrary.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -48,7 +47,7 @@ fun DashboardTopBar(
             )
         }
         Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
             content = actions,
         )
     }

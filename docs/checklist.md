@@ -68,6 +68,10 @@ One language, `sk`, exists today. The jsonb text column is ready for more langua
 
 The mobile app's shared API and image clients send the selected app language in `Accept-Language` on every request, reading the current selection so language changes apply to subsequent requests.
 
+## Mobile app
+
+Drivers open the checklist from the Checklist button stacked above the + button on the Issues screen (`feature:checklist`). The screen shows a vehicles card with separate truck and trailer pickers, preselected with the driver's remembered vehicles, followed by one card per question with an OK / Problem choice. A sticky bar shows progress and the Submit button. Submitting with a missing vehicle or unanswered check highlights what is missing and scrolls to it. A failed submit shows an error under the Submit button and keeps the answers. On success the app remembers the truck and trailer and shows a confirmation with both plates, the time, and the number of problems recorded. Leaving with unsubmitted answers asks for confirmation first. Problem answers are only recorded; they do not create issues.
+
 ## Known gaps and follow-ups
 
 - **Question CRUD**: not implemented. Questions are currently immutable, seeded by migration only. The history safety described above is already designed in for when editing arrives.
@@ -81,4 +85,6 @@ The mobile app's shared API and image clients send the selected app language in 
 - Server domain: `server/module-server/src/main/kotlin/sk/momosilabs/truckTrack/checklist/`
 - Contract: `server/module-api/src/main/kotlin/sk/momosilabs/truckTrack/api/checklist/`
 - DTO mirrors: `shared/src/commonMain/kotlin/com/momosi/trucktrack/shared/checklist/`
+- Client domain: `app/core/checklist/`
+- Client UI: `app/feature/checklist/`
 - Migration: `../server/module-server/src/main/resources/db/changelog/2026/11/11-23-checklist.yaml` (the `2026/11` folder nesting is real; some tools display the path flattened)

@@ -229,6 +229,8 @@ graph TD
         issuesImpl["feature:issues:impl"]
         profileApi["feature:profile:api"]
         profileImpl["feature:profile:impl"]
+        checklistApi["feature:checklist:api"]
+        checklistImpl["feature:checklist:impl"]
     end
 
     subgraph Core["core"]
@@ -252,6 +254,7 @@ graph TD
     shared --> signInImpl
     shared --> issuesImpl
     shared --> profileImpl
+    shared --> checklistImpl
     shared --> common
     shared --> appLinks
     appLinks --> user
@@ -267,9 +270,11 @@ graph TD
     signInImpl --> signInApi
     issuesImpl --> issuesApi
     profileImpl --> profileApi
+    checklistImpl --> checklistApi
 
     signInImpl -.->|cross-feature| issuesApi
     issuesImpl -.->|cross-feature| profileApi
+    issuesImpl -.->|cross-feature| checklistApi
     profileImpl -.->|cross-feature| signInApi
 
     signInImpl --> user
@@ -278,6 +283,9 @@ graph TD
     issuesImpl --> issue
     issuesImpl --> vehicle
     profileImpl --> user
+    checklistImpl --> common
+    checklistImpl --> checklist
+    checklistImpl --> vehicle
 
     network --> common
     network --> user
@@ -290,6 +298,7 @@ graph TD
     checklist --> network
     user --> common
     uiLibrary --> common
+    uiLibrary --> vehicle
 ```
 
 Solid arrows are `implementation`/`api` project dependencies (`settings.gradle.kts` +

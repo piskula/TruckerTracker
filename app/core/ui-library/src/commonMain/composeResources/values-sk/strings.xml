@@ -5,5 +5,8 @@
     <string name="error_no_connection">Žiadne internetové pripojenie. Skontrolujte pripojenie a skúste to znova.</string>
     <string name="error_unauthorized">Vaše prihlásenie vypršalo. Prihláste sa znova.</string>
     <string name="error_generic">Niečo sa pokazilo. Skúste to znova.</string>
+    <string name="vehicle_select">Vyberte vozidlo</string>
+    <string name="vehicle_section_recent">Nedávno použité</string>
+    <string name="vehicle_section_all">Všetky vozidlá</string>
 </resources>
 
