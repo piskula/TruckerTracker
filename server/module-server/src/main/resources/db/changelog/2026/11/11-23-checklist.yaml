@@ -1,0 +1,134 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1795478400000-01
+      author: piskula
+      changes:
+        - createTable:
+            tableName: checklist_question
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: identifier
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_checklist_question_identifier
+              - column:
+                  name: text
+                  type: jsonb
+                  constraints:
+                    nullable: false
+              - column:
+                  name: position
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at_utc
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 1795478400000-02
+      author: piskula
+      changes:
+        - createTable:
+            tableName: checklist_response
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: truck_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_checklist_response_truck
+                    references: vehicle(id)
+              - column:
+                  name: trailer_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_checklist_response_trailer
+                    references: vehicle(id)
+              - column:
+                  name: answered_by_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_checklist_response_answered_by
+                    references: account(id)
+              - column:
+                  name: answered_at_utc
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: answers
+                  type: jsonb
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            indexName: ix_checklist_response_truck_answered_at
+            tableName: checklist_response
+            indexColumns:
+              - column:
+                  name: truck_id
+              - column:
+                  name: answered_at_utc
+
+        - createIndex:
+            indexName: ix_checklist_response_trailer_answered_at
+            tableName: checklist_response
+            indexColumns:
+              - column:
+                  name: trailer_id
+              - column:
+                  name: answered_at_utc
+
+        - createIndex:
+            indexName: ix_checklist_response_answered_by_answered_at
+            tableName: checklist_response
+            indexColumns:
+              - column:
+                  name: answered_by_id
+              - column:
+                  name: answered_at_utc
+
+  - changeSet:
+      id: 1795478400000-03
+      author: piskula
+      changes:
+        - sql:
+            sql: CREATE INDEX ix_checklist_response_answers ON checklist_response USING gin (answers jsonb_path_ops);
+
+  - changeSet:
+      id: 1795478400000-04
+      author: piskula
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO checklist_question (identifier, text, position, created_at_utc)
+              VALUES
+                ('OIL_1', '{"sk":"Kontrola hladiny oleja"}'::jsonb, 1, '2026-11-24 00:00:00'),
+                ('WHEELS_1', '{"sk":"Vizuálna kontrola pneumatík (poškodenie, opotrebenie)"}'::jsonb, 2, '2026-11-24 00:00:00'),
+                ('WHEELS_2', '{"sk":"Kontrola tlaku v pneumatikách"}'::jsonb, 3, '2026-11-24 00:00:00'),
+                ('WHEELS_3', '{"sk":"Kontrola dotiahnutia kolies"}'::jsonb, 4, '2026-11-24 00:00:00'),
+                ('LIGHTS_1', '{"sk":"Kontrola osvetlenia"}'::jsonb, 5, '2026-11-24 00:00:00'),
+                ('BODYWORK_1', '{"sk":"Vizuálna kontrola vozidla (škrabance, odreniny, schodíky, úniky kvapalín)"}'::jsonb, 6, '2026-11-24 00:00:00'),
+                ('LICENSE_1', '{"sk":"Kontrola dokladov (eurolicencia, osvedčenia, karty)"}'::jsonb, 7, '2026-11-24 00:00:00'),
+                ('TOLL_1', '{"sk":"Kontrola mýtnych jednotiek (umiestnenie a počet náprav)"}'::jsonb, 8, '2026-11-24 00:00:00')

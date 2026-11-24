@@ -8,7 +8,7 @@ plugins {
 
 allprojects {
     group = "sk.momosilabs.truckTrack"
-    version = "1.0-rc1"
+    version = "1.0-rc2"
 }
 
 subprojects {
