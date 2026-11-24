@@ -1,0 +1,36 @@
+<resources>
+    <string name="checklist_title">Kontrola vozidla</string>
+    <string name="checklist_vehicles">Vozidlá</string>
+    <string name="checklist_select_truck">Vyberte ťahač</string>
+    <string name="checklist_select_trailer">Vyberte náves</string>
+    <string name="checklist_error_vehicles_required">Vyberte ťahač aj náves.</string>
+    <string name="checklist_checks">Kontroly</string>
+    <string name="checklist_answer_ok">V poriadku</string>
+    <string name="checklist_answer_problem">Problém</string>
+    <string name="checklist_error_answer_required">Odpovedzte na t?to kontrolu</string>
+    <string name="checklist_progress">Skontrolované %1$d z %2$d</string>
+    <plurals name="checklist_problem_count">
+        <item quantity="one">%1$d problém</item>
+        <item quantity="few">%1$d problémy</item>
+        <item quantity="many">%1$d problému</item>
+        <item quantity="other">%1$d problémov</item>
+    </plurals>
+    <string name="checklist_submit">Odoslať kontrolu</string>
+    <string name="checklist_error_load">Kontrolu sa nepodarilo načítať.</string>
+    <string name="checklist_error_submit_no_connection">Žiadne internetové pripojenie. Odpovede ostávajú uložené, skúste to znova po pripojení.</string>
+    <string name="checklist_error_submit_other">Kontrolu sa nepodarilo odoslať. Odpovede ostávajú uložené, skúste to znova.</string>
+    <string name="checklist_discard_title">Zahodiť kontrolu?</string>
+    <string name="checklist_discard_message">Odpovede ešte neboli odoslané a stratia sa.</string>
+    <string name="checklist_discard_confirm">Zahodiť</string>
+    <string name="checklist_discard_keep">Pokračovať</string>
+    <string name="checklist_submitted_title">Kontrola odoslaná</string>
+    <string name="checklist_submitted_no_problems">Bez problémov</string>
+    <plurals name="checklist_submitted_problems">
+        <item quantity="one">Zaznamenaný %1$d problém</item>
+        <item quantity="few">Zaznamenané %1$d problémy</item>
+        <item quantity="many">Zaznamenaného %1$d problému</item>
+        <item quantity="other">Zaznamenaných %1$d problémov</item>
+    </plurals>
+    <string name="checklist_submitted_problems_hint">Ak treba niečo opraviť, vytvorte hlásenie.</string>
+    <string name="checklist_submitted_done">Hotovo</string>
+</resources>

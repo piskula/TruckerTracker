@@ -1,0 +1,32 @@
+<resources>
+    <string name="checklist_title">Vehicle checklist</string>
+    <string name="checklist_vehicles">Vehicles</string>
+    <string name="checklist_select_truck">Select a truck</string>
+    <string name="checklist_select_trailer">Select a trailer</string>
+    <string name="checklist_error_vehicles_required">Select both a truck and a trailer.</string>
+    <string name="checklist_checks">Checks</string>
+    <string name="checklist_answer_ok">OK</string>
+    <string name="checklist_answer_problem">Problem</string>
+    <string name="checklist_error_answer_required">Answer this check</string>
+    <string name="checklist_progress">%1$d of %2$d checked</string>
+    <plurals name="checklist_problem_count">
+        <item quantity="one">%1$d problem</item>
+        <item quantity="other">%1$d problems</item>
+    </plurals>
+    <string name="checklist_submit">Submit checklist</string>
+    <string name="checklist_error_load">We couldn't load the checklist.</string>
+    <string name="checklist_error_submit_no_connection">No internet connection. Your answers are kept, so try again once you're back online.</string>
+    <string name="checklist_error_submit_other">We couldn't submit the checklist. Your answers are kept, so please try again.</string>
+    <string name="checklist_discard_title">Discard checklist?</string>
+    <string name="checklist_discard_message">Your answers haven't been submitted and will be lost.</string>
+    <string name="checklist_discard_confirm">Discard</string>
+    <string name="checklist_discard_keep">Keep editing</string>
+    <string name="checklist_submitted_title">Checklist submitted</string>
+    <string name="checklist_submitted_no_problems">No problems found</string>
+    <plurals name="checklist_submitted_problems">
+        <item quantity="one">%1$d problem recorded</item>
+        <item quantity="other">%1$d problems recorded</item>
+    </plurals>
+    <string name="checklist_submitted_problems_hint">If something needs repair, report it as an issue.</string>
+    <string name="checklist_submitted_done">Done</string>
+</resources>

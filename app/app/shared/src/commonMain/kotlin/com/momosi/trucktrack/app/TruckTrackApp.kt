@@ -27,6 +27,7 @@ import com.momosi.trucktrack.core.uilibrary.components.rememberErrorSnackbarHost
 import com.momosi.trucktrack.core.uilibrary.markTestTagsAsResourceId
 import com.momosi.trucktrack.core.uilibrary.modifier.LocalSharedTransitionScope
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
+import com.momosi.trucktrack.feature.checklist.impl.navigation.checklistEntries
 import com.momosi.trucktrack.feature.issues.api.IssuesNavKey
 import com.momosi.trucktrack.feature.issues.impl.navigation.IssueDetailNavKey
 import com.momosi.trucktrack.feature.issues.impl.navigation.issuesEntries
@@ -93,6 +94,7 @@ fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel 
                                 signInEntries(navigator)
                                 issuesEntries(navigator, resultStore)
                                 profileEntries(navigator)
+                                checklistEntries(navigator)
                             },
                         ),
                         onBack = navigator::goBack,

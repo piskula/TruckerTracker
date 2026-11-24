@@ -45,6 +45,7 @@ kotlin {
             implementation(projects.feature.issues.api)
             implementation(projects.feature.issues.impl)
             implementation(projects.feature.profile.impl)
+            implementation(projects.feature.checklist.impl)
         }
     }
 }

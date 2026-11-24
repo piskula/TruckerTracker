@@ -5,5 +5,8 @@
     <string name="error_no_connection">No internet connection. Check your connection and try again.</string>
     <string name="error_unauthorized">Your session has expired. Please sign in again.</string>
     <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="vehicle_select">Select a vehicle</string>
+    <string name="vehicle_section_recent">Recently used</string>
+    <string name="vehicle_section_all">All vehicles</string>
 </resources>
 

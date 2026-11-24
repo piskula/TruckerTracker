@@ -15,6 +15,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.feature.issues.api)
             implementation(projects.feature.profile.api)
+            implementation(projects.feature.checklist.api)
             implementation(projects.core.common)
             implementation(projects.core.user)
             implementation(projects.core.issue)

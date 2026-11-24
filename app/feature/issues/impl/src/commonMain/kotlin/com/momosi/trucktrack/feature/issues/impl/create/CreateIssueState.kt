@@ -3,9 +3,9 @@ package com.momosi.trucktrack.feature.issues.impl.create
 import androidx.compose.runtime.Immutable
 import com.momosi.trucktrack.core.common.io.PhotoData
 import com.momosi.trucktrack.core.issue.model.IssuePriority
+import com.momosi.trucktrack.core.uilibrary.vehicle.VehiclesContent
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.feature.issues.impl.SubmitStatus
-import com.momosi.trucktrack.feature.issues.impl.VehiclesContent
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
