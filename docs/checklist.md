@@ -47,7 +47,7 @@ The `answers` jsonb looks like this (illustrative):
 
 ## Endpoints
 
-- **GET /api/v1/checklist-question**: optional `?language=`. Text resolution falls back from the requested language to `sk`, then to the first available entry. Questions are ordered by `position`, then `id`. A question with no texts at all yields 422.
+- **GET /api/v1/checklist-question**: optional `Accept-Language` header (for example `en-US,en;q=0.9,sk;q=0.8`); there is no language query parameter. Text resolution honors language preference weights and regional fallback, then falls back to `sk`, then to the first available entry. Missing or blank headers default to `sk`; malformed language preferences yield 422. Questions are ordered by `position`, then `id`. A question with no texts at all yields 422.
 - **POST /api/v1/checklist-response/create**: the only response endpoint; the surface is submit-only by design. Body: `truckId`, `trailerId`, and `answers` as a list of `{identifier, answer}` entries. There is no client-supplied language.
 
 Both endpoints require an authenticated user with the DRIVER or MECHANIC role.
@@ -65,6 +65,8 @@ Validation behaves as follows:
 ## Multi-language
 
 One language, `sk`, exists today. The jsonb text column is ready for more languages with no schema change, and the response snapshot preserves every language available at submit time.
+
+The mobile app's shared API and image clients send the selected app language in `Accept-Language` on every request, reading the current selection so language changes apply to subsequent requests.
 
 ## Known gaps and follow-ups
 
