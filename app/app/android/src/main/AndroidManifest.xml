@@ -26,6 +26,10 @@
                     android:scheme="https"
                     android:host="transroute.org"
                     android:pathPrefix="/issue/" />
+                <data
+                    android:scheme="https"
+                    android:host="transroute.org"
+                    android:path="/checklist" />
             </intent-filter>
         </activity>
 
