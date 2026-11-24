@@ -14,6 +14,8 @@ Provides the shared HTTP client (Ktor) and pagination DTO infrastructure used by
 ```
 commonMain/
   di/NetworkModule.kt              ← Ktor HttpClient setup, Auth plugin, base URL
+  AcceptLanguage.kt               ← named client plugin that sets the selected language on requests
+  AcceptLanguageConfig.kt         ← language-provider lambda configuration for the plugin
   AuthTokenCacheInvalidation.kt    ← HttpClient.invalidateAuthTokensOn: clears Ktor's cached bearer
                                       token whenever AuthManager.authenticationState changes
   dto/PageDtoMapper.kt             ← maps shared's PageDto<T>; no local PageDto class
@@ -30,6 +32,11 @@ commonMain/
 - **Base URL**: `https://tt.momosi.org/`
 - **Engine**: `ktor-client-okhttp` (Android). Swap to `ktor-client-darwin` for iOS.
 - **Serialization**: Kotlinx Serialization JSON via `ContentNegotiation` plugin.
+- **Language**: Both API and image clients send `Accept-Language` using the current
+  `LanguageRepository.language` value on each request, including after an in-app language change.
+  The named `AcceptLanguage` plugin is configured with
+  `install(AcceptLanguage) { language { languageRepository.language.value.languageTag } }`.
+  It evaluates the required provider on every request and has no dependency on `LanguageRepository`.
 - **Auth**: Bearer token injected via Ktor `Auth` plugin wired to `AuthManager.token()`. Ktor's
   `bearer { }` provider caches the loaded token internally and only reloads it after a 401, so
   `buildHttpClient` also calls `HttpClient.invalidateAuthTokensOn` (`AuthTokenCacheInvalidation.kt`),

@@ -1,6 +1,8 @@
 package com.momosi.trucktrack.core.network.di
 
 import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
+import com.momosi.trucktrack.core.common.language.AppLanguage
+import com.momosi.trucktrack.core.common.language.LanguageRepository
 import com.momosi.trucktrack.core.common.network.ApiException
 import com.momosi.trucktrack.user.AuthManager
 import com.momosi.trucktrack.user.model.AuthActionResult
@@ -26,6 +28,23 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class SessionInvalidationTest {
+
+    @Test
+    fun acceptLanguageTracksTheSelectedAppLanguageOnEveryRequest() = runTest {
+        val languageRepository = FakeLanguageRepository()
+        val requestLanguages = mutableListOf<List<String>?>()
+
+        withClient(FakeAuthManager(), {
+            requestLanguages += it.headers.getAll(HttpHeaders.AcceptLanguage)
+            respond("[]", HttpStatusCode.OK)
+        }, languageRepository) { client ->
+            client.get("https://api.example.test/issues")
+            languageRepository.setLanguage(AppLanguage.Slovak)
+            client.get("https://api.example.test/issues")
+
+            assertEquals(listOf<List<String>?>(listOf("en"), listOf("sk")), requestLanguages)
+        }
+    }
 
     @Test
     fun finalUnauthorizedResponseInvalidatesTheRetriedToken() = runTest {
@@ -108,6 +127,7 @@ class SessionInvalidationTest {
     private suspend fun TestScope.withClient(
         authManager: AuthManager,
         handler: MockRequestHandler,
+        languageRepository: LanguageRepository = FakeLanguageRepository(),
         block: suspend (HttpClient) -> Unit,
     ) {
         val factory = object : HttpClientEngineFactory<MockEngineConfig> {
@@ -116,12 +136,21 @@ class SessionInvalidationTest {
                 addHandler(handler)
             }
         }
-        val client = buildHttpClient(authManager, backgroundScope, factory)
+        val client = buildHttpClient(authManager, backgroundScope, languageRepository, factory)
         try {
             block(client)
         } finally {
             client.close()
         }
+    }
+}
+
+private class FakeLanguageRepository : LanguageRepository {
+    override val language = MutableStateFlow(AppLanguage.English)
+    override val requiresRestartToApply = false
+
+    override fun setLanguage(language: AppLanguage) {
+        this.language.value = language
     }
 }
 
