@@ -1,12 +1,14 @@
 ---
 paths:
-  - "app/**/androidMain/**"
+  - "app/**/*.kt"
 ---
 
 # Compose Previews
 
-`@Preview` functions live only in `src/androidMain/kotlin/` — they are Android Studio tooling and
-must not be added to `commonMain`.
+Keep `@Preview` functions in the same Kotlin file as the composable they preview.
+Shared composables and their previews live together in `commonMain`; `trucktrack.compose`
+already provides the multiplatform preview annotation there. Platform-specific composables
+keep their previews beside them in the matching platform source set.
 
 * Every file with `@Composable` functions has `@Preview` functions for its key composables.
 * Wrap the previewed content in `TruckTrackTheme { }`.
