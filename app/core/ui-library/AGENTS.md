@@ -42,7 +42,7 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `ConfirmationDialog` | Two-button confirmation dialog |
 | `InfoDialog` | Single-dismiss-button read-only info dialog with a generic content slot |
 | `LoadingSpinner` | Full-screen loading indicator |
-| `ErrorState` | Full-screen load-failure state: illustration, message, Retry button, with side padding and scrolling for short windows or large text. Takes a `FailureReason` (`core:common`), never a `Throwable`: `NoConnection` shows a side-view truck with an overlapping crossed-out Wi-Fi cloud and the no-internet message, `Other` shows a three-quarter-view truck with an overlapping amber wrench triangle and the caller's `message`. Both themes use the same illustration assets. `retryButtonModifier` carries the screen's test tag |
+| `ErrorState` | Full-screen load-failure state: illustration, message, Retry button, with side padding and scrolling for short windows or large text. Takes a `FailureReason` (`core:common`), never a `Throwable`: `NoConnection` shows a side-view truck with an overlapping crossed-out Wi-Fi cloud and the no-internet message, `Other` shows a front-facing truck with an overlapping amber wrench triangle and the caller's `message`. Both themes use the same illustration assets. `retryButtonModifier` carries the screen's test tag |
 | `SkeletonBox` | Shimmer loading placeholder |
 | `ShimmerGroup` (composable, `modifier` package) | Wraps a subtree so every `SkeletonBox`/`Modifier.shimmer()` inside shares one synchronized animation instead of pulsing independently |
 | `PullToRefresh` | Pull-to-refresh wrapper |
