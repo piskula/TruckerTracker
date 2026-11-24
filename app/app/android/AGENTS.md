@@ -7,6 +7,7 @@ Thin Android shell. Contains only Android platform entrypoints. No business logi
 ```
 TruckTrackApplication.kt   ← Calls initializeApp() from app:shared to start Koin + Logger
 TruckTrackActivity.kt      ← setContent { }, enableEdgeToEdge(), renders TruckTrackApp() from app:shared
+res/xml/backup_rules.xml, res/xml/data_extraction_rules.xml ← Auto Backup / device transfer exclusions
 ```
 
 ## Build Variants
@@ -18,6 +19,10 @@ One flavor dimension, `environment`: `staging` (default, app ID `com.momosi.truc
 - `TruckTrackApplication`: initializes Koin via `initializeApp()` from `app:shared`, sets up Coil image loader.
 - `TruckTrackActivity`: calls `setContent { TruckTrackApp() }` — the shared root Composable from `app:shared`. Extends `AppCompatActivity` (not a plain `ComponentActivity`) specifically so `AppCompatDelegate.setApplicationLocales()` (used by `core:common`'s `LanguageRepository`) auto-recreates it when the in-app language changes — AppCompat only does this for `AppCompatActivity` subclasses, so don't change the base class back without re-solving that. This requires `AppTheme` (`res/values/themes.xml`) to descend from `Theme.AppCompat.*` — `AppCompatActivity.setContentView`/`setContent` throws `IllegalStateException` at startup with a non-AppCompat parent theme (e.g. a plain `android:Theme.Material.*`).
 - Use `singleTask` for `TruckTrackActivity` so external links reuse the existing app activity through `onNewIntent`, instead of creating another instance in the caller's task that competes for the singleton app-link channel.
+
+## Backup
+
+`AndroidManifest.xml` points `android:fullBackupContent` (API ≤ 30) and `android:dataExtractionRules` (API 31+) at `res/xml/backup_rules.xml` and `res/xml/data_extraction_rules.xml`. They exclude `core:push`'s `push_registration` SharedPreferences file (last sent and last received Firebase Installation ID, permission prompt history) from cloud backup and device transfer, so a phone restored from another phone's backup never presents that phone's Firebase Installation ID (see `core/push/AGENTS.md`). Keep the file name in sync with `core:push`.
 
 ## Depends On
 

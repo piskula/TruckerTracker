@@ -5,7 +5,7 @@ description: Use when adding a new repository, manager, or API data source to a 
 
 # Skill: Add a Repository to a Core Module
 
-> Adds a repository (or manager) to an existing `app/core/*` module: domain model, DTO mapper, Ktor API client, repository interface + implementation, and Koin binding. All files go in `src/commonMain/kotlin/`. DTOs themselves come from the separate `shared` build (`com.momosi.trucktrack:shared`), not from this module — see Step 3.
+> Adds a repository (or manager) to an existing `app/core/*` module: domain model, DTO mapper, Ktorfit API client, repository interface + implementation, and Koin binding. All files go in `src/commonMain/kotlin/`. DTOs themselves come from the separate `shared` build (`com.momosi.trucktrack:shared`), not from this module — see Step 3.
 
 ## Triggers
 
@@ -16,8 +16,8 @@ Load this skill when the task matches **any** of these:
 
 ## Prerequisites
 
-- The target `app/core/<module>` already exists with a `build.gradle.kts`
-- `core:network` is available and provides a Koin-managed `HttpClient` with base URL and auth pre-configured, plus `PageDtoMapper.toPage` for paginated responses
+- The target `app/core/<module>` already exists with a `build.gradle.kts` that applies `alias(libs.plugins.trucktrack.ktor)` (KSP + Ktorfit + Ktor) — add it if missing
+- `core:network` is available and provides a Koin-managed `Ktorfit` instance backed by the authenticated `HttpClient` (base URL and auth pre-configured), plus `PageDtoMapper.toPage` for paginated responses
 - The API endpoint is known (see OpenAPI at `https://tt.momosi.org/v3/api-docs`, or `server/module-api` directly)
 
 ## Steps
@@ -89,48 +89,52 @@ fun <Thing>Dto.to<Thing>(): <Thing> = <Thing>(
 )
 ```
 
-### 5. Create the Ktor API client in `api/`
+### 5. Create the Ktorfit API client in `api/`
 
-Returns `shared`'s DTO types directly — no local response wrapper.
+Every backend API client is a Ktorfit interface (see `app/AGENTS.md` → "Networking") — never a
+hand-written class calling `HttpClient` directly. It returns `shared`'s DTO types — no local response
+wrapper.
 
 ```kotlin
 package com.momosi.trucktrack.core.<module>.api
 
 import com.momosi.trucktrack.shared.<domain>.<Thing>Dto
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
+import de.jensklingenberg.ktorfit.http.GET
+import de.jensklingenberg.ktorfit.http.Path
 
-class <Thing>Api(private val client: HttpClient) {
+interface <Thing>Api {
 
-    suspend fun get<Things>(): List<<Thing>Dto> = client.get("api/v1/<things>").body()
+    @GET("api/v1/<thing>")
+    suspend fun get<Thing>List(): List<<Thing>Dto>
 
-    suspend fun get<Thing>(id: Long): <Thing>Dto = client.get("api/v1/<things>/$id").body()
+    @GET("api/v1/<thing>/{id}")
+    suspend fun get<Thing>(@Path("id") id: Long): <Thing>Dto
 }
 ```
 
-For a paginated endpoint, wrap the response in `shared`'s `PageDto<T>` and convert with `core:network`'s `PageDtoMapper`:
+For a paginated endpoint, return `shared`'s `PageDto<T>` and convert with `core:network`'s `PageDtoMapper`:
 
 ```kotlin
-suspend fun get<Things>(page: Int?, size: Int?): PageDto<<Thing>Dto> =
-    client.get("api/v1/<things>") {
-        page?.let { parameter("page", it) }
-        size?.let { parameter("size", it) }
-    }.body()
+@GET("api/v1/<thing>")
+suspend fun get<Thing>List(
+    @Query("page") page: Int? = null,
+    @Query("size") size: Int? = null,
+): PageDto<<Thing>Dto>
 ```
 ```kotlin
 // in the repository impl
-api.get<Things>(page, size).toPage { it.to<Thing>() }
+api.get<Thing>List(page, size).toPage { it.to<Thing>() }
 ```
 
-For POST with a JSON body:
+For a JSON body (the shared client already sets the JSON content type):
 ```kotlin
-suspend fun create<Thing>(body: <Thing>CreateDto): <Thing>Dto =
-    client.post("api/v1/<things>") {
-        contentType(ContentType.Application.Json)
-        setBody(body)
-    }.body()
+@POST("api/v1/<thing>")
+suspend fun create<Thing>(@Body body: <Thing>CreateDto): <Thing>Dto
 ```
+
+Non-2xx responses surface as `ApiException` (`core:common/network`) through the shared client's
+`installApiExceptionMapping` — map specific status codes (e.g. `ApiException.HttpError` with 409) in
+the repository, not in the API interface.
 
 ### 6. Create the repository implementation
 
@@ -158,18 +162,20 @@ class <Thing>RepositoryImpl(
 ### 7. Add Koin bindings in `di/`
 
 Add to the module's existing `di/<Module>Module.kt`, or create it if it doesn't exist.
-`get()` for `HttpClient` is resolved from `networkModule` in `core:network`.
+`get<Ktorfit>()` is resolved from `networkModule` in `core:network`; `create<Thing>Api()` is the
+extension KSP generates for the `<Thing>Api` interface.
 
 ```kotlin
 package com.momosi.trucktrack.core.<module>.di
 
 import com.momosi.trucktrack.core.<module>.<Thing>Repository
 import com.momosi.trucktrack.core.<module>.<Thing>RepositoryImpl
-import com.momosi.trucktrack.core.<module>.api.<Thing>Api
+import com.momosi.trucktrack.core.<module>.api.create<Thing>Api
+import de.jensklingenberg.ktorfit.Ktorfit
 import org.koin.dsl.module
 
 val <module>Module = module {
-    single { <Thing>Api(get()) }
+    single { get<Ktorfit>().create<Thing>Api() }
     single<<Thing>Repository> { <Thing>RepositoryImpl(get()) }
 }
 ```
@@ -190,6 +196,7 @@ Add the new files to the Key Files section. If you added a new DTO in `shared`, 
 - [ ] No local `<Thing>Dto` class in `app/core/<module>` — it's in `shared/src/commonMain/kotlin/com/momosi/trucktrack/shared/<domain>/`, reused if it already existed
 - [ ] Repository interface returns only `Result<T>`, `T?`, or `List<T>` — never throws
 - [ ] DTO (in `shared`) uses `@Serializable`
-- [ ] Koin module has `single { <Thing>Api(get()) }` and `single<<Thing>Repository> { ... }`
+- [ ] `<Thing>Api` is a Ktorfit interface (no `HttpClient` calls) and the module applies `trucktrack.ktor`
+- [ ] Koin module has `single { get<Ktorfit>().create<Thing>Api() }` and `single<<Thing>Repository> { ... }`
 - [ ] `cd app && ./gradlew :core:<module>:assembleDebug` passes (or `:app:core:<module>:assembleDebug` from the repo root)
 - [ ] `cd app && ./gradlew spotlessCheck` passes

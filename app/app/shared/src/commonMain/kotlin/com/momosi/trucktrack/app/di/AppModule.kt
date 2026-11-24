@@ -8,10 +8,13 @@ import com.momosi.trucktrack.core.common.di.commonModule
 import com.momosi.trucktrack.core.common.di.platformCommonModule
 import com.momosi.trucktrack.core.issue.di.issueModule
 import com.momosi.trucktrack.core.network.di.networkModule
+import com.momosi.trucktrack.core.push.di.platformPushModule
+import com.momosi.trucktrack.core.push.di.pushModule
 import com.momosi.trucktrack.core.vehicle.di.platformVehicleModule
 import com.momosi.trucktrack.core.vehicle.di.vehicleModule
 import com.momosi.trucktrack.feature.checklist.impl.di.checklistFeatureModule
 import com.momosi.trucktrack.feature.issues.impl.di.issuesModule
+import com.momosi.trucktrack.feature.notificationpermission.impl.di.notificationPermissionModule
 import com.momosi.trucktrack.feature.profile.impl.di.profileModule
 import com.momosi.trucktrack.feature.signin.impl.di.signInModule
 import com.momosi.trucktrack.user.di.platformUserModule
@@ -25,7 +28,7 @@ import org.koin.dsl.module
 val appModule = module {
     single { CoroutineScope(SupervisorJob()) }
     single(createdAtStart = true) { CrashReportingSync(get(), get(), get()) }
-    viewModel { TruckTrackViewModel(get(), get(), get()) }
+    viewModel { TruckTrackViewModel(get(), get(), get(), get()) }
 }
 
 val allModules: List<Module> = listOf(
@@ -38,10 +41,13 @@ val allModules: List<Module> = listOf(
     vehicleModule,
     platformVehicleModule(),
     issueModule,
+    pushModule,
+    platformPushModule(),
     checklistModule,
     appModule,
     signInModule,
     issuesModule,
     profileModule,
+    notificationPermissionModule,
     checklistFeatureModule,
 )

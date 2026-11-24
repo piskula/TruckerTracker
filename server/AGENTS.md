@@ -39,6 +39,8 @@ docker-compose up -d
 - `S3_ACCESS_KEY` / `S3_SECRET_KEY` — default to `minioadmin`
 - `KEYCLOAK_URL` — defaults to `https://sso.momosi.org`
 - `KEYCLOAK_REALM` — defaults to `trucktrack`
+- `FIREBASE_CREDENTIALS_BASE64` — optional, Base64-encoded Firebase service account JSON. Without it the app
+  starts normally but push notifications are disabled (logged as a warning). Never commit or log it.
 
 ## Production Runtime
 

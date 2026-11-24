@@ -27,6 +27,8 @@ The single method on the interface must not be named `execute`. Name it after th
 
 This is a hard rule — no use case method may be left without a security annotation. `@IsUser` is the default for operations accessible to all roles. Annotation goes above `@Transactional`.
 
+**Exemption:** a use case behind a `SecurityConfig` `permitAll` entry that authenticates itself — cryptographically validating a caller-supplied token before doing any work — may omit the annotation, since there is no authenticated principal to authorize against. Precedent: `getVersion` (public endpoint, nothing to protect) and `processBackchannelLogout` (validates the Keycloak logout token's signature and claims itself via `LogoutTokenVerifier`). Such a use case must fail closed on any verification failure.
+
 ## Entity & Persistence Patterns
 
 **Entity class:**
@@ -192,6 +194,44 @@ try {
 }
 ```
 Download and delete do not check — a missing bucket/object should surface as an `S3Exception`.
+
+## Push Notifications (FCM)
+
+Push sending goes through the provider-agnostic `PushNotificationService` interface
+(`push/service/PushNotificationService.kt`) — `sendToAccount(accountId, message)` looks up the
+account's single `push_device` row and skips silently when there is none,
+`sendToDevice(firebaseInstallationId, message)` sends to one device. Devices are identified
+and targeted only by their Firebase Installation ID (`firebaseInstallationId` /
+`firebase_installation_id`, sent with the SDK's `Message.Builder.setFid`); the deprecated FCM
+registration token is not used anywhere. Spell the name out — don't abbreviate it in our own
+identifiers, messages or docs. Use cases depend only on that interface, never on the Firebase SDK.
+`FcmPushNotificationService` (`push/sender/`) is the Firebase Admin SDK implementation; it never
+throws to callers, and when FCM rejects the registration (`UNREGISTERED`, `INVALID_ARGUMENT` or
+`SENDER_ID_MISMATCH` — the Admin SDK only sets these `MessagingErrorCode`s from FCM's own error
+detail, not for payload validation errors) it deletes the row by Firebase Installation ID, so a
+device that has meanwhile re-registered with a new id is left alone. That deletion relies on the
+payload staying valid and small; keep variable parts bounded (e.g. `device_name` is
+`varchar(255)`).
+
+- **Configuration:** `FirebaseProperties` (`firebase.credentials-base64`, env
+  `FIREBASE_CREDENTIALS_BASE64`). `FirebaseConfig` creates the `FirebaseApp` and the FCM
+  implementation only when credentials are present; otherwise it wires
+  `DisabledPushNotificationService`, which only logs a warning. Local development, CI and tests
+  therefore run without Firebase. Never log the credentials or anything decoded from them.
+- **Messages:** a `PushMessage` carries a `PushMessageType` (sent as the `type` data entry), message
+  keys plus arguments for title and body, and extra data entries. Notifications are always in
+  Slovak — the app sends no language and `push_device` stores none. Title and body are rendered on
+  the server with Spring's `MessageSource` from the single UTF-8 bundle `messages.properties`, which
+  holds the Slovak texts; they are resolved with `Locale.ROOT`, so neither a request locale nor the
+  JVM default locale can pick anything else. Don't add `messages_<lang>.properties` files. Add a new
+  notification by adding a `PushMessageType` value, a factory on `PushMessage`, and its keys to
+  `messages.properties`.
+- **Sending after commit:** never send from inside a use case transaction. Publish an event with
+  `ApplicationEventPublisher` and send from a `@TransactionalEventListener(phase = AFTER_COMMIT)` +
+  `@Async` listener (see `PushDeviceReplacedListener`), so a rollback never produces a notification
+  and FCM latency never holds a database transaction open.
+
+See `../../docs/push-notifications.md` for the full design and API contract.
 
 ## See Also
 

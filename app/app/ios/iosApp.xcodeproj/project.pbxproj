@@ -23,6 +23,7 @@
 		F1E2D3C4B5A6978869504132 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		8B4F0D2C3E5A7B9C1D2E3F40 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E0A1B2C3D4E5F60718293A4C /* Environment.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Environment.xcconfig; sourceTree = "<group>"; };
+		3F8A2C1D9E7B4A6C5D0E1F23 /* iosApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = iosApp.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +55,7 @@
 				4010711F7713F4DD96975E70 /* Info.plist */,
 				F1E2D3C4B5A6978869504132 /* GoogleService-Info.plist */,
 				8B4F0D2C3E5A7B9C1D2E3F40 /* PrivacyInfo.xcprivacy */,
+				3F8A2C1D9E7B4A6C5D0E1F23 /* iosApp.entitlements */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";

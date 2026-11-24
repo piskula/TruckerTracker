@@ -7,6 +7,7 @@ import com.momosi.trucktrack.feature.issues.api.IssuesNavKey
 import com.momosi.trucktrack.feature.issues.impl.navigation.CreateIssueNavKey
 import com.momosi.trucktrack.feature.issues.impl.navigation.FullScreenPhotoNavKey
 import com.momosi.trucktrack.feature.issues.impl.navigation.IssueDetailNavKey
+import com.momosi.trucktrack.feature.notificationpermission.api.NotificationPermissionNavKey
 import com.momosi.trucktrack.feature.profile.api.ProfileNavKey
 import com.momosi.trucktrack.feature.signin.api.SignInNavKey
 import kotlinx.serialization.modules.SerializersModule
@@ -22,6 +23,7 @@ val appSavedStateConfiguration = SavedStateConfiguration {
             subclass(CreateIssueNavKey::class, CreateIssueNavKey.serializer())
             subclass(FullScreenPhotoNavKey::class, FullScreenPhotoNavKey.serializer())
             subclass(ProfileNavKey::class, ProfileNavKey.serializer())
+            subclass(NotificationPermissionNavKey::class, NotificationPermissionNavKey.serializer())
             subclass(ChecklistNavKey::class, ChecklistNavKey.serializer())
         }
     }

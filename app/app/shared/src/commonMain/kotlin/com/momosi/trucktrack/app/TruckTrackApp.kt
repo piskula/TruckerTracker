@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation3.runtime.entryProvider
@@ -31,22 +32,16 @@ import com.momosi.trucktrack.feature.checklist.impl.navigation.checklistEntries
 import com.momosi.trucktrack.feature.issues.api.IssuesNavKey
 import com.momosi.trucktrack.feature.issues.impl.navigation.IssueDetailNavKey
 import com.momosi.trucktrack.feature.issues.impl.navigation.issuesEntries
+import com.momosi.trucktrack.feature.notificationpermission.impl.navigation.notificationPermissionEntries
 import com.momosi.trucktrack.feature.profile.impl.navigation.profileEntries
-import com.momosi.trucktrack.feature.signin.api.SignInNavKey
 import com.momosi.trucktrack.feature.signin.impl.navigation.signInEntries
-import com.momosi.trucktrack.user.model.AuthenticationState
 import kotlinx.coroutines.flow.Flow
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel = koinViewModel()) {
     val navigationState = rememberNavigationState(
-        startKey = remember {
-            when (viewModel.authenticationState.value) {
-                AuthenticationState.Authorized -> IssuesNavKey
-                AuthenticationState.Guest -> SignInNavKey
-            }
-        },
+        startKey = remember { viewModel.access.value.startKey() },
         savedStateConfiguration = appSavedStateConfiguration,
     )
     val navigator = remember { Navigator(navigationState) }
@@ -54,11 +49,14 @@ fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel 
     val errorSnackbarHostState = rememberErrorSnackbarHostState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refreshNotificationPermission()
+        onPauseOrDispose {}
+    }
+
     LaunchedEffect(viewModel, navigator) {
-        viewModel.authenticationState.collect { authenticationState ->
-            if (authenticationState == AuthenticationState.Guest) {
-                navigator.navigateToRoot(SignInNavKey)
-            }
+        viewModel.access.collect { access ->
+            access.redirectFrom(navigationState.currentKey)?.let(navigator::navigateToRoot)
         }
     }
 
@@ -91,7 +89,8 @@ fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel 
                         modifier = Modifier.fillMaxSize(),
                         entries = navigationState.toEntries(
                             entryProvider {
-                                signInEntries(navigator)
+                                signInEntries()
+                                notificationPermissionEntries()
                                 issuesEntries(navigator, resultStore)
                                 profileEntries(navigator)
                                 checklistEntries(navigator)

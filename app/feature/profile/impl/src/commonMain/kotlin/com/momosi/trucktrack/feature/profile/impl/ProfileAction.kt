@@ -11,4 +11,8 @@ sealed interface ProfileAction {
     data object DismissLanguageSelector : ProfileAction
     data class SelectLanguage(val language: AppLanguage) : ProfileAction
     data object DismissRestartNotice : ProfileAction
+    data class ChangeReceivePushNotifications(val enabled: Boolean) : ProfileAction
+    data object ConfirmPushNotificationsTakeover : ProfileAction
+    data object DismissPushNotificationsTakeover : ProfileAction
+    data object RetryPushNotifications : ProfileAction
 }

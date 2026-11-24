@@ -31,6 +31,9 @@ class SecurityConfig {
                     "/actuator/health",
                     "/actuator/health/**",
                 ).permitAll()
+                it.requestMatchers(
+                    "/api/v1/push/backchannel-logout",
+                ).permitAll()
                 it.anyRequest().authenticated()
             }
             .oauth2ResourceServer { it.jwt {} }

@@ -17,7 +17,7 @@ com.momosi.trucktrack.shared.<domain>/
   <EnumName>Dto.kt       ← @Serializable enum, e.g. IssueStatusDto, IssuePriorityDto
 ```
 
-Current domains: `common` (`PageDto`, `PageableDto`, `ErrorDto`), `issue` (`IssueDto`, `IssueCreateDto`, `IssueUpdateDto`, `IssueFilterDto`, `IssueHistoryDto`, `AccountDto`, `StartIssueDto`, status/priority/`RepairTypeDto`/`VehicleSystemDto` enums), `vehicle` (`VehicleDto`, `VehicleTypeDto`).
+Current domains: `common` (`PageDto`, `PageableDto`, `ErrorDto`), `issue` (`IssueDto`, `IssueCreateDto`, `IssueUpdateDto`, `IssueFilterDto`, `IssueHistoryDto`, `AccountDto`, `StartIssueDto`, status/priority/`RepairTypeDto`/`VehicleSystemDto` enums), `vehicle` (`VehicleDto`, `VehicleTypeDto`), `push` (`PushDeviceRegistrationDto`, `PushDeviceUpdateDto`, `PushDeviceDto`, `PushPlatformDto`, `PushMessageTypeDto` — see `../docs/push-notifications.md`).
 
 `IssueHistoryDto` is a `@Serializable sealed interface` (`StatusChange`, `AssigneeChange`, `Comment`, `TitleChange`, `DescriptionChange`, `PriorityChange`, `VehicleChange`), each subtype carrying only the fields relevant to it — not one flat data class with nullable fields per variant. `@SerialName` on each subtype is the wire discriminator (`"type"` property, kotlinx's default). `server/module-api` maintains its own independent, non-shared, Jackson-annotated (`@JsonTypeInfo`/`@JsonSubTypes`) mirror of this same hierarchy — see the note in `../server/module-api/AGENTS.md` about why these two are separate types kept in sync by hand rather than one shared type.
 

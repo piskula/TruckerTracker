@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,13 +27,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.momosi.trucktrack.core.common.language.AppLanguage
+import com.momosi.trucktrack.core.common.network.FailureReason
 import com.momosi.trucktrack.core.uilibrary.components.Button
+import com.momosi.trucktrack.core.uilibrary.components.ConfirmationDialog
 import com.momosi.trucktrack.core.uilibrary.components.Icon
 import com.momosi.trucktrack.core.uilibrary.components.InfoDialog
+import com.momosi.trucktrack.core.uilibrary.components.SectionLabel
+import com.momosi.trucktrack.core.uilibrary.components.Switch
 import com.momosi.trucktrack.core.uilibrary.components.Text
+import com.momosi.trucktrack.core.uilibrary.components.TextButton
 import com.momosi.trucktrack.core.uilibrary.components.Toolbar
 import com.momosi.trucktrack.core.uilibrary.components.TopBarIconButton
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
+import com.momosi.trucktrack.core.uilibrary.modifier.card
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.feature.profile.impl.resources.Res
@@ -41,6 +48,16 @@ import com.momosi.trucktrack.feature.profile.impl.resources.profile_language_res
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_language_restart_title
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_language_slovak
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_language_title
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_push_load_failed
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_push_no_connection
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_push_other_device
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_push_retry
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_push_takeover_confirm
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_push_takeover_dismiss
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_push_takeover_message
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_push_takeover_title
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_push_this_device
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_push_title
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_role_driver
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_role_mechanic
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_sign_out
@@ -174,6 +191,11 @@ private fun ProfileContent(
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            PushNotificationsSection(
+                state = state.pushNotifications,
+                onAction = onAction,
+                modifier = Modifier.padding(bottom = 24.dp),
+            )
             Button(
                 text = stringResource(Res.string.profile_sign_out),
                 onClick = { onAction(ProfileAction.SignOut) },
@@ -300,6 +322,86 @@ private fun UserRole.labelRes(): StringResource = when (this) {
     UserRole.Mechanic -> Res.string.profile_role_mechanic
 }
 
+@Composable
+private fun PushNotificationsSection(
+    state: PushNotificationsState,
+    onAction: (ProfileAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        SectionLabel(text = stringResource(Res.string.profile_push_title))
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .card()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(Res.string.profile_push_this_device),
+                    style = AppTheme.typography.bodyLarge,
+                    color = AppTheme.colors.onSurface,
+                )
+                PushNotificationsTargetDetail(
+                    target = state.target,
+                    onRetry = { onAction(ProfileAction.RetryPushNotifications) },
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Switch(
+                checked = state.receivesOnThisDevice,
+                onCheckedChange = { onAction(ProfileAction.ChangeReceivePushNotifications(it)) },
+                enabled = state.canChange,
+                modifier = Modifier.testTag("profile_push_switch"),
+            )
+        }
+
+        val request = state.request
+        if (request is PushNotificationsRequest.ConfirmingTakeover) {
+            ConfirmationDialog(
+                title = stringResource(Res.string.profile_push_takeover_title),
+                message = stringResource(Res.string.profile_push_takeover_message, request.currentDeviceName),
+                confirmText = stringResource(Res.string.profile_push_takeover_confirm),
+                dismissText = stringResource(Res.string.profile_push_takeover_dismiss),
+                onConfirm = { onAction(ProfileAction.ConfirmPushNotificationsTakeover) },
+                onDismiss = { onAction(ProfileAction.DismissPushNotificationsTakeover) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun PushNotificationsTargetDetail(target: PushNotificationsTarget, onRetry: () -> Unit) {
+    when (target) {
+        is PushNotificationsTarget.OtherDevice -> Text(
+            text = stringResource(Res.string.profile_push_other_device, target.deviceName),
+            style = AppTheme.typography.bodySmall,
+            color = AppTheme.colors.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp).testTag("profile_push_other_device"),
+        )
+
+        is PushNotificationsTarget.LoadFailed -> Column {
+            Text(
+                text = stringResource(
+                    if (target.reason == FailureReason.NoConnection) Res.string.profile_push_no_connection else Res.string.profile_push_load_failed,
+                ),
+                style = AppTheme.typography.bodySmall,
+                color = AppTheme.colors.error,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+            TextButton(
+                text = stringResource(Res.string.profile_push_retry),
+                onClick = onRetry,
+                modifier = Modifier.testTag("profile_push_retry_button"),
+            )
+        }
+
+        PushNotificationsTarget.Loading, PushNotificationsTarget.ThisDevice, PushNotificationsTarget.NoDevice -> Unit
+    }
+}
+
 @Preview
 @Composable
 private fun ProfileDriverPreview() {
@@ -309,6 +411,58 @@ private fun ProfileDriverPreview() {
                 user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", username = "mschumacher", roles = setOf(UserRole.Driver)),
                 appVersion = "1.4.2 (89)",
                 serverVersion = ServerVersionContent.Loaded("1.4.0 · Jul 20, 2026"),
+                pushNotifications = PushNotificationsState(target = PushNotificationsTarget.ThisDevice),
+            ),
+            onAction = {},
+            onBack = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProfilePushOnOtherDevicePreview() {
+    TruckTrackTheme {
+        ProfileContent(
+            state = ProfileState(
+                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", username = "mschumacher", roles = setOf(UserRole.Driver)),
+                appVersion = "1.4.2 (89)",
+                pushNotifications = PushNotificationsState(target = PushNotificationsTarget.OtherDevice("Google Pixel 8")),
+            ),
+            onAction = {},
+            onBack = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProfilePushLoadFailedPreview() {
+    TruckTrackTheme {
+        ProfileContent(
+            state = ProfileState(
+                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", username = "mschumacher", roles = setOf(UserRole.Driver)),
+                appVersion = "1.4.2 (89)",
+                pushNotifications = PushNotificationsState(target = PushNotificationsTarget.LoadFailed(FailureReason.NoConnection)),
+            ),
+            onAction = {},
+            onBack = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProfilePushTakeoverPreview() {
+    TruckTrackTheme {
+        ProfileContent(
+            state = ProfileState(
+                user = User(id = "", name = "Michael Schumacher", email = "michael@example.com", username = "mschumacher", roles = setOf(UserRole.Driver)),
+                appVersion = "1.4.2 (89)",
+                pushNotifications = PushNotificationsState(
+                    target = PushNotificationsTarget.OtherDevice("iPhone 15"),
+                    request = PushNotificationsRequest.ConfirmingTakeover("iPhone 15"),
+                ),
             ),
             onAction = {},
             onBack = {},

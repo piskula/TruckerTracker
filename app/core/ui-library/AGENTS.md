@@ -47,7 +47,7 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `ShimmerGroup` (composable, `modifier` package) | Wraps a subtree so every `SkeletonBox`/`Modifier.shimmer()` inside shares one synchronized animation instead of pulsing independently |
 | `PullToRefresh` | Pull-to-refresh wrapper |
 | `SectionLabel` | Section header label |
-| `Switch`, `Checkbox` | Form controls |
+| `Switch`, `Checkbox` | Form controls — `Switch` takes `enabled` to lock it while a change is in flight |
 | `TextField` | Themed `BasicTextField` wrapper — always sets `cursorBrush` to `AppTheme.colors.onSurface` so callers can't forget it (and get an invisible black cursor in dark mode); `decorationBox` slot for per-screen chrome (labels, underlines, placeholders) |
 | `SearchBarActive`, `SearchBarInactive` | Search UI — `SearchBarActive` takes `keyboardOptions` (e.g. a numeric-only keyboard) and `autoFocus` to open the keyboard as soon as the search screen appears. Tracks cursor position internally via `TextFieldValue`, resynced from `query` whenever it diverges from the field's own last-typed text (e.g. the screen is recomposed fresh after returning from a pushed destination, the caller clears `query` externally, or the caller filters/truncates what was typed) — the cursor always lands at the end of the resulting text rather than jumping to the start |
 | `DateRangePickerDialog` | Date range picker |
@@ -80,4 +80,4 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 - Never expose `material3` types in public function signatures — wrap them.
 - Always add a `@Preview` for every new component in the same file as the composable.
 - Product illustrations follow `../../../.claude/rules/illustrations.md` and the notification-permission
-  artwork from PR #85. Shared error illustrations live in `commonMain/composeResources/drawable/`.
+  artwork from PR #85. All illustrations, including that one, live in `commonMain/composeResources/drawable/`.

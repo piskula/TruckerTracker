@@ -43,6 +43,7 @@ include(
     ":core:user",
     ":core:vehicle",
     ":core:issue",
+    ":core:push",
     ":core:checklist",
     ":feature:sign-in:api",
     ":feature:sign-in:impl",
@@ -50,6 +51,8 @@ include(
     ":feature:issues:impl",
     ":feature:profile:api",
     ":feature:profile:impl",
+    ":feature:notification-permission:api",
+    ":feature:notification-permission:impl",
     ":feature:checklist:api",
     ":feature:checklist:impl",
 )

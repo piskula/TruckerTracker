@@ -6,7 +6,7 @@ Handles authentication (OAuth/OIDC against a Keycloak realm via [kotlin-multipla
 
 | Symbol | Description |
 |--------|-------------|
-| `AuthManager` | Interface. Exposes `authenticationState: StateFlow<AuthenticationState>`, `authenticationInProgress: StateFlow<Boolean>`, `signIn()`, `signOut()`, `token(): TokenResponse`, `invalidateSession(rejectedAccessToken)`. |
+| `AuthManager` | Interface. Exposes `authenticationState: StateFlow<AuthenticationState>`, `authenticationInProgress: StateFlow<Boolean>`, `loginCompletions: Flow<Unit>`, `signIn()`, `signOut(): AuthActionResult`, `token(): TokenResponse`, `invalidateSession(rejectedAccessToken)`. `signOut` needs a connection: offline, or when the end-session request fails on the network, it returns `Failed.NoInternet` and keeps the session (Keycloak must see the logout, because its back-channel logout is what removes the push device on the backend). Otherwise it runs the Keycloak end-session flow and — unless the user cancelled it (`Failed.UserCancelled`, session kept) — clears the session and returns `Success(Guest)`. Any other end-session failure still clears the session locally and returns `Failed.Error`. `loginCompletions` emits once per completed login — from `signIn()` and from a login resumed after Android killed the process during the browser step. It's backed by a buffered channel: a completion is kept until collected and delivered to one collector only (`core:push`'s `PushRegistrationManager`, which registers the device). |
 | `UserRepository` | Interface. Exposes `user: StateFlow<User?>`. |
 | `AuthenticationState` | Enum: `Guest`, `Authorized`. |
 | `AuthActionResult` | Sealed class: `Success`, `Failed` (`UserCancelled`, `NoInternet`, `NoActivity`, `Error`). |
