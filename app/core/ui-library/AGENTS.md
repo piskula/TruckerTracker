@@ -54,6 +54,12 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `NavigationBar` | Bottom navigation bar |
 | `VehicleSelector`, `VehiclesContent` (`vehicle` package) | Inline expanding vehicle picker shared by issues and checklist. Lists `preferredTruck`/`preferredTrailer` under "Recently used", then `otherVehicles`. `placeholder`/`placeholderType` customize the empty state. `CategorizedVehicles.toVehiclesContent()` maps every vehicle; `toVehiclesContent(type)` keeps only one `VehicleType` for a per-type picker |
 
+## Clipboard
+
+`Clipboard.setText(String)` writes plain text through Compose's suspend `Clipboard.setClipEntry` API,
+with native `ClipEntry` construction for Android and iOS. Use it with `LocalClipboard.current` in a
+composition-scoped coroutine rather than the deprecated `LocalClipboardManager`.
+
 ## Modifiers
 
 | Modifier | Purpose |

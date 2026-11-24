@@ -21,10 +21,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,6 +38,7 @@ import com.momosi.trucktrack.core.common.network.FailureReason
 import com.momosi.trucktrack.core.uilibrary.components.Button
 import com.momosi.trucktrack.core.uilibrary.components.ConfirmationDialog
 import com.momosi.trucktrack.core.uilibrary.components.Icon
+import com.momosi.trucktrack.core.uilibrary.components.IconButton
 import com.momosi.trucktrack.core.uilibrary.components.InfoDialog
 import com.momosi.trucktrack.core.uilibrary.components.SectionLabel
 import com.momosi.trucktrack.core.uilibrary.components.Switch
@@ -43,6 +48,7 @@ import com.momosi.trucktrack.core.uilibrary.components.Toolbar
 import com.momosi.trucktrack.core.uilibrary.components.TopBarIconButton
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
 import com.momosi.trucktrack.core.uilibrary.modifier.card
+import com.momosi.trucktrack.core.uilibrary.setText
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.feature.profile.impl.resources.Res
@@ -67,6 +73,7 @@ import com.momosi.trucktrack.feature.profile.impl.resources.profile_sign_out
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_title
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_username
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_app_label
+import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_copy_id
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_dialog_title
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_dismiss
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_firebase_installation_id_label
@@ -75,6 +82,7 @@ import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_serv
 import com.momosi.trucktrack.feature.profile.impl.resources.profile_version_unavailable
 import com.momosi.trucktrack.user.model.User
 import com.momosi.trucktrack.user.model.UserRole
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -210,6 +218,8 @@ private fun ProfileContent(
     }
 
     if (state.isVersionDialogVisible) {
+        val clipboard = LocalClipboard.current
+        val coroutineScope = rememberCoroutineScope()
         InfoDialog(
             title = stringResource(Res.string.profile_version_dialog_title),
             dismissText = stringResource(Res.string.profile_version_dismiss),
@@ -233,16 +243,28 @@ private fun ProfileContent(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 val firebaseInstallationId = state.firebaseInstallationId
-                VersionRow(
-                    label = stringResource(Res.string.profile_version_firebase_installation_id_label),
-                    value = when (firebaseInstallationId) {
-                        FirebaseInstallationIdContent.Loading -> stringResource(Res.string.profile_version_loading)
-                        is FirebaseInstallationIdContent.Loaded -> firebaseInstallationId.value
-                        FirebaseInstallationIdContent.Unavailable -> stringResource(Res.string.profile_version_unavailable)
-                    },
-                    selectable = firebaseInstallationId is FirebaseInstallationIdContent.Loaded,
-                    modifier = Modifier.testTag("profile_firebase_installation_id_row"),
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    VersionRow(
+                        label = stringResource(Res.string.profile_version_firebase_installation_id_label),
+                        value = when (firebaseInstallationId) {
+                            FirebaseInstallationIdContent.Loading -> stringResource(Res.string.profile_version_loading)
+                            is FirebaseInstallationIdContent.Loaded -> firebaseInstallationId.value
+                            FirebaseInstallationIdContent.Unavailable -> stringResource(Res.string.profile_version_unavailable)
+                        },
+                        selectable = firebaseInstallationId is FirebaseInstallationIdContent.Loaded,
+                        modifier = Modifier.weight(1f).testTag("profile_firebase_installation_id_row"),
+                    )
+                    if (firebaseInstallationId is FirebaseInstallationIdContent.Loaded) {
+                        val copyDescription = stringResource(Res.string.profile_version_copy_id)
+                        IconButton(
+                            imageVector = TruckTrackIcons.Copy,
+                            onClick = { coroutineScope.launch { clipboard.setText(firebaseInstallationId.value) } },
+                            modifier = Modifier
+                                .testTag("profile_copy_firebase_installation_id_button")
+                                .semantics { contentDescription = copyDescription },
+                        )
+                    }
+                }
             }
         }
     }
