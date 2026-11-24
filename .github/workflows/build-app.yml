@@ -44,7 +44,9 @@ jobs:
                     FIREBASE_STAGING_ANDROID_APP_ID: ${{ secrets.FIREBASE_STAGING_ANDROID_APP_ID }}
 
             -   name: Run detekt and Android Lint
-                run: ./gradlew :app:app:android:detekt :app:app:android:lintStagingDebug --continue
+                run: |
+                    ./gradlew -p app checkIllustrationAccess :detekt-rules:test
+                    ./gradlew :app:app:android:detekt :app:app:android:lintStagingDebug --continue
 
             -   name: Upload detekt SARIF report
                 if: always()
