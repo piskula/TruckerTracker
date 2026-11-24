@@ -238,6 +238,7 @@ graph TD
         user["core:user"]
         vehicle["core:vehicle"]
         issue["core:issue"]
+        checklist["core:checklist"]
         navigation["core:navigation"]
         uiLibrary["core:ui-library"]
     end
@@ -261,6 +262,7 @@ graph TD
     shared --> user
     shared --> vehicle
     shared --> issue
+    shared --> checklist
 
     signInImpl --> signInApi
     issuesImpl --> issuesApi
@@ -284,6 +286,8 @@ graph TD
     issue --> vehicle
     vehicle --> common
     vehicle --> network
+    checklist --> common
+    checklist --> network
     user --> common
     uiLibrary --> common
 ```

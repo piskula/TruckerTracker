@@ -42,6 +42,7 @@ include(
     ":core:user",
     ":core:vehicle",
     ":core:issue",
+    ":core:checklist",
     ":feature:sign-in:api",
     ":feature:sign-in:impl",
     ":feature:issues:api",

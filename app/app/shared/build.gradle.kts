@@ -38,6 +38,7 @@ kotlin {
             implementation(projects.core.user)
             implementation(projects.core.vehicle)
             implementation(projects.core.issue)
+            implementation(projects.core.checklist)
 
             implementation(projects.feature.signIn.api)
             implementation(projects.feature.signIn.impl)
