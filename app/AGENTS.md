@@ -180,6 +180,16 @@ One package per feature screen, related files together: `IssuesScreen.kt`, `Issu
   only `androidx.compose.foundation`, `androidx.compose.ui`, and components from `:core:ui-library`.
 * Theme access via `AppTheme` (colors, typography, shapes), provided exclusively by
   `:core:ui-library`.
+* Product illustrations follow the notification-permission artwork from PR #85. Read
+  `../.claude/rules/illustrations.md` before creating or replacing illustration assets; it includes
+  visual references, the palette, a reusable generation prompt, and integration requirements.
+  Store and expose illustrations in `:core:ui-library` through `TruckTrackIllustrations`
+  (`DrawableResource`); keep `TruckTrackIcons` for `ImageVector` icons.
+  Name illustration resources with an `_illustration` suffix and never access them through
+  `Res.drawable` outside `TruckTrackIllustrations.kt`; client Detekt enforces this boundary
+  with `TruckTrack > UseTruckTrackIllustrations`. Photography is outside this illustration family.
+  Run `./gradlew checkIllustrationAccess :detekt-rules:test` from `app/` to verify the boundary
+  across all source sets and test the custom rule. CI runs both checks.
 
 ### Compose Stability
 
@@ -282,7 +292,8 @@ The Kotlin Multiplatform migration is complete — every module uses KMP source 
 2. **New `core` domain models** — pure Kotlin. No Android imports, no `Context`, no `@StringRes`.
 3. **New `core` repository/manager interfaces** — pure Kotlin, with return types available on all
    targets (`String`, `Long`, `kotlin.time.Instant`, data classes, `Flow`, `Result`).
-4. **New Composables** go in `commonMain`; only `@Preview` functions go in `androidMain`.
+4. **New Composables** go in `commonMain`, with `@Preview` functions in the same file.
+   Platform-specific composables keep their previews beside them in the matching platform source set.
 5. **Platform-specific behaviour** — declare the interface (or `expect`) in `commonMain` and provide
    an implementation in *both* `androidMain` and `iosMain`. An Android-only implementation with no
    iOS counterpart breaks the iOS build.
