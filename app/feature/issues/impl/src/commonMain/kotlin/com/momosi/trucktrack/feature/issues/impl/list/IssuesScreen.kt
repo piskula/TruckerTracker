@@ -322,12 +322,15 @@ private fun ErrorContent(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ScrollableFullHeight(onRefresh = onRefresh, modifier = modifier) { viewportHeight ->
+    PullToRefresh(
+        isRefreshing = false,
+        onRefresh = onRefresh,
+        modifier = modifier.fillMaxSize(),
+    ) {
         ErrorState(
             reason = reason,
             message = stringResource(Res.string.my_issues_error_message),
             onRetry = onRetry,
-            modifier = Modifier.heightIn(min = viewportHeight),
             retryButtonModifier = Modifier.testTag("issues_retry_button"),
         )
     }

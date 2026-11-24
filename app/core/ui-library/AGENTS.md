@@ -2,7 +2,7 @@
 
 The single source of truth for all UI — theme, icons, and every reusable Compose Multiplatform component.
 Feature modules must never import `androidx.compose.material3` directly; use this module instead.
-KMP module: components in `commonMain`, `@Preview` functions in `androidMain`.
+KMP module: components and their `@Preview` functions together in the same file in `commonMain`.
 
 ## Theme
 
@@ -16,6 +16,14 @@ KMP module: components in `commonMain`, `@Preview` functions in `androidMain`.
 ## Icons
 
 `TruckTrackIcons` — single object containing all icon references. Always add new icons here, never import Material icon classes directly in feature modules.
+
+Illustrations belong in the separate `TruckTrackIllustrations` object: it exposes `DrawableResource`
+values, while `TruckTrackIcons` exposes `ImageVector` icons. Use
+`Image(painter = painterResource(TruckTrackIllustrations.NoConnection), ...)` without tinting.
+Only `illustrations/TruckTrackIllustrations.kt` may access illustration drawables through `Res.drawable`;
+name those resources with an `_illustration` suffix. `TruckTrack > UseTruckTrackIllustrations`
+enforces this in Detekt, while leaving photography such as the sign-in hero alone.
+This includes illustrations used by only one feature.
 
 Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `RadioButtonUnchecked`, `ArrowUpward`, `ArrowDownward`, `Remove`, `Truck` (custom), `Trailer` (custom), `Checklist`, `Search`, `MoreVert`, `Send`, `ChatBubbleOutline`, `Info`, `Language`, `Error`, `NoConnection`.
 
@@ -34,7 +42,7 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `ConfirmationDialog` | Two-button confirmation dialog |
 | `InfoDialog` | Single-dismiss-button read-only info dialog with a generic content slot |
 | `LoadingSpinner` | Full-screen loading indicator |
-| `ErrorState` | Full-screen load-failure state: icon, message, Retry button, with side padding. Takes a `FailureReason` (`core:common`), never a `Throwable`: `NoConnection` shows a no-internet icon and message, `Other` shows an error icon with the caller's `message`. `retryButtonModifier` carries the screen's test tag |
+| `ErrorState` | Full-screen load-failure state: illustration, message, Retry button, with side padding and scrolling for short windows or large text. Takes a `FailureReason` (`core:common`), never a `Throwable`: `NoConnection` shows a side-view truck with an overlapping crossed-out Wi-Fi cloud and the no-internet message, `Other` shows a front-facing truck with an overlapping amber wrench triangle and the caller's `message`. Both themes use the same illustration assets. `retryButtonModifier` carries the screen's test tag |
 | `SkeletonBox` | Shimmer loading placeholder |
 | `ShimmerGroup` (composable, `modifier` package) | Wraps a subtree so every `SkeletonBox`/`Modifier.shimmer()` inside shares one synchronized animation instead of pulsing independently |
 | `PullToRefresh` | Pull-to-refresh wrapper |
@@ -70,4 +78,6 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 
 - All new reusable components go here.
 - Never expose `material3` types in public function signatures — wrap them.
-- Always add a `@Preview` for every new component (in `androidMain`).
+- Always add a `@Preview` for every new component in the same file as the composable.
+- Product illustrations follow `../../../.claude/rules/illustrations.md` and the notification-permission
+  artwork from PR #85. Shared error illustrations live in `commonMain/composeResources/drawable/`.
