@@ -1,5 +1,6 @@
 package sk.momosilabs.truckTrack.push.controller
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.CacheControl
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -12,7 +13,12 @@ class PushLogoutController(
 ) : PushLogoutApi {
 
     override fun processBackchannelLogout(logoutToken: String): ResponseEntity<Unit> {
+        LOG.debug { "OIDC back-channel logout endpoint invoked" }
         processBackchannelLogout.process(logoutToken)
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).build()
+    }
+
+    companion object {
+        private val LOG = KotlinLogging.logger {}
     }
 }
