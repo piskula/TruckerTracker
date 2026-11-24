@@ -25,7 +25,7 @@ name those resources with an `_illustration` suffix. `TruckTrack > UseTruckTrack
 enforces this in Detekt, while leaving photography such as the sign-in hero alone.
 This includes illustrations used by only one feature.
 
-Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `RadioButtonUnchecked`, `ArrowUpward`, `ArrowDownward`, `Remove`, `Truck` (custom), `Trailer` (custom), `Search`, `MoreVert`, `Send`, `ChatBubbleOutline`, `Info`, `Language`, `Error`, `NoConnection`.
+Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `RadioButtonUnchecked`, `ArrowUpward`, `ArrowDownward`, `Remove`, `Truck` (custom), `Trailer` (custom), `Checklist`, `Search`, `MoreVert`, `Send`, `ChatBubbleOutline`, `Info`, `Language`, `Error`, `NoConnection`.
 
 ## Components
 
@@ -34,9 +34,9 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `Text` | Wraps `BasicText` with `AppTheme.typography` defaults |
 | `Icon` | Wraps `androidx.compose.foundation` icon |
 | `Button`, `IconButton`, `TopBarIconButton` | Styled buttons |
-| `FloatingActionButton` | FAB with icon |
+| `FloatingActionButton`, `SmallExtendedFloatingActionButton` | Primary FAB; a 40 dp `primaryContainer` secondary FAB stacked above it that shows icon + label when `expanded` and collapses to the icon only (label becomes its content description) |
 | `Chip`, `FilterChipRow` | Filter chips for list screens — `FilterChipRow` scrolls horizontally in a single line (`LazyRow`), always has a non-null `selectedItem` |
-| `DashboardTopBar` | Top bar with title + subtitle + actions slot |
+| `DashboardTopBar` | Top bar with title + subtitle + actions slot. |
 | `Toolbar` | Standard back-arrow toolbar |
 | `BottomSheet` | Styled modal bottom sheet |
 | `ConfirmationDialog` | Two-button confirmation dialog |
@@ -52,6 +52,7 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 | `SearchBarActive`, `SearchBarInactive` | Search UI — `SearchBarActive` takes `keyboardOptions` (e.g. a numeric-only keyboard) and `autoFocus` to open the keyboard as soon as the search screen appears. Tracks cursor position internally via `TextFieldValue`, resynced from `query` whenever it diverges from the field's own last-typed text (e.g. the screen is recomposed fresh after returning from a pushed destination, the caller clears `query` externally, or the caller filters/truncates what was typed) — the cursor always lands at the end of the resulting text rather than jumping to the start |
 | `DateRangePickerDialog` | Date range picker |
 | `NavigationBar` | Bottom navigation bar |
+| `VehicleSelector`, `VehiclesContent` (`vehicle` package) | Inline expanding vehicle picker shared by issues and checklist. Lists `preferredTruck`/`preferredTrailer` under "Recently used", then `otherVehicles`. `placeholder`/`placeholderType` customize the empty state. `CategorizedVehicles.toVehiclesContent()` maps every vehicle; `toVehiclesContent(type)` keeps only one `VehicleType` for a per-type picker |
 
 ## Modifiers
 
@@ -70,6 +71,8 @@ Key icons: `Person`, `Build`, `AccountCircle`, `Add`, `Back`, `CheckCircle`, `Ra
 
 - Compose Multiplatform (`org.jetbrains.compose`): runtime, foundation, material3, icons
 - `androidx.navigation3:navigation3-ui`
+- `:core:common` — `FailureReason`
+- `:core:vehicle` (`api`) — `Vehicle`, `VehicleType`, `CategorizedVehicles` appear in the vehicle picker's public API
 
 ## Rules
 

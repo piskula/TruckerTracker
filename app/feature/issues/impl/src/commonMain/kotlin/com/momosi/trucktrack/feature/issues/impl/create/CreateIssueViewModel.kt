@@ -11,11 +11,11 @@ import com.momosi.trucktrack.core.issue.IssueAttachmentRepository
 import com.momosi.trucktrack.core.issue.IssueRepository
 import com.momosi.trucktrack.core.issue.model.IssueCreate
 import com.momosi.trucktrack.core.issue.model.IssuePriority
+import com.momosi.trucktrack.core.uilibrary.vehicle.VehiclesContent
+import com.momosi.trucktrack.core.uilibrary.vehicle.toVehiclesContent
 import com.momosi.trucktrack.core.vehicle.VehicleRepository
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.feature.issues.impl.SubmitStatus
-import com.momosi.trucktrack.feature.issues.impl.VehiclesContent
-import com.momosi.trucktrack.feature.issues.impl.toVehiclesContent
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes

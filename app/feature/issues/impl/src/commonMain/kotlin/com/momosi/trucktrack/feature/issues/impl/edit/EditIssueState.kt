@@ -3,9 +3,9 @@ package com.momosi.trucktrack.feature.issues.impl.edit
 import androidx.compose.runtime.Immutable
 import com.momosi.trucktrack.core.issue.model.EditingCapabilities
 import com.momosi.trucktrack.core.issue.model.IssuePriority
+import com.momosi.trucktrack.core.uilibrary.vehicle.VehiclesContent
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.feature.issues.impl.SubmitStatus
-import com.momosi.trucktrack.feature.issues.impl.VehiclesContent
 
 @Immutable
 data class EditIssueState(

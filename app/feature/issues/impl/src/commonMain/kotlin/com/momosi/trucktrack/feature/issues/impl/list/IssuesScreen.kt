@@ -3,19 +3,27 @@ package com.momosi.trucktrack.feature.issues.impl.list
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,7 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
@@ -45,6 +55,7 @@ import com.momosi.trucktrack.core.uilibrary.components.FilterChipRow
 import com.momosi.trucktrack.core.uilibrary.components.FloatingActionButton
 import com.momosi.trucktrack.core.uilibrary.components.LoadingSpinner
 import com.momosi.trucktrack.core.uilibrary.components.PullToRefresh
+import com.momosi.trucktrack.core.uilibrary.components.SmallExtendedFloatingActionButton
 import com.momosi.trucktrack.core.uilibrary.components.Text
 import com.momosi.trucktrack.core.uilibrary.components.TopBarIconButton
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
@@ -54,6 +65,7 @@ import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import com.momosi.trucktrack.feature.issues.impl.resources.Res
+import com.momosi.trucktrack.feature.issues.impl.resources.issues_checklist_button
 import com.momosi.trucktrack.feature.issues.impl.resources.issues_title
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_empty
 import com.momosi.trucktrack.feature.issues.impl.resources.my_issues_error_message
@@ -81,6 +93,7 @@ internal fun IssuesScreen(
     onNavigateToCreateIssue: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToIssueDetail: (Long) -> Unit,
+    onNavigateToChecklist: () -> Unit,
     issueStatusChange: Boolean = false,
     viewModel: IssuesViewModel = koinViewModel(),
     dateFormatter: DateFormatter = koinInject(),
@@ -105,6 +118,7 @@ internal fun IssuesScreen(
         onNavigateToCreateIssue = onNavigateToCreateIssue,
         onNavigateToSearch = onNavigateToSearch,
         onNavigateToIssueDetail = onNavigateToIssueDetail,
+        onNavigateToChecklist = onNavigateToChecklist,
     )
 }
 
@@ -122,9 +136,12 @@ private fun IssuesScreenContent(
     onNavigateToCreateIssue: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToIssueDetail: (Long) -> Unit,
+    onNavigateToChecklist: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val userInfo = state.userInfo
+    val canWork = userInfo?.roles?.contains(UserRole.Driver) == true ||
+        userInfo?.roles?.contains(UserRole.Mechanic) == true
     val availableFilters = filtersByRole
         .filterKeys { it in (userInfo?.roles ?: emptySet()) }
         .values
@@ -133,6 +150,10 @@ private fun IssuesScreenContent(
         .sorted()
         .toImmutableList()
     var lastRefreshFailureReason by remember { mutableStateOf(FailureReason.Other) }
+    val listState = rememberLazyListState()
+    val isListAtTop by remember {
+        derivedStateOf { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -179,12 +200,13 @@ private fun IssuesScreenContent(
                 when (phase) {
                     IssuesContentPhase.Loading -> LoadingContent()
 
-                    IssuesContentPhase.Error -> ErrorContent(reason = lastRefreshFailureReason, onRetry = onRetry)
+                    IssuesContentPhase.Error -> ErrorContent(reason = lastRefreshFailureReason, onRetry = onRetry, onRefresh = onRefresh)
 
-                    IssuesContentPhase.Empty -> EmptyContent()
+                    IssuesContentPhase.Empty -> EmptyContent(onRefresh = onRefresh)
 
                     IssuesContentPhase.List -> IssueList(
                         pagingItems = pagingItems,
+                        listState = listState,
                         filter = state.selectedFilter,
                         dateFormatter = dateFormatter,
                         onOpenIssue = onNavigateToIssueDetail,
@@ -193,19 +215,30 @@ private fun IssuesScreenContent(
                 }
             }
         }
-        if (
-            userInfo?.roles?.contains(UserRole.Driver) == true ||
-            userInfo?.roles?.contains(UserRole.Mechanic) == true
-        ) {
-            FloatingActionButton(
-                icon = TruckTrackIcons.Add,
-                onClick = onNavigateToCreateIssue,
+        if (canWork) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .navigationBarsPadding()
-                    .padding(end = 20.dp, bottom = 20.dp)
-                    .testTag("issues_create_fab"),
-            )
+                    .padding(end = 20.dp, bottom = 20.dp),
+            ) {
+                if (userInfo?.roles?.contains(UserRole.Driver) == true) {
+                    SmallExtendedFloatingActionButton(
+                        text = stringResource(Res.string.issues_checklist_button),
+                        icon = TruckTrackIcons.Checklist,
+                        expanded = isListAtTop,
+                        onClick = onNavigateToChecklist,
+                        modifier = Modifier.testTag("issues_checklist_button"),
+                    )
+                }
+                FloatingActionButton(
+                    icon = TruckTrackIcons.Add,
+                    onClick = onNavigateToCreateIssue,
+                    modifier = Modifier.testTag("issues_create_fab"),
+                )
+            }
         }
     }
 }
@@ -213,6 +246,7 @@ private fun IssuesScreenContent(
 @Composable
 private fun IssueList(
     pagingItems: LazyPagingItems<Issue>,
+    listState: LazyListState,
     filter: IssueFilter,
     dateFormatter: DateFormatter,
     onOpenIssue: (Long) -> Unit,
@@ -226,6 +260,7 @@ private fun IssueList(
         onRefresh = onRefresh,
     ) {
         LazyColumn(
+            state = listState,
             modifier = modifier.fillMaxSize(),
             contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 4.dp, top = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -252,7 +287,7 @@ private fun IssueList(
                     }
                 }
             }
-            item { Spacer(modifier = Modifier.height(72.dp + navBarBottom)) }
+            item { Spacer(modifier = Modifier.height(FAB_STACK_CLEARANCE + navBarBottom)) }
         }
     }
 }
@@ -276,34 +311,68 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
 
 private const val SKELETON_ITEM_COUNT = 6
 
+private val FAB_STACK_CLEARANCE = 128.dp
+
 private val skeletonTitleWidthFractions = listOf(0.85f, 0.6f, 0.75f, 0.5f, 0.7f)
 
 @Composable
 private fun ErrorContent(
     reason: FailureReason,
     onRetry: () -> Unit,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ErrorState(
-        reason = reason,
-        message = stringResource(Res.string.my_issues_error_message),
-        onRetry = onRetry,
-        modifier = modifier,
-        retryButtonModifier = Modifier.testTag("issues_retry_button"),
-    )
+    PullToRefresh(
+        isRefreshing = false,
+        onRefresh = onRefresh,
+        modifier = modifier.fillMaxSize(),
+    ) {
+        ErrorState(
+            reason = reason,
+            message = stringResource(Res.string.my_issues_error_message),
+            onRetry = onRetry,
+            retryButtonModifier = Modifier.testTag("issues_retry_button"),
+        )
+    }
 }
 
 @Composable
-private fun EmptyContent(modifier: Modifier = Modifier) {
-    Box(
+private fun EmptyContent(onRefresh: () -> Unit, modifier: Modifier = Modifier) {
+    ScrollableFullHeight(onRefresh = onRefresh, modifier = modifier) { viewportHeight ->
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = viewportHeight)
+                .padding(horizontal = 32.dp, vertical = 24.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(Res.string.my_issues_empty),
+                style = AppTheme.typography.bodyLarge,
+                color = AppTheme.colors.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ScrollableFullHeight(
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable (viewportHeight: Dp) -> Unit,
+) {
+    PullToRefresh(
+        isRefreshing = false,
+        onRefresh = onRefresh,
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = stringResource(Res.string.my_issues_empty),
-            style = AppTheme.typography.bodyLarge,
-            color = AppTheme.colors.onSurfaceVariant,
-        )
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val viewportHeight = maxHeight
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                content(viewportHeight)
+            }
+        }
     }
 }
 
@@ -396,6 +465,7 @@ private fun IssuesDriverPreview() {
             onNavigateToCreateIssue = {},
             onNavigateToSearch = {},
             onNavigateToIssueDetail = {},
+            onNavigateToChecklist = {},
         )
     }
 }
@@ -422,6 +492,7 @@ private fun IssuesMechanicPreview() {
             onNavigateToCreateIssue = {},
             onNavigateToSearch = {},
             onNavigateToIssueDetail = {},
+            onNavigateToChecklist = {},
         )
     }
 }
@@ -447,6 +518,7 @@ private fun IssuesEmptyPreview() {
             onNavigateToCreateIssue = {},
             onNavigateToSearch = {},
             onNavigateToIssueDetail = {},
+            onNavigateToChecklist = {},
         )
     }
 }
@@ -481,6 +553,7 @@ private fun IssuesNoConnectionPreview() {
             onNavigateToCreateIssue = {},
             onNavigateToSearch = {},
             onNavigateToIssueDetail = {},
+            onNavigateToChecklist = {},
         )
     }
 }

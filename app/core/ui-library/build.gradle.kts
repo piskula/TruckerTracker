@@ -18,6 +18,7 @@ kotlin {
             implementation(libs.coil.core)
             implementation(libs.coil.compose)
             implementation(projects.core.common)
+            api(projects.core.vehicle)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

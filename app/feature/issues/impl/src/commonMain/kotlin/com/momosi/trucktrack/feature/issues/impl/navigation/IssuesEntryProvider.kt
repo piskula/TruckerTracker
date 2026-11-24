@@ -7,6 +7,7 @@ import com.momosi.trucktrack.core.navigation.ResultKey
 import com.momosi.trucktrack.core.navigation.ResultStore
 import com.momosi.trucktrack.core.uilibrary.animation.bottomEntryMetadata
 import com.momosi.trucktrack.core.uilibrary.animation.slideFromEndEntryMetadata
+import com.momosi.trucktrack.feature.checklist.api.ChecklistNavKey
 import com.momosi.trucktrack.feature.issues.api.IssuesNavKey
 import com.momosi.trucktrack.feature.issues.impl.FullScreenPhotoScreen
 import com.momosi.trucktrack.feature.issues.impl.create.CreateIssueScreen
@@ -29,6 +30,7 @@ fun EntryProviderScope<NavKey>.issuesEntries(navigator: Navigator, resultStore: 
             onNavigateToCreateIssue = { navigator.navigate(CreateIssueNavKey) },
             onNavigateToSearch = { navigator.navigate(IssueSearchNavKey) },
             onNavigateToIssueDetail = { issueId -> navigator.navigate(IssueDetailNavKey(issueId)) },
+            onNavigateToChecklist = { navigator.navigate(ChecklistNavKey) },
         )
     }
     entry<IssueSearchNavKey>(metadata = slideFromEndEntryMetadata()) {

@@ -53,4 +53,6 @@ include(
     ":feature:profile:impl",
     ":feature:notification-permission:api",
     ":feature:notification-permission:impl",
+    ":feature:checklist:api",
+    ":feature:checklist:impl",
 )

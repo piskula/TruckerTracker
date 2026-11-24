@@ -49,6 +49,7 @@ kotlin {
             implementation(projects.feature.profile.impl)
             implementation(projects.feature.notificationPermission.api)
             implementation(projects.feature.notificationPermission.impl)
+            implementation(projects.feature.checklist.impl)
         }
     }
 }

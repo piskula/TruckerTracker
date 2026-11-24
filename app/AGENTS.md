@@ -30,7 +30,7 @@ addressed from the *repo* root via the composite build.
   permission gate, an ordinary root destination.
 * **`feature/*`** — one product feature each, always split into `api` (navigation keys only) and
   `impl` (ViewModel, Composables, state/actions/events). Today: `sign-in`, `issues`, `profile`,
-  `notification-permission`.
+  `checklist`, `notification-permission`.
 * **`core/*`** — shared domain logic and infrastructure: `common`, `network`, `user`, `issue`,
   `vehicle`, `push`, `checklist`, `navigation`, `ui-library`, `app-links`.
 * **`core/app-links`** — parses URLs into typed `AppLinkAction`s and delivers them through the

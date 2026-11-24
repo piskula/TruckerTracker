@@ -18,6 +18,7 @@ import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.ChatBubble
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Checklist
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Comment
@@ -67,6 +68,7 @@ data object TruckTrackIcons {
     val CheckCircle = Icons.Rounded.CheckCircle
     val RadioButtonUnchecked = Icons.Rounded.RadioButtonUnchecked
     val Check = Icons.Rounded.Check
+    val Checklist = Icons.Rounded.Checklist
     val Equal = Icons.Rounded.Remove
     val Remove = Icons.Rounded.Remove
     val Stat2 = Stat2VectorIcon

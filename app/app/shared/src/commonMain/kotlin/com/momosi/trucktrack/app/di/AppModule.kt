@@ -12,6 +12,7 @@ import com.momosi.trucktrack.core.push.di.platformPushModule
 import com.momosi.trucktrack.core.push.di.pushModule
 import com.momosi.trucktrack.core.vehicle.di.platformVehicleModule
 import com.momosi.trucktrack.core.vehicle.di.vehicleModule
+import com.momosi.trucktrack.feature.checklist.impl.di.checklistFeatureModule
 import com.momosi.trucktrack.feature.issues.impl.di.issuesModule
 import com.momosi.trucktrack.feature.notificationpermission.impl.di.notificationPermissionModule
 import com.momosi.trucktrack.feature.profile.impl.di.profileModule
@@ -48,4 +49,5 @@ val allModules: List<Module> = listOf(
     issuesModule,
     profileModule,
     notificationPermissionModule,
+    checklistFeatureModule,
 )

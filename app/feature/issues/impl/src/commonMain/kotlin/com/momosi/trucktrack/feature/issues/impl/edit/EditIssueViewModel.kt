@@ -11,11 +11,11 @@ import com.momosi.trucktrack.core.issue.model.EditingCapabilities
 import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssuePriority
 import com.momosi.trucktrack.core.issue.model.IssueUpdate
+import com.momosi.trucktrack.core.uilibrary.vehicle.VehiclesContent
+import com.momosi.trucktrack.core.uilibrary.vehicle.toVehiclesContent
 import com.momosi.trucktrack.core.vehicle.VehicleRepository
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.feature.issues.impl.SubmitStatus
-import com.momosi.trucktrack.feature.issues.impl.VehiclesContent
-import com.momosi.trucktrack.feature.issues.impl.toVehiclesContent
 import com.momosi.trucktrack.user.UserRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
