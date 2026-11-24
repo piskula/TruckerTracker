@@ -74,7 +74,6 @@ The mobile app's shared API and image clients send the selected app language in 
 - **Vehicle ownership gap**: vehicles are fleet-global, so any authenticated driver or mechanic can submit a checklist against any truck and trailer pair. Binding submissions to assigned vehicles is a pending product decision.
 - **No schedule or dueness**: submissions are log-only. Frequency logic is a future concern.
 - **No read endpoints for responses yet**: by design for now. The database indexes exist for the future search surface.
-- **Client**: the mobile app is not yet wired. The shared DTO mirrors are ready.
 - **Migration**: the Liquibase changeset should be applied once against a fresh database to verify it before deploy.
 
 ## Implementation pointers
