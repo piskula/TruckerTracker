@@ -641,9 +641,10 @@
         "operationId": "getChecklistQuestionList",
         "parameters": [
           {
-            "name": "language",
-            "in": "query",
+            "name": "Accept-Language",
+            "in": "header",
             "required": false,
+            "description": "Preferred question languages, including optional quality weights. Defaults to Slovak when absent or no translation matches.",
             "schema": {
               "type": "string"
             }

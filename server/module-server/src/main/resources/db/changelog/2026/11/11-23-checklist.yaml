@@ -85,7 +85,7 @@ databaseChangeLog:
         - createIndex:
             indexName: ix_checklist_response_truck_answered_at
             tableName: checklist_response
-            indexColumns:
+            columns:
               - column:
                   name: truck_id
               - column:
@@ -94,7 +94,7 @@ databaseChangeLog:
         - createIndex:
             indexName: ix_checklist_response_trailer_answered_at
             tableName: checklist_response
-            indexColumns:
+            columns:
               - column:
                   name: trailer_id
               - column:
@@ -103,7 +103,7 @@ databaseChangeLog:
         - createIndex:
             indexName: ix_checklist_response_answered_by_answered_at
             tableName: checklist_response
-            indexColumns:
+            columns:
               - column:
                   name: answered_by_id
               - column:

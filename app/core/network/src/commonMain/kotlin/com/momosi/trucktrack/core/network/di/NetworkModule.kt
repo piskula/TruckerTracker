@@ -1,9 +1,11 @@
 package com.momosi.trucktrack.core.network.di
 
 import com.momosi.trucktrack.core.common.config.AppConfig
+import com.momosi.trucktrack.core.common.language.LanguageRepository
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.common.network.installApiExceptionMapping
 import com.momosi.trucktrack.core.common.network.isTransientNetworkFailure
+import com.momosi.trucktrack.core.network.AcceptLanguage
 import com.momosi.trucktrack.core.network.httpClientEngineFactory
 import com.momosi.trucktrack.core.network.installOptInRequestRetry
 import com.momosi.trucktrack.core.network.invalidateAuthTokensOn
@@ -43,7 +45,7 @@ val networkModule = module {
         val json: Json = get()
         val authManager: AuthManager = get()
         val appCoroutineScope: CoroutineScope = get()
-        buildHttpClient(authManager, appCoroutineScope) {
+        buildHttpClient(authManager, appCoroutineScope, get<LanguageRepository>()) {
             defaultRequest {
                 url(get<AppConfig>().apiBaseUrl)
                 contentType(ContentType.Application.Json)
@@ -64,7 +66,7 @@ val networkModule = module {
     single(named("image")) {
         val authManager: AuthManager = get()
         val appCoroutineScope: CoroutineScope = get()
-        buildHttpClient(authManager, appCoroutineScope) {
+        buildHttpClient(authManager, appCoroutineScope, get<LanguageRepository>()) {
             defaultRequest {
                 url(get<AppConfig>().apiBaseUrl)
             }
@@ -75,6 +77,7 @@ val networkModule = module {
 internal fun buildHttpClient(
     authManager: AuthManager,
     appCoroutineScope: CoroutineScope,
+    languageRepository: LanguageRepository,
     engineFactory: HttpClientEngineFactory<*> = httpClientEngineFactory(),
     block: HttpClientConfig<*>.() -> Unit = {},
 ): HttpClient {
@@ -82,6 +85,12 @@ internal fun buildHttpClient(
         expectSuccess = true
 
         block()
+
+        install(AcceptLanguage) {
+            language {
+                languageRepository.language.value.languageTag
+            }
+        }
 
         install(Auth) {
             bearer {

@@ -16,6 +16,41 @@ class GetChecklistQuestionListTest {
     private val useCase = GetChecklistQuestionList(FakeChecklistPersistence(QUESTIONS), ObjectMapper())
 
     @Test
+    fun `language preferences respect quality weights and regional fallback`() {
+        val result = useCase.get("sk;q=0.5,en-US;q=0.9")
+
+        assertThat(result.single { it.identifier == "brakes" }.text).isEqualTo("Brakes")
+    }
+
+    @Test
+    fun `an unavailable preference uses the next accepted language before the default`() {
+        val result = useCase.get("fr,en;q=0.8")
+
+        assertThat(result.single { it.identifier == "brakes" }.text).isEqualTo("Brakes")
+    }
+
+    @Test
+    fun `wildcard and blank headers retain the default language`() {
+        for (header in listOf("*", "")) {
+            assertThat(useCase.get(header).single { it.identifier == "brakes" }.text).isEqualTo("Brzdy")
+        }
+    }
+
+    @Test
+    fun `languages with zero quality are not selected over an accepted language`() {
+        val result = useCase.get("en;q=0,sk;q=0.5")
+
+        assertThat(result.single { it.identifier == "brakes" }.text).isEqualTo("Brzdy")
+    }
+
+    @Test
+    fun `a malformed accept language header is rejected`() {
+        assertThatThrownBy { useCase.get("en;q=invalid") }
+            .isInstanceOf(GlobalUnprocessableException::class.java)
+            .hasMessage("Invalid Accept-Language header.")
+    }
+
+    @Test
     fun `the requested language is used when present`() {
         val result = useCase.get("en")
 

@@ -8,5 +8,5 @@ interface GetChecklistQuestionListUseCase {
         const val DEFAULT_LANGUAGE = "sk"
     }
 
-    fun get(language: String): List<ResolvedChecklistQuestionModel>
+    fun get(acceptLanguage: String): List<ResolvedChecklistQuestionModel>
 }

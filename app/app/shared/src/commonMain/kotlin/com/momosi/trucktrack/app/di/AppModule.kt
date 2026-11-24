@@ -3,6 +3,7 @@ package com.momosi.trucktrack.app.di
 import com.momosi.trucktrack.app.CrashReportingSync
 import com.momosi.trucktrack.app.TruckTrackViewModel
 import com.momosi.trucktrack.core.applinks.di.appLinksModule
+import com.momosi.trucktrack.core.checklist.di.checklistModule
 import com.momosi.trucktrack.core.common.di.commonModule
 import com.momosi.trucktrack.core.common.di.platformCommonModule
 import com.momosi.trucktrack.core.issue.di.issueModule
@@ -41,6 +42,7 @@ val allModules: List<Module> = listOf(
     issueModule,
     pushModule,
     platformPushModule(),
+    checklistModule,
     appModule,
     signInModule,
     issuesModule,

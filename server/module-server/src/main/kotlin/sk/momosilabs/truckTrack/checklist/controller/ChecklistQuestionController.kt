@@ -10,7 +10,7 @@ class ChecklistQuestionController(
     private val getChecklistQuestionList: GetChecklistQuestionListUseCase,
 ) : ChecklistQuestionApi {
 
-    override fun getChecklistQuestionList(language: String?): List<ChecklistQuestionDto> =
-        getChecklistQuestionList.get(language ?: GetChecklistQuestionListUseCase.DEFAULT_LANGUAGE)
+    override fun getChecklistQuestionList(acceptLanguage: String?): List<ChecklistQuestionDto> =
+        getChecklistQuestionList.get(acceptLanguage ?: GetChecklistQuestionListUseCase.DEFAULT_LANGUAGE)
             .map { it.toDto() }
 }

@@ -1,6 +1,7 @@
 package com.momosi.trucktrack.core.network.di
 
 import com.momosi.trucktrack.core.common.coroutines.runCatchingCancellable
+import com.momosi.trucktrack.core.common.language.AppLanguage
 import com.momosi.trucktrack.core.common.network.ApiException
 import com.momosi.trucktrack.user.model.AuthenticationState
 import io.ktor.client.engine.mock.respond
@@ -15,6 +16,23 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class SessionInvalidationTest {
+
+    @Test
+    fun acceptLanguageTracksTheSelectedAppLanguageOnEveryRequest() = runTest {
+        val languageRepository = FakeLanguageRepository()
+        val requestLanguages = mutableListOf<List<String>?>()
+
+        withClient(FakeAuthManager(), {
+            requestLanguages += it.headers.getAll(HttpHeaders.AcceptLanguage)
+            respond("[]", HttpStatusCode.OK)
+        }, languageRepository) { client ->
+            client.get("https://api.example.test/issues")
+            languageRepository.setLanguage(AppLanguage.Slovak)
+            client.get("https://api.example.test/issues")
+
+            assertEquals(listOf<List<String>?>(listOf("en"), listOf("sk")), requestLanguages)
+        }
+    }
 
     @Test
     fun finalUnauthorizedResponseInvalidatesTheRetriedToken() = runTest {

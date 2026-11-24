@@ -1,5 +1,7 @@
 package com.momosi.trucktrack.core.network.di
 
+import com.momosi.trucktrack.core.common.language.AppLanguage
+import com.momosi.trucktrack.core.common.language.LanguageRepository
 import com.momosi.trucktrack.user.AuthManager
 import com.momosi.trucktrack.user.model.AuthActionResult
 import com.momosi.trucktrack.user.model.AuthenticationState
@@ -17,6 +19,7 @@ import kotlinx.coroutines.test.TestScope
 internal suspend fun TestScope.withClient(
     authManager: AuthManager,
     handler: MockRequestHandler,
+    languageRepository: LanguageRepository = FakeLanguageRepository(),
     block: suspend (HttpClient) -> Unit,
 ) {
     val factory = object : HttpClientEngineFactory<MockEngineConfig> {
@@ -25,11 +28,20 @@ internal suspend fun TestScope.withClient(
             addHandler(handler)
         }
     }
-    val client = buildHttpClient(authManager, backgroundScope, factory)
+    val client = buildHttpClient(authManager, backgroundScope, languageRepository, factory)
     try {
         block(client)
     } finally {
         client.close()
+    }
+}
+
+internal class FakeLanguageRepository : LanguageRepository {
+    override val language = MutableStateFlow(AppLanguage.English)
+    override val requiresRestartToApply = false
+
+    override fun setLanguage(language: AppLanguage) {
+        this.language.value = language
     }
 }
 
