@@ -2,6 +2,8 @@
 
 Profile screen showing the current user's info, a push notifications section, a sign-out action, an app/server version info dialog, and an in-app language selector (English/Slovak).
 
+The version dialog also shows this device's Firebase Installation ID from `FirebaseInstallationIdProvider`, refreshed each time the dialog opens. The value supports native text selection and a copy icon button with a localized "Copy ID" accessibility label that copies the complete ID to the system clipboard on Android and iOS. The button appears only when the ID is loaded; loading and unavailable states are localized. Dialog content scrolls on short screens and with large text.
+
 ## Files
 
 | File | Description |
@@ -23,7 +25,7 @@ Profile screen showing the current user's info, a push notifications section, a 
 
 - `:feature:profile:api`
 - `:core:user` — `UserRepository`, `User`, `UserRole`
-- `:core:push` — `PushRegistrationManager`
+- `:core:push` — `PushRegistrationManager`, `FirebaseInstallationIdProvider`
 - `:core:navigation` — `Navigator`
 - `:core:ui-library`
 - `:core:common` — `AppVersionProvider`, `DateFormatter`, `VersionRepository`, `AppEnvironment`, `LanguageRepository`, `AppLanguage`

@@ -12,11 +12,18 @@ data class ProfileState(
     val appVersion: String = "",
     val isVersionDialogVisible: Boolean = false,
     val serverVersion: ServerVersionContent = ServerVersionContent.Loading,
+    val firebaseInstallationId: FirebaseInstallationIdContent = FirebaseInstallationIdContent.Loading,
     val language: AppLanguage = AppLanguage.English,
     val isLanguageDialogVisible: Boolean = false,
     val isRestartNoticeVisible: Boolean = false,
     val pushNotifications: PushNotificationsState = PushNotificationsState(),
 )
+
+sealed interface FirebaseInstallationIdContent {
+    data object Loading : FirebaseInstallationIdContent
+    data class Loaded(val value: String) : FirebaseInstallationIdContent
+    data object Unavailable : FirebaseInstallationIdContent
+}
 
 sealed interface ServerVersionContent {
     data object Loading : ServerVersionContent

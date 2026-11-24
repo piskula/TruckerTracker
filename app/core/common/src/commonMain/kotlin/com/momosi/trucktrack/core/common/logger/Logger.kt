@@ -8,7 +8,7 @@ import co.touchlab.kermit.Logger as KermitLogger
 object Logger {
     fun init(logToConsole: Boolean) {
         KermitLogger.setMinSeverity(Severity.Verbose)
-        if (logToConsole) KermitLogger.addLogWriter(platformLogWriter())
+        KermitLogger.setLogWriters(if (logToConsole) listOf(platformLogWriter()) else emptyList())
     }
 
     fun addWriter(writer: LogWriter) = KermitLogger.addLogWriter(writer)

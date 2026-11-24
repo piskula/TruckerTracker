@@ -13,6 +13,7 @@ import com.momosi.trucktrack.core.common.network.FailureReason
 import com.momosi.trucktrack.core.common.network.toFailureReason
 import com.momosi.trucktrack.core.common.version.AppVersionProvider
 import com.momosi.trucktrack.core.common.version.VersionRepository
+import com.momosi.trucktrack.core.push.firebase.FirebaseInstallationIdProvider
 import com.momosi.trucktrack.core.push.registration.PushDeviceState
 import com.momosi.trucktrack.core.push.registration.PushRegistrationManager
 import com.momosi.trucktrack.user.AuthManager
@@ -38,6 +39,7 @@ class ProfileViewModel(
     private val languageRepository: LanguageRepository,
     private val pushRegistrationManager: PushRegistrationManager,
     private val errorReporter: ErrorReporter,
+    private val firebaseInstallationIdProvider: FirebaseInstallationIdProvider,
 ) : ViewModel() {
 
     private val _event = Channel<ProfileEvent>(Channel.BUFFERED)
@@ -48,6 +50,7 @@ class ProfileViewModel(
     private val isSigningOut = MutableStateFlow(false)
     private val isVersionDialogVisible = MutableStateFlow(false)
     private val serverVersion = MutableStateFlow<ServerVersionContent>(ServerVersionContent.Loading)
+    private val firebaseInstallationId = MutableStateFlow<FirebaseInstallationIdContent>(FirebaseInstallationIdContent.Loading)
     private val isLanguageDialogVisible = MutableStateFlow(false)
     private val isRestartNoticeVisible = MutableStateFlow(false)
     private val pushLoadFailure = MutableStateFlow<FailureReason?>(null)
@@ -82,6 +85,8 @@ class ProfileViewModel(
             isRestartNoticeVisible = restartNoticeVisible,
             pushNotifications = pushNotificationsState,
         )
+    }.combine(firebaseInstallationId) { profileState, firebaseInstallationIdContent ->
+        profileState.copy(firebaseInstallationId = firebaseInstallationIdContent)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -120,8 +125,18 @@ class ProfileViewModel(
 
     private fun showVersionInfo() {
         isVersionDialogVisible.value = true
+        loadFirebaseInstallationId()
         if (serverVersion.value !is ServerVersionContent.Loaded) {
             loadServerVersion()
+        }
+    }
+
+    private fun loadFirebaseInstallationId() {
+        firebaseInstallationId.value = FirebaseInstallationIdContent.Loading
+        viewModelScope.launch {
+            firebaseInstallationId.value = firebaseInstallationIdProvider.currentFirebaseInstallationId()
+                ?.let { FirebaseInstallationIdContent.Loaded(it) }
+                ?: FirebaseInstallationIdContent.Unavailable
         }
     }
 

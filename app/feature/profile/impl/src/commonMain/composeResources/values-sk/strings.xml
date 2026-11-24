@@ -7,6 +7,8 @@
     <string name="profile_version_dialog_title">Verzia aplikácie</string>
     <string name="profile_version_app_label">Aplikácia</string>
     <string name="profile_version_server_label">Server</string>
+    <string name="profile_version_firebase_installation_id_label">Firebase Installation ID</string>
+    <string name="profile_version_copy_id">Kopírovať ID</string>
     <string name="profile_version_loading">Načítava sa…</string>
     <string name="profile_version_unavailable">Nedostupné</string>
     <string name="profile_version_dismiss">OK</string>
