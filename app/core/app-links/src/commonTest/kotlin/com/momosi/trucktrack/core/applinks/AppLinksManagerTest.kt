@@ -38,6 +38,21 @@ class AppLinksManagerTest {
     }
 
     @Test
+    fun acceptsChecklistLinksWithOptionalTrailingSlashQueryAndFragment() = runTest {
+        listOf(
+            "https://transroute.org/checklist",
+            "https://transroute.org/checklist/",
+            "https://transroute.org/checklist?source=email#details",
+            "https://transroute.org/checklist/?source=email#details",
+            "https://TRANSROUTE.ORG/checklist",
+            "https://transroute.org:443/checklist",
+        ).forEach { url ->
+            assertTrue(appLinks.openUrl(url), url)
+            assertEquals(AppLinkAction.Checklist, appLinks.actions.first(), url)
+        }
+    }
+
+    @Test
     fun rejectsOtherOriginsAndUnsupportedRoutes() {
         listOf(
             "http://transroute.org/issue/5",
@@ -53,6 +68,15 @@ class AppLinksManagerTest {
             "https://transroute.org/profile",
             "https://transroute.org/vehicle/5",
             "https://name@transroute.org/issue/5",
+            "http://transroute.org/checklist",
+            "https://other.example/checklist",
+            "https://transroute.org:444/checklist",
+            "https://name@transroute.org/checklist",
+            "https://transroute.org/CHECKLIST",
+            "https://transroute.org/checklists",
+            "https://transroute.org/checklist/5",
+            "https://transroute.org/checklist//",
+            "https://transroute.org//checklist",
         ).forEach { url -> assertFalse(appLinks.openUrl(url), url) }
     }
 
@@ -80,14 +104,16 @@ class AppLinksManagerTest {
     fun keepsLatestLinkUntilCollectorIsReady() = runTest {
         assertTrue(appLinks.openUrl("https://transroute.org/issue/5"))
         assertTrue(appLinks.openUrl("https://transroute.org/issue/6"))
+        assertTrue(appLinks.openUrl("https://transroute.org/checklist"))
         assertFalse(appLinks.openUrl("https://other.example/issue/7"))
-        assertEquals(AppLinkAction.Issue(6), appLinks.actions.first())
+        assertEquals(AppLinkAction.Checklist, appLinks.actions.first())
     }
 
     @Test
     fun signedOutLinkIsDiscardedAndDoesNotReplayAfterSignIn() = runTest {
         authManager.authenticationState.value = AuthenticationState.Guest
         assertFalse(appLinks.openUrl("https://transroute.org/issue/5"))
+        assertFalse(appLinks.openUrl("https://transroute.org/checklist"))
         authManager.authenticationState.value = AuthenticationState.Authorized
         val delivered = mutableListOf<AppLinkAction>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {

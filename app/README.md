@@ -25,6 +25,8 @@ Kotlin Multiplatform client for TruckTrack, targeting Android and iOS from one s
 - **Issue links** — `https://transroute.org/issue/{id}` opens an issue on Android and iOS.
   Links are handled only when signed in; signed-out links are discarded. Both staging and production builds
   accept these links and load the issue from their own configured API environment.
+- **Checklist links** — `https://transroute.org/checklist` opens the checklist on Android and iOS,
+  with the same signed-in requirement.
 - **Vehicles** — vehicle records backing issue tracking (domain layer today; no dedicated screen
   yet).
 
@@ -57,18 +59,20 @@ error reporter. iOS Firebase pods remain unpinned and resolve the latest release
 
 ## Getting started
 
-### Verified issue links
+### Verified app links
 
 #### Supported deep links
 
 | URL pattern | Example | Destination |
 |---|---|---|
 | `https://transroute.org/issue/{id}` | [Open issue 5](https://transroute.org/issue/5) | Issue detail; Back returns to the issues list. |
+| `https://transroute.org/checklist` | [Open checklist](https://transroute.org/checklist) | Checklist; Back returns to the issues list. |
 
 - `{id}` must contain ASCII digits and represent a positive 64-bit integer (`1` to `9223372036854775807`).
 - Only HTTPS on `transroute.org` is accepted. Paths are case-sensitive; other routes and subdomains are unsupported.
 - One trailing slash is allowed. Query parameters and fragments are ignored, so
   `https://transroute.org/issue/5/?source=chat#details` also opens issue 5.
+- Android registers both `/checklist` and `/checklist/` as exact paths for checklist links.
 - Supported on Android and iOS, in both staging and production. Each installed build loads the issue
   from its own configured API environment, subject to the signed-in user's access.
 - The user must already be signed in. Links received while signed out are discarded, not opened after sign-in.
@@ -80,7 +84,8 @@ so links from other apps reuse the existing activity through `onNewIntent`; iOS 
 `applinks:transroute.org` Associated Domains entitlement and SwiftUI browsing-web activities.
 Both platform shells forward links to the same Koin-injected `AppLinksManager` singleton, whose implementation
 receives `AuthManager` and rejects signed-out URLs immediately. Android injects it directly;
-iOS calls the Kotlin `openIosAppLink` bridge. Only positive numeric issue IDs are accepted.
+iOS calls the Kotlin `openIosAppLink` bridge. Issue links require positive numeric issue IDs;
+checklist links accept only the `/checklist` path, with an optional trailing slash.
 The `core:app-links` module exposes the `AppLinksManager` interface with `openUrl` and an `actions` flow.
 Its internal `AppLinksManagerImpl` uses a private parser with Ktor URL parsing
 and branches on the exact host and path to emit an `AppLinkAction`, such as `Issue(issueId)`.
@@ -92,7 +97,7 @@ A conflated event channel bridges delivery before Compose starts. The root ViewM
 the event flow only while the host lifecycle is resumed, so background app instances cannot consume
 foreground links; links are consumed once and authentication is rechecked on delivery. Signed-out
 links are discarded without saving a destination or continuing after login.
-Back from a linked issue returns to the issues list.
+Back from a linked issue or checklist returns to the issues list.
 Normal API authorization still applies.
 
 The domain must publicly serve `/.well-known/assetlinks.json` and

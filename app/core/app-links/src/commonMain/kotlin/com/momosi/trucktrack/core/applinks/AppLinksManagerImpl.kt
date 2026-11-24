@@ -42,6 +42,8 @@ internal class AppLinksManagerImpl(private val authManager: AuthManager) : AppLi
         val path = parsed.encodedPath.removePrefix("/").removeSuffix("/").split('/')
         return when (parsed.host.lowercase()) {
             "transroute.org" -> when (path.firstOrNull()) {
+                "checklist" -> AppLinkAction.Checklist.takeIf { path.size == 1 }
+
                 "issue" -> {
                     if (path.size != 2) return null
                     val issueId = path[1].takeIf { id -> id.all { it in '0'..'9' } }

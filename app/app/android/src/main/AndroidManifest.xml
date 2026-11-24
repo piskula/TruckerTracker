@@ -22,10 +22,11 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="transroute.org"
-                    android:pathPrefix="/issue/" />
+                <data android:scheme="https" />
+                <data android:host="transroute.org" />
+                <data android:pathPrefix="/issue/" />
+                <data android:path="/checklist" />
+                <data android:path="/checklist/" />
             </intent-filter>
         </activity>
 
