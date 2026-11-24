@@ -8,7 +8,7 @@ UI and logic for the issues feature. Screens: list, search, detail, create, edit
 
 | File | Description |
 |------|-------------|
-| `IssuesScreen.kt` | Top-level screen + `IssueList`, `LoadingContent` (shimmering skeleton list), `ErrorContent` (`ErrorState` fed with the paging refresh error mapped to a `FailureReason`), `EmptyContent` composables |
+| `IssuesScreen.kt` | Top-level screen (for drivers only, a `SmallExtendedFloatingActionButton` "Checklist" stacked above the `+` FAB opens `ChecklistNavKey`; labelled while the list is at the top, icon-only once scrolled) + `IssueList`, `LoadingContent` (shimmering skeleton list), `ErrorContent` (`ErrorState` fed with the paging refresh error mapped to a `FailureReason`), `EmptyContent` composables |
 | `IssuesViewModel.kt` | Loads issues, handles filter selection and refresh |
 | `IssuesState.kt` | `IssuesState` (sealed: `Loading`, `Error`, `Empty`, `Issues`) + `IssuesContent`, `IssueFilter` |
 | `IssuesAction.kt` | `SelectFilter`, `Retry`, `Refresh` |
@@ -79,7 +79,7 @@ opens.
 |------|-------------|
 | `CreateIssueScreen.kt` | Form for title, description, vehicle, priority, photos |
 | `CreateIssueViewModel.kt` | Validates + submits new issue; preselects `VehicleRepository.getVehicles()`'s `defaultVehicle` (the driver's remembered truck, or trailer if no truck is remembered) and records the used vehicle on successful submit (`recordVehicleUsage`) |
-| `CreateIssueState.kt` | Form state with field values and validation. `vehicles` is the shared `VehiclesContent` |
+| `CreateIssueState.kt` | Form state with field values and validation. `vehicles` is `VehiclesContent` from `:core:ui-library` |
 | `CreateIssueAction.kt` | Field changes + submit |
 | `CreateIssueEvent.kt` | `NavigateBack(issueId)` on success |
 
@@ -87,9 +87,8 @@ opens.
 
 | File | Description |
 |------|-------------|
-| `IssueFormState.kt` | `VehiclesContent` (`Loading`/`Error`/`Loaded(preferredTruck, preferredTrailer, otherVehicles)`) and `SubmitStatus` state definitions, shared by create and edit |
-| `VehiclesContentMapper.kt` | `CategorizedVehicles.toVehiclesContent()` — maps `VehicleRepository`'s result straight into `VehiclesContent.Loaded`. Both `CreateIssueViewModel` and `EditIssueViewModel` call it, so the truck/trailer split happens once per load, never in the UI layer |
-| `IssueFormFields.kt` | `VehicleSelector` — the shared vehicle picker composable for both create and edit. When `vehicles` is `Loaded`, it lists `preferredTruck`/`preferredTrailer` (in that fixed order) with dividers above and below the pair whenever at least one is remembered, then `otherVehicles` (already sorted by plate ASC). It only composes the already-split fields — no filtering/searching at render time. Also `Card`, `InputField`, `PrioritySelector` |
+| `SubmitStatus.kt` | `SubmitStatus` state definition, shared by create and edit |
+| `IssueFormFields.kt` | `Card`, `InputField`, `PrioritySelector`. The vehicle picker (`VehicleSelector`, `VehiclesContent`, `toVehiclesContent()`) lives in `:core:ui-library`'s `vehicle` package because the checklist feature uses it too |
 
 ### Full Screen Photo (`FullScreenPhoto.kt`)
 
@@ -108,6 +107,7 @@ Standalone composable to display a single attachment full-screen.
 ## Depends On
 
 - `:feature:issues:api`
+- `:feature:checklist:api` — `ChecklistNavKey`, the navigation target of the toolbar checklist icon
 - `:core:issue` — `IssueRepository`, `IssueAttachmentRepository`, all domain models
 - `:core:user` — `AuthManager`, `UserRepository`, `UserRole`
 - `:core:vehicle` — `VehicleRepository`, `Vehicle`, `VehicleType`

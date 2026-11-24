@@ -42,14 +42,14 @@ import com.momosi.trucktrack.core.uilibrary.components.Toolbar
 import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
+import com.momosi.trucktrack.core.uilibrary.vehicle.VehicleSelector
+import com.momosi.trucktrack.core.uilibrary.vehicle.VehiclesContent
 import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import com.momosi.trucktrack.feature.issues.impl.Card
 import com.momosi.trucktrack.feature.issues.impl.InputField
 import com.momosi.trucktrack.feature.issues.impl.PrioritySelector
 import com.momosi.trucktrack.feature.issues.impl.SubmitStatus
-import com.momosi.trucktrack.feature.issues.impl.VehicleSelector
-import com.momosi.trucktrack.feature.issues.impl.VehiclesContent
 import com.momosi.trucktrack.feature.issues.impl.navigation.PhotoSource
 import com.momosi.trucktrack.feature.issues.impl.resources.Res
 import com.momosi.trucktrack.feature.issues.impl.resources.create_issue_add_photos

@@ -11,7 +11,7 @@ fun <T> LazyListScope.itemsPositioned(
     items: List<T>,
     key: ((index: Int, item: T) -> Any)? = null,
     contentType: (index: Int, item: T) -> Any? = { _, _ -> null },
-    itemContent: @Composable LazyItemScope.(position: ListItemPosition, item: T) -> Unit,
+    itemContent: @Composable LazyItemScope.(index: Int, position: ListItemPosition, item: T) -> Unit,
 ) {
     itemsIndexed(
         items = items,
@@ -24,7 +24,7 @@ fun <T> LazyListScope.itemsPositioned(
             index == items.lastIndex -> ListItemPosition.Last
             else -> ListItemPosition.Middle
         }
-        itemContent(position, item)
+        itemContent(index, position, item)
     }
 }
 
