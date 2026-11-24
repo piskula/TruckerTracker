@@ -159,10 +159,9 @@ One package per feature screen, related files together: `IssuesScreen.kt`, `Issu
 * A feature reacts to a push message type by implementing `core:push`'s `PushMessageHandler` and
   registering it in its Koin module with `bind PushMessageHandler::class`; UI that only needs to
   observe messages collects `PushMessageDispatcher.messages`.
-* Features sign out with `AuthManager.signOut()`. Work that must still run with a valid login
-  (e.g. `core:push` unregistering the device) is a `SignOutHook` (`core:user`) registered in the
-  owning module's Koin module with `bind SignOutHook::class`; `AuthManager` runs every hook after
-  the Keycloak logout and before clearing the local session, and never when the user cancels it.
+* Features sign out with `AuthManager.signOut()`. The app sends nothing about the push device on
+  sign-out: the Keycloak logout triggers the backend's back-channel logout, which removes the
+  account's push devices. That is why sign-out needs a connection and is refused offline.
 
 ### Koin Dependency Injection
 

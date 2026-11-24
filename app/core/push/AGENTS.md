@@ -20,7 +20,6 @@ Coordinators depend on interfaces only (`PushRegistrationManager`, `PushDeviceRe
 | `PushRegistrationManager` | Interface, Koin `single(createdAtStart = true)`. `state: StateFlow<PushDeviceState>`, `registerThisDevice(): Result<Unit>`, `unregisterThisDevice(): Result<Unit>`, `refreshState(): Result<PushDeviceState>`. Every operation runs in the app-lifetime `CoroutineScope` (injected from `app:shared`), so it survives ViewModel/navigation cancellation, and all operations are serialized by one `Mutex`. |
 | `PushMessageHandler` | Interface for reacting to one push message type: `type: PushMessageTypeDto`, `suspend fun handle(message: IncomingPushMessage)`. A feature implements it and registers it in its own Koin module with `single { MyHandler(get()) } bind PushMessageHandler::class`; the dispatcher collects all of them with `getAll()`. A failing handler is logged and doesn't affect other handlers. |
 | `PushMessageDispatcher` | `messages: Flow<IncomingPushMessage>` — every received message, for UI that only needs to observe (no replay). |
-| `UnregisterPushDeviceOnSignOut` | Internal `SignOutHook` (from `core:user`), bound in `pushModule` with `bind SignOutHook::class`. `AuthManager.signOut()` calls it after Keycloak logged out (or when the session is cleared anyway — offline, or the end-session request failed) and before the local session is cleared, so `unregisterThisDevice()` still runs with a valid access token. A cancelled browser logout never reaches it, so the registration simply stays. Features don't know about it — they just call `AuthManager.signOut()`. |
 | `NotificationPermission` | Interface, Koin `single`. `suspend fun status(): NotificationPermissionStatus` checks the OS and publishes the result to `currentStatus: StateFlow<NotificationPermissionStatus?>` (`null` until the first check), `openSettings()`. |
 | `rememberNotificationPermissionRequester(onResult)` | `@Composable expect fun` returning a lambda that shows the system permission dialog, then calls `onResult`. Android: `rememberLauncherForActivityResult(RequestPermission())` for `POST_NOTIFICATIONS` (API 33+; below 33 it just calls `onResult`). iOS: `requestAuthorization([.alert, .sound, .badge])`. |
 | `FirebaseInstallationIdProvider` | `suspend fun currentFirebaseInstallationId(): String?` (waits up to 10 s for the first ID, then `null`), `firebaseInstallationIdChanges: Flow<String>`. |
@@ -43,7 +42,7 @@ Coordinators depend on interfaces only (`PushRegistrationManager`, `PushDeviceRe
 Registering explicitly (`registerThisDevice()` from the Profile switch) returns a `Result`; those callers report failures themselves.
 
 - **Registration waits and retries briefly, then gives up.** `register()` waits for the Firebase Installation ID (the provider's 10 s timeout) and sends one `PUT` that opts into the client's retry: `registrationRetry()` (`registration/api/RegistrationRetry.kt`) — up to 3 retries on transport failures (`isTransientNetworkFailure`, never cancellation) and 5xx, never on 4xx, exponential backoff 0.5 s → 1 s → 2 s (+ up to 0.25 s jitter, `Retry-After` ignored), so about 4 s at most. It is the only push request that retries; `PATCH`, `GET` and `DELETE` don't (see `core/network/AGENTS.md`).
-- `unregisterThisDevice()` is best effort with a 5 s timeout: `DELETE /api/v1/push-device/{last sent Firebase Installation ID, else the current one}`. On sign-out it runs from `UnregisterPushDeviceOnSignOut` (after Keycloak logged out, before the tokens are cleared).
+- `unregisterThisDevice()` is best effort with a 5 s timeout: `DELETE /api/v1/push-device/{last sent Firebase Installation ID, else the current one}`. Only the Profile switch calls it. Sign-out sends nothing: the backend removes the account's push devices when Keycloak delivers its back-channel logout.
 - `DEVICE_UNREGISTERED` → `DeviceUnregisteredHandler` (internal) calls `refreshState()`. It never registers.
 - Never log the Firebase Installation ID.
 
@@ -89,7 +88,6 @@ registration/   ← this device's registration with the backend
   PushDeviceRegistrar.kt / PushDeviceRegistrarImpl.kt  ← register, send a Firebase Installation ID change, unregister, current state
   PushRegistrationStorage.kt         ← last sent Firebase Installation ID (android: AndroidPushRegistrationStorage, ios: IosPushRegistrationStorage)
   PushDeviceInfo.kt                  ← device name + platform (android: AndroidPushDeviceInfo, ios: IosPushDeviceInfo)
-  UnregisterPushDeviceOnSignOut.kt   ← SignOutHook: unregister before the session is cleared
   DeviceUnregisteredHandler.kt       ← PushMessageHandler: DEVICE_UNREGISTERED → refreshState()
   PushFailureLogging.kt
   api/PushDeviceApi.kt               ← Ktorfit: PUT/PATCH/GET/DELETE api/v1/push-device
@@ -119,7 +117,6 @@ androidMain/AndroidManifest.xml, res/
 
 - `PushRegistrationManagerTest` — a login completed before the manager starts registers exactly once; a Firebase Installation ID change isn't sent before this device registered, is `PATCH`ed to the last sent ID once, and a `409` stores it and never registers; a registration still failing after its retries is reported through `ErrorReporter`; only the registration `PUT` is retried (`GET`, `PATCH`, `DELETE` are sent once); signing out resets the state.
 - `PushMessageDispatcherTest` — parsed messages reach the handler for their type and the `messages` flow; `DEVICE_UNREGISTERED` refreshes the state and never registers.
-- `UnregisterPushDeviceOnSignOutTest` — the sign-out hook unregisters this device.
 - `PushDeviceResponsesTest` — `204` → no device, a failed `GET` failing instead of reporting no device, `PATCH` `409` → not slot holder.
 
 Run `.\gradlew.bat :core:push:testAndroidHostTest` from `app/`.
@@ -128,5 +125,5 @@ Run `.\gradlew.bat :core:push:testAndroidHostTest` from `app/`.
 
 - `:core:common` — `Logger`, `ErrorReporter`, `ApiException`, `isTransientNetworkFailure`, `runCatchingCancellable`
 - `:core:network` — `Ktorfit` on the authenticated `HttpClient` (retries opt-in per request)
-- `:core:user` — `AuthManager` (`authenticationState`, `loginCompletions`), `SignOutHook`
+- `:core:user` — `AuthManager` (`authenticationState`, `loginCompletions`)
 - `com.momosi.trucktrack:shared` — `PushDeviceRegistrationDto`, `PushDeviceUpdateDto`, `PushDeviceDto`, `PushPlatformDto`, `PushMessageTypeDto`

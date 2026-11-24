@@ -8,9 +8,7 @@ import com.momosi.trucktrack.core.push.registration.PushDeviceRegistrar
 import com.momosi.trucktrack.core.push.registration.PushDeviceRegistrarImpl
 import com.momosi.trucktrack.core.push.registration.PushRegistrationManager
 import com.momosi.trucktrack.core.push.registration.PushRegistrationManagerImpl
-import com.momosi.trucktrack.core.push.registration.UnregisterPushDeviceOnSignOut
 import com.momosi.trucktrack.core.push.registration.api.createPushDeviceApi
-import com.momosi.trucktrack.user.SignOutHook
 import de.jensklingenberg.ktorfit.Ktorfit
 import org.koin.core.module.Module
 import org.koin.dsl.bind
@@ -24,5 +22,4 @@ val pushModule = module {
     single<PushRegistrationManager>(createdAtStart = true) { PushRegistrationManagerImpl(get(), get(), get(), get(), get()) }
     single { DeviceUnregisteredHandler(get()) } bind PushMessageHandler::class
     single(createdAtStart = true) { PushMessageDispatcherImpl(get(), getAll<PushMessageHandler>(), get()) } bind PushMessageDispatcher::class
-    single { UnregisterPushDeviceOnSignOut(get()) } bind SignOutHook::class
 }

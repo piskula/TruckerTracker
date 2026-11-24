@@ -47,6 +47,7 @@ flowchart LR
     PNS --> DB
   end
   PRM -- "PUT / PATCH / GET / DELETE /api/v1/push-device" --> API
+  KC["Keycloak"] -- "back-channel logout" --> API
   PNS -- "FCM HTTP v1" --> FCM["Firebase Cloud Messaging"]
   FCM -- "Android: direct, iOS: via APNs" --> TRAY
 ```
@@ -69,7 +70,7 @@ flowchart TD
   SYS -- "denied" --> DENIED
   DENIED -- "Open settings" --> OS["OS notification settings"]
   OS -- "back in app (resume)" --> PERM
-  ASK -- "Sign out" --> OUT["Keycloak logout, then DELETE /push-device, then clear the session"]
+  ASK -- "Sign out" --> OUT["Keycloak logout, then clear the session (see Sign-out)"]
   DENIED -- "Sign out" --> OUT
   OUT --> SIGNIN
 ```
@@ -128,16 +129,53 @@ sequenceDiagram
   BE-->>P: firebaseInstallationId + deviceName (checked if it is mine)
   P->>BE: Toggle on: confirm takeover, then PUT /push-device
   P->>BE: Toggle off: DELETE /push-device/{firebaseInstallationId}
+```
 
-  Note over P,BE: Explicit logout (needs a connection — offline it is refused with "No connection")
-  P->>P: Refresh the access token, then Keycloak logout in the browser
-  alt user closed the logout page
-    P->>P: Still signed in, registration untouched
-  else logged out
-    P->>BE: DELETE /push-device/{firebaseInstallationId} (best effort, access token still valid)
-    P->>P: Clear the local session
+## Sign-out (back-channel logout)
+
+The app sends nothing about the push device when signing out. Keycloak tells the backend through
+OIDC back-channel logout, and the backend removes the account's push devices.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor U as Driver
+  participant P as Phone
+  participant KC as Keycloak
+  participant BE as Backend
+  participant DB as push_device
+
+  U->>P: Sign out (Profile or permission gate)
+  alt offline
+    P-->>U: "No connection", still signed in
+  else online
+    P->>KC: End session in the browser (id_token_hint)
+    alt user closed the logout page
+      P-->>U: Still signed in, registration untouched
+    else logged out
+      KC-->>P: Redirect back to the app
+      P->>P: Clear the local session, show sign-in
+      KC->>BE: POST /api/v1/push/backchannel-logout (logout_token)
+      BE->>BE: Verify signature (Keycloak JWKS), iss, aud, iat/exp, events, no nonce, jti not replayed
+      alt token valid
+        BE->>DB: Delete every push device of the account in sub
+        BE-->>KC: 200
+      else invalid
+        BE-->>KC: 400, nothing deleted
+      else Keycloak keys unreachable
+        BE-->>KC: 500, nothing deleted
+      end
+    end
   end
 ```
+
+- The device gets no "moved" notice — it was signed out on purpose.
+- The back-channel request runs server to server and isn't ordered with the app's redirect; the
+  app doesn't wait for it.
+- Sign-out is refused offline because a local-only sign-out would never reach Keycloak, so the
+  device would stay registered.
+- Keycloak only sends back-channel logout to a confidential client with a **Backchannel Logout
+  URL** — see Setup.
 
 ## Sending a notification
 
@@ -175,6 +213,7 @@ domain.
 | `PATCH /api/v1/push-device/{firebaseInstallationId}` | `PushDeviceUpdateDto(firebaseInstallationId)` — the path holds the id the app sent last, the body the current one | `200` when the path id holds the slot, otherwise `409`. Never takes the slot over. |
 | `GET /api/v1/push-device` | – | `200 PushDeviceDto(firebaseInstallationId, deviceName, platform, registeredAt)`, or `204` when no device is registered. With several rows the most recently registered one — the account's current device. |
 | `DELETE /api/v1/push-device/{firebaseInstallationId}` | – | `200`. Deletes every one of the account's rows holding this id, so a duplicate could never survive; other accounts' rows are untouched. |
+| `POST /api/v1/push/backchannel-logout` | Form field `logout_token` — called by Keycloak, not by the app | `200` after the token is verified; deletes every push device of the token's `sub`. |
 
 Only the registration `PUT` is retried by the app (on connection errors and 5xx, a few times with
 backoff); every other request fails immediately.
@@ -224,6 +263,10 @@ channel at startup and declares it as FCM's default channel.
   only logged.
 - Without Firebase credentials configured, sending is disabled, so local development works without
   them. Startup then logs `FIREBASE_CREDENTIALS_BASE64 is not set, push notifications are disabled`.
+- `processBackchannelLogout` handles Keycloak's OIDC back-channel logout. The endpoint is public
+  (`permitAll`); the use case verifies the logout token's signature and claims itself
+  (`LogoutTokenVerifier`, with replay protection) and then deletes every push device of the account
+  in the token's `sub`. This is the only way a sign-out removes the device.
 
 ## Client
 
@@ -245,10 +288,10 @@ channel at startup and declares it as FCM's default channel.
 - Incoming pushes go through `PushMessageDispatcher`, which parses them and hands them to every
   `PushMessageHandler` (features implement one per message type) and to its `messages` flow for the UI.
   `DEVICE_UNREGISTERED` only refreshes the registration state; it never registers.
-- Sign-out needs a connection: offline, it keeps the session and shows "No connection". Online, it
-  logs out of Keycloak first and only then unregisters the device, using the access token that is
-  still valid (it is refreshed right before the logout page opens), and finally clears the local
-  session. If the user closes the logout page, nothing happens to the registration.
+- Sign-out needs a connection: offline, it keeps the session and shows "No connection", because
+  Keycloak must see the logout. Online, it logs out of Keycloak and clears the local session; the
+  app sends nothing about the push device — Keycloak's back-channel logout tells the backend, which
+  removes it. If the user closes the logout page, nothing happens to the registration.
 - Firebase Installation ID registration is enabled with `firebase_messaging_installation_id_enabled`
   (Android manifest) and `FirebaseMessagingInstallationIdEnabled` (iOS `Info.plist`); the id arrives
   in `FirebaseMessagingService.onRegistered` and `MessagingDelegate.messaging(_:didReceiveRegistration:)`.
@@ -262,12 +305,17 @@ channel at startup and declares it as FCM's default channel.
   (its database ends in 2022; newer phones fall back to manufacturer + model), iOS uses
   [DeviceKit](https://github.com/devicekit/DeviceKit) (e.g. "iPhone 15 Pro").
 
-## Accepted limitation
+## Accepted limitations
 
-An expired Keycloak session doesn't unregister the device. Pushes keep arriving until the user logs
-out, another device takes over, or FCM reports the Firebase Installation ID as invalid. Generic notification text keeps
-this harmless. A Keycloak event listener (`LOGOUT`, `USER_SESSION_DELETED`) could be added later
-without changing anything else.
+- An expired Keycloak session doesn't unregister the device: Keycloak sends back-channel logout
+  only for an actual logout, not when a session times out. Pushes keep arriving until the user logs
+  out, another device takes over, or FCM reports the Firebase Installation ID as invalid. Generic
+  notification text keeps this harmless. A Keycloak event listener (`LOGOUT`,
+  `USER_SESSION_DELETED`) could cover it later without changing anything else.
+- Back-channel logout removes every push device of the account, not only the one that signed out.
+  Signing out on a phone that doesn't hold the slot therefore also stops pushes to the phone that
+  does, without a notice; that phone gets them again after its next login or the Profile toggle.
+- Without back-channel delivery (see Setup), signing out leaves the device registered.
 
 ## App Store note
 
@@ -296,6 +344,14 @@ same Firebase project, so one key serves both servers.
   ```
 
 The variable takes effect on the next restart or deploy.
+
+### Keycloak
+
+Configure back-channel logout as described in `server/devOps/README.md` (*Keycloak — Enable
+Back-Channel Logout Delivery*): set the client's **Backchannel Logout URL** to
+`https://<host>/api/v1/push/backchannel-logout` on every environment. Keycloak only delivers it to
+confidential clients. Check it by signing out and looking for the processed logout token in the
+server log.
 
 ### Android
 
