@@ -166,6 +166,7 @@ class UpdateIssueTest {
     private class FakeVehiclePersistence(private val vehicles: List<VehicleModel>) : VehiclePersistence {
         override fun findAll() = vehicles
         override fun findById(id: Long) = vehicles.single { it.id == id }
+        override fun findByIdOrNull(id: Long) = vehicles.find { it.id == id }
     }
 
     private class FakeIssuePersistence(var issue: IssueModel) : IssuePersistence {

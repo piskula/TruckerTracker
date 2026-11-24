@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "TruckTrack API",
-    "version": "1.0-rc1"
+    "version": "1.0-rc2"
   },
   "servers": [
     {
@@ -632,6 +632,71 @@
         }
       }
     },
+    "/api/v1/checklist-question": {
+      "get": {
+        "tags": [
+          "Checklist Questions"
+        ],
+        "summary": "Get checklist questions",
+        "operationId": "getChecklistQuestionList",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChecklistQuestionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/checklist-response/create": {
+      "post": {
+        "tags": [
+          "Checklist Responses"
+        ],
+        "summary": "Create checklist response",
+        "operationId": "createChecklistResponse",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistResponseCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/issue/byId/{id}": {
       "get": {
         "tags": [
@@ -1228,6 +1293,125 @@
                   "$ref": "#/components/schemas/VehicleChange"
                 }
               ]
+            }
+          }
+        }
+      },
+      "ChecklistQuestionDto": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "ChecklistVehicleSnapshotDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "licensePlate": {
+            "type": "string"
+          }
+        }
+      },
+      "ChecklistTextDto": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "ChecklistResponseItemDto": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "texts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistTextDto"
+            }
+          },
+          "answer": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ChecklistResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "truck": {
+            "$ref": "#/components/schemas/ChecklistVehicleSnapshotDto"
+          },
+          "trailer": {
+            "$ref": "#/components/schemas/ChecklistVehicleSnapshotDto"
+          },
+          "answeredBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "answeredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistResponseItemDto"
+            }
+          }
+        }
+      },
+      "ChecklistAnswerDto": {
+        "required": [
+          "identifier",
+          "answer"
+        ],
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ChecklistResponseCreateDto": {
+        "required": [
+          "truckId",
+          "trailerId",
+          "answers"
+        ],
+        "type": "object",
+        "properties": {
+          "truckId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "trailerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistAnswerDto"
             }
           }
         }

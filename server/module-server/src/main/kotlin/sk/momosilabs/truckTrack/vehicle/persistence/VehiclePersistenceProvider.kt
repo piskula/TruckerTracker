@@ -6,6 +6,7 @@ import sk.momosilabs.truckTrack.vehicle.model.VehicleModel
 import sk.momosilabs.truckTrack.vehicle.persistence.mapper.toModel
 import sk.momosilabs.truckTrack.vehicle.persistence.repository.VehicleRepository
 import sk.momosilabs.truckTrack.vehicle.service.VehiclePersistence
+import kotlin.jvm.optionals.getOrNull
 
 @Repository
 class VehiclePersistenceProvider(
@@ -19,4 +20,8 @@ class VehiclePersistenceProvider(
     @Transactional(readOnly = true)
     override fun findById(id: Long): VehicleModel =
         vehicleRepository.getReferenceById(id).toModel()
+
+    @Transactional(readOnly = true)
+    override fun findByIdOrNull(id: Long): VehicleModel? =
+        vehicleRepository.findById(id).getOrNull()?.toModel()
 }

@@ -7,4 +7,6 @@ interface VehiclePersistence {
     fun findAll(): List<VehicleModel>
 
     fun findById(id: Long): VehicleModel
+
+    fun findByIdOrNull(id: Long): VehicleModel?
 }
