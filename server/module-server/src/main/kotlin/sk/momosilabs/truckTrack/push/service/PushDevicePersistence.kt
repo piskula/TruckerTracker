@@ -21,7 +21,7 @@ interface PushDevicePersistence {
         updatedAt: OffsetDateTime,
     ): PushDeviceModel
 
-    fun deleteAllForAccount(accountId: UUID)
+    fun deleteByAccountIdAndSessionId(accountId: UUID, sessionId: String)
 
     fun deleteAllForAccountOrFirebaseInstallationId(accountId: UUID, firebaseInstallationId: String)
 

@@ -168,8 +168,14 @@ SPA/mobile). To actually receive logout notifications, switch that client over:
 3. In the client's **Advanced** settings, set **Backchannel Logout URL** to the app's public address:
    `https://<host>/api/v1/push/backchannel-logout` — the same URL the rate limit above protects.
    Keycloak POSTs the signed logout token there when a session signs out.
-4. Keep the PKCE settings from steps 3–4 in place.
+4. Enable **Backchannel Logout Session Required** so the signed logout token includes `sid`.
+   Push cleanup requires both `sub` and `sid`; missing, blank or non-string session identifiers
+   return `400` without deleting any registration.
+5. Ensure the app's access tokens include the same session's `sid`. The backend binds push
+   registrations to this authenticated claim, not to an identifier supplied in a request body.
+   Existing registrations gain a session binding on their next login or Profile registration.
+6. Keep the PKCE settings from steps 3–4 in place.
 
 With a public client (or no **Backchannel Logout URL** set), Keycloak silently sends nothing and the
 endpoint stays idle — verify delivery by signing a user out and checking the app log for a processed
-(or rejected) logout token.
+(or rejected) logout request. Never log the token or its session identifier.

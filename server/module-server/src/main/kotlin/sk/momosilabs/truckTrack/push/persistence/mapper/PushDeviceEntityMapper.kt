@@ -15,6 +15,7 @@ fun PushDeviceEntity.toModel() = PushDeviceModel(
     platform = platform,
     registeredAt = registeredAtUtc.toUtcOffsetDateTime(),
     updatedAt = updatedAtUtc.toUtcOffsetDateTime(),
+    sessionId = sessionId,
 )
 
 fun PushDeviceModel.asNewEntity(accountResolver: (UUID) -> AccountEntity) = PushDeviceEntity(
@@ -24,4 +25,5 @@ fun PushDeviceModel.asNewEntity(accountResolver: (UUID) -> AccountEntity) = Push
     platform = platform,
     registeredAtUtc = registeredAt.toUtcLocalDateTime(),
     updatedAtUtc = updatedAt.toUtcLocalDateTime(),
+    sessionId = sessionId,
 )

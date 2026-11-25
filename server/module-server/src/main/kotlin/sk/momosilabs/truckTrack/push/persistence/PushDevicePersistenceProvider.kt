@@ -62,8 +62,9 @@ class PushDevicePersistenceProvider(
     }
 
     @Transactional
-    override fun deleteAllForAccount(accountId: UUID) {
-        pushDeviceRepository.deleteAllByAccountId(accountId)
+    override fun deleteByAccountIdAndSessionId(accountId: UUID, sessionId: String) {
+        accountRepository.findLockedById(accountId)
+        pushDeviceRepository.deleteByAccountIdAndSessionId(accountId, sessionId)
     }
 
     @Transactional

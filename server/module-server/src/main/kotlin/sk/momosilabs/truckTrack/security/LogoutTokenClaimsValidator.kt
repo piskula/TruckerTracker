@@ -15,9 +15,10 @@ internal class LogoutTokenClaimsValidator(
         validateEvents(jwt)
         validateNonceAbsent(jwt)
         val subject = subject(jwt)
+        val sessionId = sessionId(jwt)
         val jti = jti(jwt)
         val expiryEpochSecond = (jwt.expiresAt ?: Instant.now().plus(CLOCK_SKEW)).epochSecond + CLOCK_SKEW.seconds
-        return VerifiedLogoutToken(subject, jti, expiryEpochSecond)
+        return VerifiedLogoutToken(subject, jti, expiryEpochSecond, sessionId)
     }
 
     private fun validateIssuer(jwt: Jwt) {
@@ -71,6 +72,10 @@ internal class LogoutTokenClaimsValidator(
         stringClaim(jwt, CLAIM_JTI)?.takeIf { it.isNotBlank() }
             ?: LogoutTokenRejection.reject(REASON_JTI_MISSING)
 
+    private fun sessionId(jwt: Jwt): String =
+        stringClaim(jwt, CLAIM_SESSION_ID)?.takeIf { it.isNotBlank() }
+            ?: LogoutTokenRejection.reject(REASON_SESSION_ID_MISSING)
+
     private fun stringClaim(jwt: Jwt, name: String): String? =
         when (val value = jwt.claims[name]) {
             null -> null
@@ -85,6 +90,7 @@ internal class LogoutTokenClaimsValidator(
         private const val CLAIM_EVENTS = "events"
         private const val CLAIM_NONCE = "nonce"
         private const val CLAIM_SUBJECT = "sub"
+        private const val CLAIM_SESSION_ID = "sid"
         private const val CLAIM_JTI = "jti"
         private val CLOCK_SKEW: Duration = Duration.ofSeconds(60)
         private const val REASON_ISSUER_MISMATCH = "issuer_mismatch"
@@ -96,6 +102,7 @@ internal class LogoutTokenClaimsValidator(
         private const val REASON_EVENTS_MISSING = "events_claim_missing"
         private const val REASON_NONCE_PRESENT = "nonce_present"
         private const val REASON_SUBJECT_MISSING = "subject_missing"
+        private const val REASON_SESSION_ID_MISSING = "session_id_missing"
         private const val REASON_JTI_MISSING = "jti_missing"
     }
 }

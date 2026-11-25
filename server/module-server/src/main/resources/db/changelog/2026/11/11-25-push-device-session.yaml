@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1795564800000-01
+      author: piskula
+      changes:
+        - addColumn:
+            tableName: push_device
+            columns:
+              - column:
+                  name: session_id
+                  type: text
+        - createIndex:
+            tableName: push_device
+            indexName: ix_push_device_account_session
+            columns:
+              - column:
+                  name: account_id
+              - column:
+                  name: session_id

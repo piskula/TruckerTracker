@@ -77,6 +77,7 @@ class LogoutTokenReplayGuardTest {
         subject = SUBJECT,
         jti = jti,
         expiryEpochSecond = expiryEpochSecond,
+        sessionId = "session-a",
     )
 
     private companion object {

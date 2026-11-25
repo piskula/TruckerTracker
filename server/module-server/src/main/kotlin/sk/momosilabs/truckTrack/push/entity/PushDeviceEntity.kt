@@ -1,5 +1,6 @@
 package sk.momosilabs.truckTrack.push.entity
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -37,5 +38,8 @@ class PushDeviceEntity(
 
     @field:NotNull
     var updatedAtUtc: LocalDateTime,
+
+    @Column(columnDefinition = "text")
+    val sessionId: String? = null,
 
 )

@@ -45,8 +45,9 @@ class FakePushDevicePersistence(vararg initialDevices: PushDeviceModel) : PushDe
         return updated
     }
 
-    override fun deleteAllForAccount(accountId: UUID) {
-        devices.removeIf { it.accountId == accountId }
+    override fun deleteByAccountIdAndSessionId(accountId: UUID, sessionId: String) {
+        lockAccount(accountId)
+        devices.removeIf { it.accountId == accountId && it.sessionId == sessionId }
     }
 
     override fun deleteAllForAccountOrFirebaseInstallationId(accountId: UUID, firebaseInstallationId: String) {
