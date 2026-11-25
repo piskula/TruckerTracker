@@ -270,8 +270,7 @@ or malformed URLs are rejected without changing navigation.
 
 - Table `push_device`: `id` (PK), `account_id` (NOT NULL FK → `account.id`),
   `firebase_installation_id` (unique, `uk_push_device_firebase_installation`), `device_name`,
-  `platform`, `registered_at_utc`, `updated_at_utc`, `session_id`. An index on
-  `(account_id, session_id)` supports session-scoped logout. The unique `firebase_installation_id` is the
+  `platform`, `registered_at_utc`, `updated_at_utc`, `session_id`. The unique `firebase_installation_id` is the
   only uniqueness the database enforces — it guarantees a Firebase Installation ID belongs to
   exactly one account. Multiple rows per account are allowed at DB level; one device per account is
   an application-layer business rule, enforced because every mutating path (register, PATCH, delete,
