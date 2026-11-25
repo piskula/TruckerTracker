@@ -86,6 +86,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
+        if response.actionIdentifier == UNNotificationDefaultActionIdentifier,
+           let deepLink = response.notification.request.content.userInfo["deepLink"] as? String {
+            IosAppInitializerKt.openIosAppLink(url: deepLink)
+        }
         completionHandler()
     }
 

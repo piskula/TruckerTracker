@@ -100,6 +100,11 @@ links are discarded without saving a destination or continuing after login.
 Back from a linked issue or checklist returns to the issues list.
 Normal API authorization still applies.
 
+Push notification taps use the same handler when the FCM `data` block contains a string `deepLink`,
+such as `https://transroute.org/checklist`. Both platforms route the link only on tap, not on receipt;
+notifications without it simply open the app. See [Push notifications](../docs/push-notifications.md#push-payload)
+for the payload contract.
+
 The domain must publicly serve `/.well-known/assetlinks.json` and
 `/.well-known/apple-app-site-association` over HTTPS without redirects. Android associations must
 cover the installed build's application ID and signing certificate. Apple associations must cover

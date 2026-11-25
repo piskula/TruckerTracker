@@ -37,8 +37,8 @@ class TruckTrackActivity : AppCompatActivity() {
     }
 
     private fun handleAppLink(intent: Intent) {
-        if (intent.action == Intent.ACTION_VIEW) {
-            intent.dataString?.let(appLinks::openUrl)
-        }
+        val url = if (intent.action == Intent.ACTION_VIEW) intent.dataString else intent.getStringExtra("deepLink")
+        intent.removeExtra("deepLink")
+        url?.let(appLinks::openUrl)
     }
 }

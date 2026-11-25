@@ -227,9 +227,36 @@ with a `data` block:
 |---|---|
 | `type` | A `PushMessageTypeDto` name, e.g. `DEVICE_UNREGISTERED` |
 | `deviceName` | `DEVICE_UNREGISTERED` only: the device that took over |
+| `deepLink` | Optional HTTPS app link to open when the notification is tapped, e.g. `https://transroute.org/checklist` |
 
 Android messages use the notification channel `trucktrack_notifications`; the app creates that
 channel at startup and declares it as FCM's default channel.
+
+Notification-tap navigation depends on `deepLink`, not on `type`, so new message types can reuse
+existing app-link destinations without a dedicated navigation handler. For example, a checklist
+reminder can use:
+
+```json
+{
+  "notification": {
+    "title": "Kontrola vozidla",
+    "body": "Nezabudnite vykonať kontrolu vozidla."
+  },
+  "data": {
+    "type": "CHECKLIST_REMINDER",
+    "deepLink": "https://transroute.org/checklist"
+  }
+}
+```
+
+`CHECKLIST_REMINDER` is a proposed backend message type; its scheduling and shared enum addition
+are separate from mobile tap routing. The client can already route its `deepLink` even when
+`type` is unrecognized. Send `deepLink` as a string in FCM's `data` block, not in
+`notification`, and leave Android `click_action` unset so background notifications open the
+launcher activity. No browser or external URL opener is used: `AppLinksManager` validates the
+existing host/path allowlist, discards links while signed out, and queues accepted links until
+the app's notification-permission gate is passed. Missing links only open the app; unsupported
+or malformed URLs are rejected without changing navigation.
 
 ## Backend
 
@@ -297,8 +324,12 @@ channel at startup and declares it as FCM's default channel.
   in `FirebaseMessagingService.onRegistered` and `MessagingDelegate.messaging(_:didReceiveRegistration:)`.
 - Foreground: Android builds the notification itself in `onMessageReceived`; iOS returns
   `[.banner, .sound, .list]` from `willPresent`. Message handlers only run while the app is in the
-  foreground; in the background the OS shows the notification by itself. Tapping a notification
-  only opens the app — there is no per-message navigation yet.
+  foreground; in the background the OS shows the notification by itself. Receiving a message
+  never navigates. A notification tap forwards the optional `data.deepLink` to `AppLinksManager`
+  on both platforms, including cold starts. Android handles foreground notifications through
+  explicit activity intents and background FCM notifications through launcher extras; the iOS
+  default-tap callback reads the same key from `userInfo`. Saved-state recreation on Android and
+  notification dismissal on iOS do not replay links.
 - The id the app sent last is excluded from backups (Android Auto Backup, iOS backup), so a phone
   restored from backup can't present another phone's id.
 - Device names: Android uses [AndroidDeviceNames](https://github.com/jaredrummler/AndroidDeviceNames)

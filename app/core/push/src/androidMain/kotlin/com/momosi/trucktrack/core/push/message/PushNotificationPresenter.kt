@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
@@ -25,7 +26,11 @@ internal class PushNotificationPresenter(private val context: Context) {
         notificationManager.createNotificationChannel(channel)
     }
 
-    fun show(title: String?, body: String?) {
+    fun show(
+        title: String?,
+        body: String?,
+        deepLink: String?,
+    ) {
         if (!notificationManager.areNotificationsEnabled()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -41,13 +46,17 @@ internal class PushNotificationPresenter(private val context: Context) {
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .setContentIntent(openAppIntent())
+            .setContentIntent(openAppIntent(deepLink))
             .build()
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 
-    private fun openAppIntent(): PendingIntent? {
+    private fun openAppIntent(deepLink: String?): PendingIntent? {
         val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return null
+        if (deepLink != null) {
+            launchIntent.action = Intent.ACTION_VIEW
+            launchIntent.data = Uri.parse(deepLink)
+        }
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
         return PendingIntent.getActivity(context, 0, launchIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
     }

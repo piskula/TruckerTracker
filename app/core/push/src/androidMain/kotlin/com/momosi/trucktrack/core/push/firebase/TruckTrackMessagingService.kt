@@ -19,7 +19,11 @@ internal class TruckTrackMessagingService :
 
     override fun onMessageReceived(message: RemoteMessage) {
         message.notification?.let { notification ->
-            notificationPresenter.show(title = notification.title, body = notification.body)
+            notificationPresenter.show(
+                title = notification.title,
+                body = notification.body,
+                deepLink = message.data["deepLink"],
+            )
         }
         messagingClient.onMessageReceived(message.data.toMap())
     }
