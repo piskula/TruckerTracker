@@ -118,4 +118,5 @@ data class VerifiedLogoutToken(
     val subject: String,
     val jti: String,
     val expiryEpochSecond: Long,
+    val sessionId: String,
 )

@@ -18,12 +18,13 @@ class LogoutTokenClaimsValidatorTest {
     private val validator = LogoutTokenClaimsValidator(props)
 
     @Test
-    fun `a logout token with every claim valid is accepted and reports its subject jti and expiry`() {
+    fun `a logout token with every claim valid is accepted and reports its subject session jti and expiry`() {
         val expiresAt = Instant.now().plusSeconds(TOKEN_LIFETIME_SECONDS)
 
         val verified = validator.verify(logoutJwt(expiresAt = expiresAt))
 
         assertThat(verified.subject).isEqualTo(SUBJECT)
+        assertThat(verified.sessionId).isEqualTo(SESSION_ID)
         assertThat(verified.jti).isEqualTo(JTI)
         assertThat(verified.expiryEpochSecond).isEqualTo(expiresAt.epochSecond + CLOCK_SKEW_SECONDS)
     }
@@ -153,6 +154,21 @@ class LogoutTokenClaimsValidatorTest {
     }
 
     @Test
+    fun `a logout token without a session id is rejected instead of allowing an account-wide logout`() {
+        assertThatRejected(logoutJwt(claims = validClaims() - CLAIM_SESSION_ID))
+    }
+
+    @Test
+    fun `a logout token with a blank session id is rejected`() {
+        assertThatRejected(logoutJwt(claims = validClaims() + (CLAIM_SESSION_ID to BLANK)))
+    }
+
+    @Test
+    fun `a logout token whose session id is not a string is rejected`() {
+        assertThatRejected(logoutJwt(claims = validClaims() + (CLAIM_SESSION_ID to NON_STRING_SUBJECT)))
+    }
+
+    @Test
     fun `a logout token without a jti is rejected`() {
         val jwt = logoutJwt(claims = validClaims() - CLAIM_JTI)
 
@@ -194,6 +210,7 @@ class LogoutTokenClaimsValidatorTest {
         CLAIM_ISSUER to ISSUER,
         CLAIM_AUDIENCE to AUDIENCE,
         CLAIM_SUBJECT to SUBJECT,
+        CLAIM_SESSION_ID to SESSION_ID,
         CLAIM_JTI to JTI,
         CLAIM_EVENTS to BACKCHANNEL_LOGOUT_EVENTS,
     )
@@ -205,6 +222,7 @@ class LogoutTokenClaimsValidatorTest {
         const val FOREIGN_ISSUER = "https://sso.momosi.org/realms/other"
         const val FOREIGN_AUDIENCE = "trucktrack-admin"
         const val SUBJECT = "3f9e1c2a-7b64-4d0f-9a51-6e2c8b4d7f10"
+        const val SESSION_ID = "session-a"
         const val JTI = "logout-token-jti"
         const val NONCE = "a-nonce-from-an-auth-request"
         const val BLANK = "   "
@@ -212,6 +230,7 @@ class LogoutTokenClaimsValidatorTest {
         const val CLAIM_ISSUER = "iss"
         const val CLAIM_AUDIENCE = "aud"
         const val CLAIM_SUBJECT = "sub"
+        const val CLAIM_SESSION_ID = "sid"
         const val CLAIM_JTI = "jti"
         const val CLAIM_EVENTS = "events"
         const val CLAIM_NONCE = "nonce"

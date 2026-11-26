@@ -5,6 +5,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service
 import sk.momosilabs.truckTrack.account.model.AccountModel
 import sk.momosilabs.truckTrack.account.persistence.AccountPersistenceHelper
+import sk.momosilabs.truckTrack.config.GlobalBadRequestException
 import java.util.UUID
 
 @Service
@@ -13,6 +14,10 @@ class CurrentUserService(
 ) {
 
     fun currentUserId(): UUID = jwt().subject.let(UUID::fromString)
+
+    fun currentSessionId(): String =
+        (jwt().claims["sid"] as? String)?.takeIf { it.isNotBlank() }
+            ?: throw GlobalBadRequestException("Access token must contain a non-blank sid claim")
 
     fun isMechanic(): Boolean =
         (SecurityContextHolder.getContext().authentication as JwtAuthenticationToken).authorities

@@ -90,10 +90,24 @@ class PushDevicePersistenceProviderTest {
     }
 
     @Test
-    fun `deleting all devices of an account runs the bulk delete for that account only`() {
-        provider.deleteAllForAccount(ownerAccountId)
+    fun `deleting a session locks its account before deleting only the account and session match`() {
+        provider.deleteByAccountIdAndSessionId(ownerAccountId, SESSION_ID)
 
-        verify(pushDeviceRepository).deleteAllByAccountId(ownerAccountId)
+        val order = inOrder(accountRepository, pushDeviceRepository)
+        order.verify(accountRepository).findLockedById(ownerAccountId)
+        order.verify(pushDeviceRepository).deleteByAccountIdAndSessionId(ownerAccountId, SESSION_ID)
+        verifyNoMoreInteractions(pushDeviceRepository)
+    }
+
+    @Test
+    fun `creating a push device persists its authenticated session id`() {
+        val account = AccountEntity(id = ownerAccountId, username = "driver", firstName = "Driver", lastName = "Test")
+        `when`(accountRepository.getReferenceById(ownerAccountId)).thenReturn(account)
+        `when`(pushDeviceRepository.save(any())).thenAnswer { invocation -> invocation.getArgument<PushDeviceEntity>(0) }
+
+        val created = provider.create(model(id = 0L, firebaseInstallationId = FIREBASE_INSTALLATION_ID))
+
+        assertThat(created.sessionId).isEqualTo(SESSION_ID)
     }
 
     @Test
@@ -123,6 +137,7 @@ class PushDevicePersistenceProviderTest {
                 platform = PushPlatform.ANDROID,
                 registeredAt = REGISTERED_AT,
                 updatedAt = UPDATED_AT,
+                sessionId = SESSION_ID,
             )
         )
         assertThat(entity.firebaseInstallationId).isEqualTo(NEW_FIREBASE_INSTALLATION_ID)
@@ -192,6 +207,7 @@ class PushDevicePersistenceProviderTest {
         platform = PushPlatform.ANDROID,
         registeredAtUtc = REGISTERED_AT.toUtcLocalDateTime(),
         updatedAtUtc = REGISTERED_AT.toUtcLocalDateTime(),
+        sessionId = SESSION_ID,
     )
 
     private fun model(id: Long, firebaseInstallationId: String) = PushDeviceModel(
@@ -202,10 +218,12 @@ class PushDevicePersistenceProviderTest {
         platform = PushPlatform.ANDROID,
         registeredAt = REGISTERED_AT,
         updatedAt = REGISTERED_AT,
+        sessionId = SESSION_ID,
     )
 
     private companion object {
         const val ENTITY_ID = 42L
+        const val SESSION_ID = "session-a"
         const val DEVICE_NAME = "Pixel 8"
         const val FIREBASE_INSTALLATION_ID = "aFirebaseInstallId1"
         const val OLD_FIREBASE_INSTALLATION_ID = "bOldFirebaseInstallId2"

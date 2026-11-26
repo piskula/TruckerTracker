@@ -15,7 +15,7 @@ class ProcessBackchannelLogout(
 
     override fun process(logoutToken: String) {
         val verifiedToken = logoutTokenVerifier.verify(logoutToken)
-        persistence.deleteAllForAccount(verifiedToken.subject.toAccountIdOrThrow())
+        persistence.deleteByAccountIdAndSessionId(verifiedToken.subject.toAccountIdOrThrow(), verifiedToken.sessionId)
         logoutTokenVerifier.markProcessed(verifiedToken)
     }
 

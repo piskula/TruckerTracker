@@ -134,7 +134,10 @@ sequenceDiagram
 ## Sign-out (back-channel logout)
 
 The app sends nothing about the push device when signing out. Keycloak tells the backend through
-OIDC back-channel logout, and the backend removes the account's push devices.
+OIDC back-channel logout, and the backend removes only the push registration belonging to the
+signed-out session. Registration stores the authenticated access token's `sid` alongside the
+device. Logging out on phone B leaves phone A registered when A holds the notification slot;
+logging out on A removes A's registration.
 
 ```mermaid
 sequenceDiagram
@@ -156,9 +159,9 @@ sequenceDiagram
       KC-->>P: Redirect back to the app
       P->>P: Clear the local session, show sign-in
       KC->>BE: POST /api/v1/push/backchannel-logout (logout_token)
-      BE->>BE: Verify signature (Keycloak JWKS), iss, aud, iat/exp, events, no nonce, jti not replayed
+      BE->>BE: Verify signature (Keycloak JWKS), iss, aud, iat/exp, events, sub, sid, no nonce, jti not replayed
       alt token valid
-        BE->>DB: Delete every push device of the account in sub
+        BE->>DB: Lock account in sub, delete only where account and session_id match sub and sid
         BE-->>KC: 200
       else invalid
         BE-->>KC: 400, nothing deleted
@@ -170,6 +173,11 @@ sequenceDiagram
 ```
 
 - The device gets no "moved" notice — it was signed out on purpose.
+- A missing, blank or non-string `sid` is rejected with `400`, without deleting anything. There is
+  no account-wide fallback. A valid logout for a session without a matching registration returns
+  `200` and leaves other registrations untouched.
+- A delayed logout from an older session cannot delete the device's registration after it has
+  registered under a new session, even when its Firebase Installation ID is unchanged.
 - The back-channel request runs server to server and isn't ordered with the app's redirect; the
   app doesn't wait for it.
 - Sign-out is refused offline because a local-only sign-out would never reach Keycloak, so the
@@ -213,7 +221,7 @@ domain.
 | `PATCH /api/v1/push-device/{firebaseInstallationId}` | `PushDeviceUpdateDto(firebaseInstallationId)` — the path holds the id the app sent last, the body the current one | `200` when the path id holds the slot, otherwise `409`. Never takes the slot over. |
 | `GET /api/v1/push-device` | – | `200 PushDeviceDto(firebaseInstallationId, deviceName, platform, registeredAt)`, or `204` when no device is registered. With several rows the most recently registered one — the account's current device. |
 | `DELETE /api/v1/push-device/{firebaseInstallationId}` | – | `200`. Deletes every one of the account's rows holding this id, so a duplicate could never survive; other accounts' rows are untouched. |
-| `POST /api/v1/push/backchannel-logout` | Form field `logout_token` — called by Keycloak, not by the app | `200` after the token is verified; deletes every push device of the token's `sub`. |
+| `POST /api/v1/push/backchannel-logout` | Form field `logout_token` — called by Keycloak, not by the app | `200` after the token is verified; deletes only registrations matching both `sub` and `sid`. Missing or invalid `sid` returns `400` without deletion. |
 
 Only the registration `PUT` is retried by the app (on connection errors and 5xx, a few times with
 backoff); every other request fails immediately.
@@ -262,15 +270,17 @@ or malformed URLs are rejected without changing navigation.
 
 - Table `push_device`: `id` (PK), `account_id` (NOT NULL FK → `account.id`),
   `firebase_installation_id` (unique, `uk_push_device_firebase_installation`), `device_name`,
-  `platform`, `registered_at_utc`, `updated_at_utc`. The unique `firebase_installation_id` is the
+  `platform`, `registered_at_utc`, `updated_at_utc`, `session_id`. The unique `firebase_installation_id` is the
   only uniqueness the database enforces — it guarantees a Firebase Installation ID belongs to
   exactly one account. Multiple rows per account are allowed at DB level; one device per account is
   an application-layer business rule, enforced because every mutating path (register, PATCH, delete,
-  FCM-rejection cleanup) first takes a pessimistic lock on the account row (`SELECT … FOR UPDATE`).
+  FCM-rejection cleanup, back-channel logout) first takes a pessimistic lock on the account row
+  (`SELECT … FOR UPDATE`).
   Deleting the account's rows by Firebase Installation ID removes every match rather than a single
   row — a defensive tolerance, since the unique `uk_push_device_firebase_installation` keeps
   duplicate `(account, firebase_installation_id)` rows unstorable today anyway.
-- `registerPushDevice` locks the account row, deletes every row whose `account_id` is the current
+- `registerPushDevice` requires a non-blank string `sid` from the authenticated access token
+  (`400` otherwise, before changing registrations), locks the account row, deletes every row whose `account_id` is the current
   account or whose `firebase_installation_id` is the incoming one — the account's own previous row
   plus any other account's row squatting that id — and inserts one brand-new row. `registered_at_utc`
   therefore timestamps the current row: re-registering, even with the same Firebase Installation ID,
@@ -280,6 +290,10 @@ or malformed URLs are rejected without changing navigation.
   — so if several rows ever accumulated, every replaced device receives the "notifications moved
   to …" push exactly once, after commit, asynchronously; the re-registering id never receives it
   and the first-ever registration publishes no event at all.
+  The new row stores that token's `sid`, so re-registration also replaces the session binding.
+  The session identifier is internal correlation metadata, not an authentication credential:
+  it stays in the backend database and signed HTTPS token exchanges, never in push payloads,
+  push-device API responses or logs. The app does not supply a separate session-id field.
 - `updatePushDevice` locks the account row, requires the path Firebase Installation ID to be the id
   currently stored on the account's row (`409` otherwise), clears any other account's row holding
   the new id and updates only `firebase_installation_id` and `updated_at_utc` — device name,
@@ -292,8 +306,9 @@ or malformed URLs are rejected without changing navigation.
   them. Startup then logs `FIREBASE_CREDENTIALS_BASE64 is not set, push notifications are disabled`.
 - `processBackchannelLogout` handles Keycloak's OIDC back-channel logout. The endpoint is public
   (`permitAll`); the use case verifies the logout token's signature and claims itself
-  (`LogoutTokenVerifier`, with replay protection) and then deletes every push device of the account
-  in the token's `sub`. This is the only way a sign-out removes the device.
+  (`LogoutTokenVerifier`, with replay protection), requires both `sub` and `sid`, locks the account
+  and deletes only registrations matching that account and session. The token is marked processed
+  after the deletion transaction commits. This is the only way a sign-out removes the device.
 
 ## Client
 
@@ -343,9 +358,10 @@ or malformed URLs are rejected without changing navigation.
   out, another device takes over, or FCM reports the Firebase Installation ID as invalid. Generic
   notification text keeps this harmless. A Keycloak event listener (`LOGOUT`,
   `USER_SESSION_DELETED`) could cover it later without changing anything else.
-- Back-channel logout removes every push device of the account, not only the one that signed out.
-  Signing out on a phone that doesn't hold the slot therefore also stops pushes to the phone that
-  does, without a notice; that phone gets them again after its next login or the Profile toggle.
+- Registrations created before the session-binding migration have a null `session_id`: it cannot
+  be reconstructed from their Firebase Installation IDs. They remain registered but cannot be
+  removed by session-scoped logout until the device registers again (next login or Profile toggle).
+  Identifier-only PATCH updates preserve the existing binding, including a legacy null binding.
 - Without back-channel delivery (see Setup), signing out leaves the device registered.
 
 ## App Store note
@@ -381,8 +397,10 @@ The variable takes effect on the next restart or deploy.
 Configure back-channel logout as described in `server/devOps/README.md` (*Keycloak — Enable
 Back-Channel Logout Delivery*): set the client's **Backchannel Logout URL** to
 `https://<host>/api/v1/push/backchannel-logout` on every environment. Keycloak only delivers it to
-confidential clients. Check it by signing out and looking for the processed logout token in the
-server log.
+confidential clients. Enable **Backchannel Logout Session Required** so logout tokens include
+`sid`, and ensure access tokens for the app also contain the same session's `sid`. Check claim
+presence locally without copying tokens or session identifiers into logs or this repository.
+Check delivery by signing out and looking for the logout request's outcome in the server log.
 
 ### Android
 

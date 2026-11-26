@@ -12,4 +12,5 @@ data class PushDeviceModel(
     val platform: PushPlatform,
     val registeredAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
+    val sessionId: String? = null,
 )

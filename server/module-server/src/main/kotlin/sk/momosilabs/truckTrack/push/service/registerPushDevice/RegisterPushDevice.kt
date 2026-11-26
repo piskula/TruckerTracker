@@ -22,6 +22,7 @@ class RegisterPushDevice(
     @IsUser
     @Transactional
     override fun register(command: RegisterPushDeviceCommand): PushDeviceModel {
+        val sessionId = currentUserService.currentSessionId()
         val accountId = currentUserService.currentUser().id
         pushDevicePersistence.lockAccount(accountId)
 
@@ -32,7 +33,7 @@ class RegisterPushDevice(
         )
 
         val now = OffsetDateTime.now(ZoneOffset.UTC)
-        val registered = pushDevicePersistence.create(command.toNewDevice(accountId, now))
+        val registered = pushDevicePersistence.create(command.toNewDevice(accountId, sessionId, now))
         publishDeviceReplacedEvents(currentDevices, command)
         return registered
     }
@@ -47,7 +48,7 @@ class RegisterPushDevice(
             }
     }
 
-    private fun RegisterPushDeviceCommand.toNewDevice(accountId: UUID, now: OffsetDateTime) = PushDeviceModel(
+    private fun RegisterPushDeviceCommand.toNewDevice(accountId: UUID, sessionId: String, now: OffsetDateTime) = PushDeviceModel(
         id = 0L,
         accountId = accountId,
         firebaseInstallationId = firebaseInstallationId,
@@ -55,5 +56,6 @@ class RegisterPushDevice(
         platform = platform,
         registeredAt = now,
         updatedAt = now,
+        sessionId = sessionId,
     )
 }
