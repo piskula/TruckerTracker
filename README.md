@@ -169,9 +169,31 @@ For day-to-day work you'll usually want just one side:
 
 ## Continuous integration
 
-`build-app.yml` (push to `main`) and `release-app.yml` (version tags) build and distribute the
-client — see `app/README.md` for details. `build-server.yml` builds the server on every push to
-`main` — see `server/README.md`.
+| Trigger | Result |
+|---|---|
+| Pull request | Applicable build and static checks; no backend deployment |
+| Push to `main` | Applicable CI, automatic staging backend deployment, mobile debug distribution |
+| Push `server-X.Y.Z` | Checked, versioned server JAR + checksum on GitHub Releases, then production deployment |
+| Push `mobile-X.Y.Z` | Signed mobile release, Firebase distribution, Google Play internal track and TestFlight when configured |
+
+Release tags must point to a commit already on `main`; server and mobile versions advance
+independently. Each release includes component-specific notes and its source commit.
+After merging, tag the desired commit:
+
+```bash
+git fetch origin main --tags
+git tag server-1.2.3 origin/main
+git push origin server-1.2.3
+git tag mobile-1.2.3 origin/main
+git push origin mobile-1.2.3
+```
+
+Push only the component you intend to release. Legacy `vX.Y.Z` tags no longer trigger releases;
+mobile numbering continues from them. Public app-store rollout remains manual.
+See [server setup and deployment](server/README.md#continuous-integration) for required
+`staging` / `production` environments and [mobile releasing](app/README.md#releasing) for signing
+and distribution secrets. Infrastructure and VM scripts live in
+[`piskula/truckTrack-devOps`](https://github.com/piskula/truckTrack-devOps); release workflows live here.
 
 ## AI and agent context
 

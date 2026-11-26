@@ -9,16 +9,58 @@ on:
             - 'shared/**'
             - 'gradle/libs.versions.toml'
             - '.github/workflows/build-server.yml'
+            - '.github/scripts/**'
+        tags:
+            - 'server-*.*.*'
     pull_request:
         paths:
             - 'server/**'
             - 'shared/**'
             - 'gradle/libs.versions.toml'
             - '.github/workflows/build-server.yml'
+            - '.github/scripts/**'
     workflow_dispatch:
 
 jobs:
+    prepare:
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.release.outputs.version-name || steps.development.outputs.version }}
+            commit: ${{ steps.release.outputs.source-commit || steps.development.outputs.commit }}
+
+        steps:
+            -   name: Checkout Repository
+                uses: actions/checkout@v7
+                with:
+                    fetch-depth: 0
+
+            -   name: Check release preparation
+                run: bash .github/scripts/test-prepare-release.sh
+
+            -   name: Prepare server release
+                id: release
+                if: github.ref_type == 'tag'
+                run: bash .github/scripts/prepare-release.sh server
+
+            -   name: Prepare development version
+                id: development
+                if: github.ref_type != 'tag'
+                run: |
+                    commit="$(git rev-parse HEAD)"
+                    echo "version=dev.${GITHUB_RUN_NUMBER}.${commit:0:12}" >> "$GITHUB_OUTPUT"
+                    echo "commit=$commit" >> "$GITHUB_OUTPUT"
+
+            -   name: Upload release notes
+                if: github.ref_type == 'tag'
+                uses: actions/upload-artifact@v7
+                with:
+                    name: server-release-notes
+                    path: release-notes.txt
+                    if-no-files-found: error
+                    retention-days: 7
+
     verify:
+        needs: [ prepare ]
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -53,7 +95,11 @@ jobs:
                     category: server-module-server
 
     build:
+        needs: [ prepare ]
         runs-on: ubuntu-latest
+        env:
+            SERVER_VERSION: ${{ needs.prepare.outputs.version }}
+            SERVER_COMMIT: ${{ needs.prepare.outputs.commit }}
 
         steps:
             -   name: Checkout Repository
@@ -67,7 +113,26 @@ jobs:
 
             -   name: Build with Gradle Wrapper
                 working-directory: server
-                run: ./gradlew clean build
+                run: ./gradlew clean build -PserverVersion="$SERVER_VERSION" -PserverCommit="$SERVER_COMMIT"
+
+            -   name: Verify embedded server version and commit
+                shell: bash
+                run: |
+                    shopt -s nullglob
+                    jars=(server/module-server/build/libs/module-server-*.jar)
+                    boot_jars=()
+                    for jar in "${jars[@]}"; do
+                        if [[ "$jar" != *-plain.jar ]]; then
+                            boot_jars+=("$jar")
+                        fi
+                    done
+                    if [[ ${#boot_jars[@]} -ne 1 ]]; then
+                        echo "::error::Expected exactly one executable backend JAR"
+                        exit 1
+                    fi
+                    unzip -p "${boot_jars[0]}" META-INF/build-info.properties > build-info.properties
+                    grep -Fx "build.version=$SERVER_VERSION" build-info.properties
+                    grep -Fx "build.commit=$SERVER_COMMIT" build-info.properties
 
             -   name: Upload build artifacts
                 uses: actions/upload-artifact@v7
@@ -77,16 +142,34 @@ jobs:
                         server/module-server/build/libs/module-server-*.jar
                         !server/module-server/build/libs/module-server-*-plain.jar
                     retention-days: 7
+                    if-no-files-found: error
 
     deploy:
         needs: [ verify, build ]
         runs-on: ubuntu-latest
+        environment: staging
         if: |
             github.event_name != 'pull_request' &&
             github.ref == 'refs/heads/main' &&
             needs.verify.result == 'success'
 
         steps:
+            -   name: Validate staging deployment secrets
+                shell: bash
+                env:
+                    DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+                    DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+                    DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+                    DEPLOY_HOST_KEY: ${{ secrets.DEPLOY_HOST_KEY }}
+                run: |
+                    set -euo pipefail
+                    for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_HOST_KEY; do
+                        if [[ -z "${!name}" ]]; then
+                            echo "::error::Missing required staging secret: $name"
+                            exit 1
+                        fi
+                    done
+
             -   name: Download build artifact
                 uses: actions/download-artifact@v8
                 with:
@@ -102,7 +185,7 @@ jobs:
                     host: ${{ secrets.DEPLOY_HOST }}
                     username: ${{ secrets.DEPLOY_USER }}
                     key: ${{ secrets.DEPLOY_SSH_KEY }}
-                    host_key: ${{ secrets.DEPLOY_HOST_KEY }}
+                    fingerprint: ${{ secrets.DEPLOY_HOST_KEY }}
                     source: module-server-new.jar
                     target: ~/module-server-tt/
 
@@ -112,7 +195,7 @@ jobs:
                     host: ${{ secrets.DEPLOY_HOST }}
                     username: ${{ secrets.DEPLOY_USER }}
                     key: ${{ secrets.DEPLOY_SSH_KEY }}
-                    host_key: ${{ secrets.DEPLOY_HOST_KEY }}
+                    fingerprint: ${{ secrets.DEPLOY_HOST_KEY }}
                     script: |
                         rm -f ~/module-server-tt/module-server.jar.bak
                         systemctl stop trucker-service.service
@@ -120,6 +203,153 @@ jobs:
                         mv ~/module-server-tt/module-server-new.jar ~/module-server-tt/module-server.jar
                         mv ~/module-server-tt/server.log ~/module-server-tt/server-$(date +%Y%m%d-%H%M%S).log 2>/dev/null || true
                         systemctl start trucker-service.service
+
+    publish-release:
+        needs: [ prepare, verify, build ]
+        runs-on: ubuntu-latest
+        if: github.event_name == 'push' && github.ref_type == 'tag' && startsWith(github.ref_name, 'server-')
+        permissions:
+            contents: write
+        env:
+            SERVER_VERSION: ${{ needs.prepare.outputs.version }}
+            GH_TOKEN: ${{ github.token }}
+            GH_REPO: ${{ github.repository }}
+
+        steps:
+            -   name: Download checked build artifact
+                uses: actions/download-artifact@v8
+                with:
+                    name: module-server-jar
+                    path: ./artifact
+
+            -   name: Download release notes
+                uses: actions/download-artifact@v8
+                with:
+                    name: server-release-notes
+
+            -   name: Publish versioned server JAR and checksum
+                shell: bash
+                run: |
+                    shopt -s nullglob
+                    jars=(./artifact/module-server-*.jar)
+                    if [[ ${#jars[@]} -ne 1 ]]; then
+                        echo "::error::Expected exactly one backend JAR"
+                        exit 1
+                    fi
+                    release_jar="trucktrack-server-${SERVER_VERSION}.jar"
+                    mv "${jars[0]}" "$release_jar"
+                    sha256sum "$release_jar" > "$release_jar.sha256"
+                    gh release create "$GITHUB_REF_NAME" "$release_jar" "$release_jar.sha256" \
+                        --verify-tag --latest=false --title "$GITHUB_REF_NAME" --notes-file release-notes.txt
+
+    deploy-production:
+        needs: [ prepare, verify, build, publish-release ]
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        if: |
+            github.event_name == 'push' &&
+            github.ref_type == 'tag' &&
+            startsWith(github.ref_name, 'server-')
+        permissions:
+            contents: read
+        environment: production
+        concurrency:
+            group: backend-production
+            cancel-in-progress: false
+
+        steps:
+            -   name: Download checked build artifact
+                uses: actions/download-artifact@v8
+                with:
+                    name: module-server-jar
+                    path: ./artifact
+
+            -   name: Deploy production and verify health
+                shell: bash
+                env:
+                    SERVER_VERSION: ${{ needs.prepare.outputs.version }}
+                    PROD_HOST: ${{ secrets.PROD_HOST }}
+                    PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+                    PROD_SSH_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+                run: |
+                    set -euo pipefail
+
+                    for name in PROD_HOST PROD_SSH_KEY PROD_SSH_KNOWN_HOSTS; do
+                        if [[ -z "${!name}" ]]; then
+                            echo "::error::Missing required production secret: $name"
+                            exit 1
+                        fi
+                    done
+
+                    shopt -s nullglob
+                    jars=(./artifact/module-server-*.jar)
+                    if [[ ${#jars[@]} -ne 1 ]]; then
+                        echo "::error::Expected exactly one backend JAR"
+                        exit 1
+                    fi
+
+                    umask 077
+                    ssh_dir="$(mktemp -d)"
+                    trap 'rm -f "$ssh_dir/key" "$ssh_dir/known_hosts" "$ssh_dir/ssh.log"; rmdir "$ssh_dir"' EXIT
+                    printf '%s\n' "$PROD_SSH_KEY" > "$ssh_dir/key"
+                    printf '%s\n' "$PROD_SSH_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
+                    ssh_options=(
+                        -i "$ssh_dir/key"
+                        -o BatchMode=yes
+                        -o IdentitiesOnly=yes
+                        -o StrictHostKeyChecking=yes
+                        -o "UserKnownHostsFile=$ssh_dir/known_hosts"
+                        -o ConnectTimeout=15
+                        -o ServerAliveInterval=15
+                        -o ServerAliveCountMax=3
+                    )
+
+                    if ! ssh "${ssh_options[@]}" "deploy@$PROD_HOST" \
+                        'test -x /opt/trucktrack/scripts/deploy-app.sh &&
+                         test -w /opt/trucktrack/app &&
+                         command -v curl >/dev/null &&
+                         command -v jq >/dev/null &&
+                         command -v sha256sum >/dev/null &&
+                         sudo -n -l /bin/systemctl restart trucktrack >/dev/null' \
+                        > "$ssh_dir/ssh.log" 2>&1; then
+                        echo "::error::Production preflight failed. Check SSH credentials, pinned host keys, deployment script, tools and sudo permissions privately."
+                        exit 1
+                    fi
+
+                    remote_jar="/opt/trucktrack/app/.incoming-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.jar"
+                    checksum="$(sha256sum "${jars[0]}" | cut -d ' ' -f 1)"
+                    if ! scp "${ssh_options[@]}" "${jars[0]}" "deploy@[$PROD_HOST]:$remote_jar" \
+                        > "$ssh_dir/ssh.log" 2>&1; then
+                        echo "::error::Production artifact upload failed."
+                        exit 1
+                    fi
+
+                    if ! ssh "${ssh_options[@]}" "deploy@$PROD_HOST" \
+                        "bash -s -- '$remote_jar' '$checksum' '$SERVER_VERSION'" > "$ssh_dir/ssh.log" 2>&1 <<'DEPLOY'
+                    set -euo pipefail
+                    new_jar="$1"
+                    expected_checksum="$2"
+                    expected_version="$3"
+                    trap 'rm -f "$new_jar"' EXIT
+                    printf '%s  %s\n' "$expected_checksum" "$new_jar" | sha256sum --check --status
+                    /opt/trucktrack/scripts/deploy-app.sh "$new_jar"
+                    for attempt in $(seq 1 30); do
+                        if systemctl is-active --quiet trucktrack &&
+                            curl -fs --max-time 5 http://127.0.0.1:8080/actuator/health |
+                            jq -e '.status == "UP"' >/dev/null 2>&1 &&
+                            curl -fs --max-time 5 http://127.0.0.1:8080/api/v1/version |
+                            jq -e --arg version "$expected_version" '.version == $version' >/dev/null 2>&1; then
+                            exit 0
+                        fi
+                        sleep 2
+                    done
+                    exit 1
+                    DEPLOY
+                    then
+                        echo "::error::Production deployment or health verification failed. Inspect the VM privately; do not retry before checking service and database state."
+                        exit 1
+                    fi
+                    echo "Production deployment is healthy."
 
     dependency-submission:
         runs-on: ubuntu-latest

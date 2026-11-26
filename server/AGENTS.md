@@ -9,7 +9,7 @@ Spring Boot backend for the TruckTrack issue-tracking system. Own Gradle build (
 ./gradlew clean build
 
 # Run locally (after build)
-java -jar module-server/build/libs/module-server-*-SNAPSHOT.jar
+java -jar module-server/build/libs/module-server-dev.jar
 
 # Start local PostgreSQL
 docker-compose up -d

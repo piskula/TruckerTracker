@@ -27,7 +27,11 @@ configure<DependencyManagementExtension> {
 }
 
 springBoot {
-    buildInfo()
+    buildInfo {
+        properties {
+            additional = mapOf("commit" to providers.gradleProperty("serverCommit").orElse("local").get())
+        }
+    }
 }
 
 tasks.withType<Test> {
