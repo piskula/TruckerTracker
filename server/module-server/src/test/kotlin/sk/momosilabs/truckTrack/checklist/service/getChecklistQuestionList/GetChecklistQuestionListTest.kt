@@ -3,13 +3,17 @@ package sk.momosilabs.truckTrack.checklist.service.getChecklistQuestionList
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import sk.momosilabs.truckTrack.checklist.entity.ChecklistReminderStage
 import sk.momosilabs.truckTrack.checklist.model.ChecklistQuestionModel
+import sk.momosilabs.truckTrack.checklist.model.ChecklistReminderModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseModel
 import sk.momosilabs.truckTrack.checklist.service.ChecklistPersistence
 import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
 import tools.jackson.databind.ObjectMapper
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 class GetChecklistQuestionListTest {
 
@@ -106,7 +110,12 @@ class GetChecklistQuestionListTest {
 
     private class FakeChecklistPersistence(private val questions: List<ChecklistQuestionModel>) : ChecklistPersistence {
         override fun findAllQuestions(): List<ChecklistQuestionModel> = questions
+        override fun lockAccount(accountId: UUID) = throw UnsupportedOperationException()
+        override fun existsResponse(answeredById: UUID, periodStartDate: LocalDate): Boolean = throw UnsupportedOperationException()
         override fun createResponse(model: ChecklistResponseModel): ChecklistResponseModel = throw UnsupportedOperationException()
+        override fun findDriverIdsDueForReminder(periodStartDate: LocalDate, stage: ChecklistReminderStage): List<UUID> =
+            throw UnsupportedOperationException()
+        override fun createReminder(model: ChecklistReminderModel): ChecklistReminderModel = throw UnsupportedOperationException()
     }
 
     private companion object {

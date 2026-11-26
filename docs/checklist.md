@@ -2,12 +2,22 @@
 
 ## What the checklist is
 
-Drivers regularly answer a fixed set of questions for one truck and one trailer. The server is the durable record of those answers. Periodicity and dueness are deliberately not the server's concern — the server only logs submissions. Deciding when a checklist is due is a product decision kept outside the backend.
+Drivers answer a fixed set of questions for one truck and one trailer once per week. The server is the durable record of those answers, accepts at most one response per user per week, and reminds drivers who haven't filled it in yet.
+
+## Weekly period and reminders
+
+- **Period**: the calendar week Monday–Sunday in `Europe/Bratislava`. On submit the server stamps `checklist_response.period_start_date` with that week's Monday (`ChecklistPeriod.startDateOf`); the client never sends it. Rows submitted before this column existed keep `NULL` and are not backfilled.
+- **One per week**: a second submit by the same user in the same week is rejected with `409` and the message "Už ste to tento týždeň vyplnili.". The use case locks the account row before checking, and the unique constraint `uk_checklist_response_answered_by_period (answered_by_id, period_start_date)` backs it up.
+- **Who is reminded**: accounts with `account.role = DRIVER` that have no response for the current week. The role is stored from the verified JWT's realm roles whenever the account is synced (`CurrentUserService.currentUser()` — every login's push-device registration, every issue action and every checklist submit). Accounts that existed before the column was added get their role on their next such request; until then they are not reminded.
+- **When**: `ChecklistReminderScheduler` runs Monday 08:00 (`WEEK_START`, a nudge) and Wednesday 08:00 (`TWO_DAYS_LEFT`) `Europe/Bratislava`, only when `app.checklist-reminder.enabled` (`CHECKLIST_REMINDER_ENABLED`) is `true`. A run missed while the server is down is not caught up.
+- **At most one push per driver per stage and week**: `sendChecklistReminder` writes one `checklist_reminder` row (`account_id`, `period_start_date`, `stage`, `sent_at_utc`, unique on the first three) per due driver and skips drivers that already have one, so a restart or a repeated run never sends twice. Filling the checklist at any time silences the remaining reminders of that week.
+- **Sending**: after the transaction commits, `ChecklistReminderDueListener` sends a `CHECKLIST_REMINDER` push through `PushNotificationService.sendToAccount` with `deepLink` `https://transroute.org/checklist`, which opens the checklist screen. Drivers without a registered push device are skipped silently; their reminder row is still written. The Slovak texts are `push.checklist-reminder.*` in `messages.properties`.
 
 ## Model
 
 - **checklist_question**: bigint identity `id`; a unique short string identifier, which is the contract between questions and responses; `text` as a jsonb map of language to text; a `position` int for stable ordering; `created_at_utc`.
-- **checklist_response**: bigint identity `id`; foreign keys `truck` and `trailer` to `vehicle(id)`, both required and their vehicle types verified on submit; `answered_by` to `account(id)`; `answered_at_utc`; `answers` as one jsonb document.
+- **checklist_response**: bigint identity `id`; foreign keys `truck` and `trailer` to `vehicle(id)`, both required and their vehicle types verified on submit; `answered_by` to `account(id)`; `answered_at_utc`; nullable `period_start_date` (unique together with `answered_by_id`); `answers` as one jsonb document.
+- **checklist_reminder**: bigint identity `id`; `account_id` to `account(id)`; `period_start_date`; `stage` (`WEEK_START`, `TWO_DAYS_LEFT`); `sent_at_utc`; unique `(account_id, period_start_date, stage)`.
 - **Indexes**: composite btrees on `(truck_id, answered_at_utc)`, `(trailer_id, answered_at_utc)` and `(answered_by_id, answered_at_utc)` for later search, plus a GIN `jsonb_path_ops` index on `answers` for content search.
 
 Seeded questions occupy positions 1-8 and are currently Slovak only:
@@ -60,6 +70,7 @@ Validation behaves as follows:
 - **Answer identifiers**: must exactly equal the current set of question identifiers, otherwise 422 listing the missing and unknown identifiers. The message is sanitized: single-line, truncated, at most 10 identifiers plus "(+N more)".
 - **Unknown truck or trailer id**: 404.
 - **Wrong vehicle type**: 422 when the truck is not a TRUCK or the trailer is not a TRAILER.
+- **Already submitted this week**: 409, checked before the answers are validated.
 - **answeredBy**: always taken from the JWT subject, never from the request.
 
 ## Multi-language
@@ -76,9 +87,10 @@ Drivers open the checklist from the Checklist button stacked above the + button 
 
 - **Question CRUD**: not implemented. Questions are currently immutable, seeded by migration only. The history safety described above is already designed in for when editing arrives.
 - **Vehicle ownership gap**: vehicles are fleet-global, so any authenticated driver or mechanic can submit a checklist against any truck and trailer pair. Binding submissions to assigned vehicles is a pending product decision.
-- **No schedule or dueness**: submissions are log-only. Frequency logic is a future concern.
+- **No driver↔truck assignment or per-driver timezones**: every driver is reminded on the same Bratislava schedule, regardless of vehicle.
+- **"Thanks for being on time" feedback**: a possible later addition to the submit response; no design yet.
 - **No read endpoints for responses yet**: by design for now. The database indexes exist for the future search surface.
-- **Migration**: the Liquibase changeset should be applied once against a fresh database to verify it before deploy.
+- **Migration**: the Liquibase changesets should be applied once against a fresh database to verify them before deploy.
 
 ## Implementation pointers
 
@@ -87,4 +99,4 @@ Drivers open the checklist from the Checklist button stacked above the + button 
 - DTO mirrors: `shared/src/commonMain/kotlin/com/momosi/trucktrack/shared/checklist/`
 - Client domain: `app/core/checklist/`
 - Client UI: `app/feature/checklist/`
-- Migration: `../server/module-server/src/main/resources/db/changelog/2026/11/11-23-checklist.yaml` (the `2026/11` folder nesting is real; some tools display the path flattened)
+- Migrations: `../server/module-server/src/main/resources/db/changelog/2026/11/11-23-checklist.yaml` and `11-26-checklist-reminder.yaml` (the `2026/11` folder nesting is real; some tools display the path flattened)

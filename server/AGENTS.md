@@ -41,6 +41,8 @@ docker-compose up -d
 - `KEYCLOAK_REALM` — defaults to `trucktrack`
 - `FIREBASE_CREDENTIALS_BASE64` — optional, Base64-encoded Firebase service account JSON. Without it the app
   starts normally but push notifications are disabled (logged as a warning). Never commit or log it.
+- `CHECKLIST_REMINDER_ENABLED` — defaults to `false`. Set to `true` in production to run the weekly checklist
+  reminder job (Mon + Wed 08:00 Europe/Bratislava, see `../docs/checklist.md`).
 
 ## Production Runtime
 

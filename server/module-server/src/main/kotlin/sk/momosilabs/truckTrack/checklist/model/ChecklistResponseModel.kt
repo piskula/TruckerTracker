@@ -1,5 +1,6 @@
 package sk.momosilabs.truckTrack.checklist.model
 
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -9,6 +10,7 @@ data class ChecklistResponseModel(
     val trailerId: Long,
     val answeredById: UUID,
     val answeredAt: OffsetDateTime,
+    val periodStartDate: LocalDate?,
     val answers: ChecklistResponseAnswers,
 )
 

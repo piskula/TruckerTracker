@@ -1,6 +1,8 @@
 package sk.momosilabs.truckTrack.account.entity
 
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.validation.constraints.NotNull
 import java.util.UUID
@@ -19,5 +21,8 @@ class AccountEntity(
 
     @field:NotNull
     var lastName: String,
+
+    @Enumerated(EnumType.STRING)
+    var role: AccountRole? = null,
 
 )

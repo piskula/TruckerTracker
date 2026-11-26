@@ -4,5 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class PushMessageTypeDto {
-    DEVICE_UNREGISTERED
+    DEVICE_UNREGISTERED,
+    CHECKLIST_REMINDER,
 }

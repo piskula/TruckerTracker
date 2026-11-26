@@ -2,8 +2,10 @@ package sk.momosilabs.truckTrack.checklist.persistence.mapper
 
 import sk.momosilabs.truckTrack.account.entity.AccountEntity
 import sk.momosilabs.truckTrack.checklist.entity.ChecklistQuestionEntity
+import sk.momosilabs.truckTrack.checklist.entity.ChecklistReminderEntity
 import sk.momosilabs.truckTrack.checklist.entity.ChecklistResponseEntity
 import sk.momosilabs.truckTrack.checklist.model.ChecklistQuestionModel
+import sk.momosilabs.truckTrack.checklist.model.ChecklistReminderModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseAnswers
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseModel
 import sk.momosilabs.truckTrack.util.toUtcLocalDateTime
@@ -26,6 +28,7 @@ fun ChecklistResponseEntity.toModel(objectMapper: ObjectMapper) = ChecklistRespo
     trailerId = trailer.id,
     answeredById = answeredBy.id,
     answeredAt = answeredAtUtc.toUtcOffsetDateTime(),
+    periodStartDate = periodStartDate,
     answers = objectMapper.readValue(answers, ChecklistResponseAnswers::class.java),
 )
 
@@ -39,5 +42,21 @@ fun ChecklistResponseModel.asNewEntity(
     trailer = trailerResolver(trailerId),
     answeredBy = userResolver(answeredById),
     answeredAtUtc = answeredAt.toUtcLocalDateTime(),
+    periodStartDate = periodStartDate,
     answers = objectMapper.writeValueAsString(answers),
+)
+
+fun ChecklistReminderModel.asNewEntity(accountResolver: (UUID) -> AccountEntity) = ChecklistReminderEntity(
+    account = accountResolver(accountId),
+    periodStartDate = periodStartDate,
+    stage = stage,
+    sentAtUtc = sentAt.toUtcLocalDateTime(),
+)
+
+fun ChecklistReminderEntity.toModel() = ChecklistReminderModel(
+    id = id,
+    accountId = account.id,
+    periodStartDate = periodStartDate,
+    stage = stage,
+    sentAt = sentAtUtc.toUtcOffsetDateTime(),
 )

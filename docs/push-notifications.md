@@ -26,9 +26,10 @@ How TruckTrack delivers push notifications from the backend to the Android and i
   deprecated registration token).
 - **Notification text is generic** and always in Slovak — the backend renders it from
   `messages.properties`, the app sends no language. A stray notification on a shared device reveals
-  almost nothing. Today the only push is the move notice ("Upozornenia boli presunuté" /
-  "Upozornenia z TruckTrack teraz prichádzajú na zariadenie {0}."); future pushes should stay as
-  vague, e.g. "Máte pridelenú novú požiadavku".
+  almost nothing. Today there are two pushes: the move notice ("Upozornenia boli presunuté" /
+  "Upozornenia z TruckTrack teraz prichádzajú na zariadenie {0}.") and the weekly checklist
+  reminder (see `checklist.md`); future pushes should stay as vague, e.g. "Máte pridelenú novú
+  požiadavku".
 
 ## Overview
 
@@ -233,22 +234,22 @@ with a `data` block:
 
 | Key | Value |
 |---|---|
-| `type` | A `PushMessageTypeDto` name, e.g. `DEVICE_UNREGISTERED` |
+| `type` | A `PushMessageTypeDto` name: `DEVICE_UNREGISTERED` or `CHECKLIST_REMINDER` |
 | `deviceName` | `DEVICE_UNREGISTERED` only: the device that took over |
-| `deepLink` | Optional HTTPS app link to open when the notification is tapped, e.g. `https://transroute.org/checklist` |
+| `deepLink` | Optional HTTPS app link to open when the notification is tapped, e.g. `https://transroute.org/checklist` (sent by `CHECKLIST_REMINDER`) |
 
 Android messages use the notification channel `trucktrack_notifications`; the app creates that
 channel at startup and declares it as FCM's default channel.
 
 Notification-tap navigation depends on `deepLink`, not on `type`, so new message types can reuse
-existing app-link destinations without a dedicated navigation handler. For example, a checklist
-reminder can use:
+existing app-link destinations without a dedicated navigation handler. The checklist reminder
+(Monday stage) is sent as:
 
 ```json
 {
   "notification": {
-    "title": "Kontrola vozidla",
-    "body": "Nezabudnite vykonať kontrolu vozidla."
+    "title": "Týždenná kontrola vozidla",
+    "body": "Nezabudnite tento týždeň vyplniť kontrolu vozidla."
   },
   "data": {
     "type": "CHECKLIST_REMINDER",
@@ -257,9 +258,8 @@ reminder can use:
 }
 ```
 
-`CHECKLIST_REMINDER` is a proposed backend message type; its scheduling and shared enum addition
-are separate from mobile tap routing. The client can already route its `deepLink` even when
-`type` is unrecognized. Send `deepLink` as a string in FCM's `data` block, not in
+The backend schedules `CHECKLIST_REMINDER` (see `checklist.md`); the client has no handler for it,
+so it parses as unrecognized and only its `deepLink` matters. Send `deepLink` as a string in FCM's `data` block, not in
 `notification`, and leave Android `click_action` unset so background notifications open the
 launcher activity. No browser or external URL opener is used: `AppLinksManager` validates the
 existing host/path allowlist, discards links while signed out, and queues accepted links until
