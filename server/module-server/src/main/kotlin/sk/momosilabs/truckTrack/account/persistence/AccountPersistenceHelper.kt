@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import sk.momosilabs.truckTrack.account.entity.AccountEntity
 import sk.momosilabs.truckTrack.account.entity.AccountRole
 import sk.momosilabs.truckTrack.account.model.AccountModel
+import sk.momosilabs.truckTrack.account.persistence.mapper.toModel
 import sk.momosilabs.truckTrack.account.persistence.repository.AccountRepository
 import kotlin.jvm.optionals.getOrNull
 
@@ -28,10 +29,7 @@ class AccountPersistenceHelper(
                 lastName = account.lastName,
                 role = role,
             ))
-        } else if (entity.username != account.username ||
-                   entity.firstName != account.firstName ||
-                   entity.lastName != account.lastName ||
-                   entity.role != role) {
+        } else if (entity.toModel() != account || entity.role != role) {
             entity.username = account.username
             entity.firstName = account.firstName
             entity.lastName = account.lastName
