@@ -11,4 +11,8 @@ sealed class ApiException(message: String? = null, cause: Throwable? = null) : E
 
 fun ApiException.isNotFound(): Boolean = this is ApiException.HttpError && statusCode == HTTP_NOT_FOUND_STATUS_CODE
 
+fun ApiException.isConflict(): Boolean = this is ApiException.HttpError && statusCode == HTTP_CONFLICT_STATUS_CODE
+
 private const val HTTP_NOT_FOUND_STATUS_CODE = 404
+
+private const val HTTP_CONFLICT_STATUS_CODE = 409

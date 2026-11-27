@@ -10,14 +10,18 @@ The vehicle checklist screen: a driver or mechanic picks a truck and a trailer, 
 | `CheckRow.kt` | One compact question row: question number and server text (`bodyMedium`) on the left, a ? / ? segmented toggle on the right (48 dp tall segments, radio semantics, spoken labels "Problem"/"OK"). Rows are grouped into one card via `itemsPositioned` (rounded ends, dividers between rows). After a failed submit an unanswered row turns `errorContainer` and shows a short hint |
 | `ChecklistSubmitBar.kt` | Sticky bottom bar: "x of y checked", problem count, a progress bar that turns positive when complete, the Submit button and the submit failure message |
 | `ChecklistSubmittedContent.kt` | Confirmation shown after a successful submit: plates, submit time (`DateFormatter`), "No problems found" or the plural problem count, and Done |
-| `ChecklistViewModel.kt` | Loads questions (`ChecklistRepository`) and vehicles (`VehicleRepository`) in parallel and preselects the remembered truck and trailer. Validates and submits (`true` for OK). On success records both vehicles with `recordVehicleUsage`. Submit failures are mapped to a `FailureReason` and shown under the Submit button; answers are kept. `RequestClose` opens the discard dialog only when unsubmitted answers exist |
-| `ChecklistState.kt` | `ChecklistState` (separate flows for content, selected truck/trailer, expanded picker, answers keyed by identifier, submit status, discard dialog) plus `ChecklistContent` (`Loading`/`Error(FailureReason)`/`Loaded(questions, trucks, trailers)`), `CheckResult`, `ChecklistSubmitStatus` (`Idle`/`ValidationError`/`InProgress`/`Failed(FailureReason)`/`Submitted(summary)`) and `ChecklistSummary` |
+| `ChecklistViewModel.kt` | Loads questions (`ChecklistRepository`) and vehicles (`VehicleRepository`) in parallel and preselects the remembered truck and trailer. Validates and submits (`true` for OK). On success records both vehicles with `recordVehicleUsage`. Submit failures are mapped to a `FailureReason` and shown under the Submit button; answers are kept. A `409` (the server's "already filled this week" rule) becomes `AlreadySubmittedThisWeek` instead, with its own message and no retry hint. `RequestClose` opens the discard dialog only when unsubmitted answers exist |
+| `ChecklistState.kt` | `ChecklistState` (separate flows for content, selected truck/trailer, expanded picker, answers keyed by identifier, submit status, discard dialog) plus `ChecklistContent` (`Loading`/`Error(FailureReason)`/`Loaded(questions, trucks, trailers)`), `CheckResult`, `ChecklistSubmitStatus` (`Idle`/`ValidationError`/`InProgress`/`Failed(FailureReason)`/`AlreadySubmittedThisWeek`/`Submitted(summary)`) and `ChecklistSummary` |
 | `ChecklistAction.kt` | `Retry`, `TogglePicker`, `SelectVehicle`, `Answer`, `Submit`, `RequestClose`, `ConfirmDiscard`, `DismissDiscard` |
 | `ChecklistEvent.kt` | `Close`, `ScrollToMissing(MissingTarget)` (`Vehicles` or `Check(questionIndex)`), sent on every failed validation so repeated Submit taps scroll again |
 | `navigation/ChecklistEntryProvider.kt` | Registers `ChecklistNavKey` with the bottom-sheet-style entry transition |
 | `di/ChecklistFeatureModule.kt` | `checklistFeatureModule` with the ViewModel. Named to avoid clashing with `:core:checklist`'s `checklistModule` |
 
 Entry point: the Checklist button stacked above the + button on the Issues screen, shown to drivers only.
+
+## Tests
+
+`src/commonTest` — `ChecklistViewModelTest`: a `409` submit failure shows `AlreadySubmittedThisWeek`, other failures stay a retryable `Failed`. Run `.\gradlew.bat :feature:checklist:impl:testAndroidHostTest` from `app/`.
 
 ## Package
 

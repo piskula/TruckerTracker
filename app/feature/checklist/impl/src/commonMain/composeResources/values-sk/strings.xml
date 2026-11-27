@@ -19,6 +19,7 @@
     <string name="checklist_error_load">Kontrolu sa nepodarilo načítať.</string>
     <string name="checklist_error_submit_no_connection">Žiadne internetové pripojenie. Odpovede ostávajú uložené, skúste to znova po pripojení.</string>
     <string name="checklist_error_submit_other">Kontrolu sa nepodarilo odoslať. Odpovede ostávajú uložené, skúste to znova.</string>
+    <string name="checklist_error_submit_already_submitted">Kontrolu vozidla ste tento týždeň už vyplnili. Ďalšiu môžete vyplniť od pondelka.</string>
     <string name="checklist_discard_title">Zahodiť kontrolu?</string>
     <string name="checklist_discard_message">Odpovede ešte neboli odoslané a stratia sa.</string>
     <string name="checklist_discard_confirm">Zahodiť</string>

@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.trucktrack.feature.impl)
+    alias(libs.plugins.trucktrack.test)
 }
 
 compose.resources {

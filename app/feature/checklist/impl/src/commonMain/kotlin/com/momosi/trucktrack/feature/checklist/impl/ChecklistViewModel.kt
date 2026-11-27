@@ -9,6 +9,8 @@ import com.momosi.trucktrack.core.checklist.model.ChecklistResponse
 import com.momosi.trucktrack.core.checklist.model.ChecklistSubmission
 import com.momosi.trucktrack.core.common.coroutines.combine
 import com.momosi.trucktrack.core.common.logger.Logger
+import com.momosi.trucktrack.core.common.network.ApiException
+import com.momosi.trucktrack.core.common.network.isConflict
 import com.momosi.trucktrack.core.common.network.toFailureReason
 import com.momosi.trucktrack.core.uilibrary.vehicle.toVehiclesContent
 import com.momosi.trucktrack.core.vehicle.VehicleRepository
@@ -147,7 +149,7 @@ class ChecklistViewModel(private val checklistRepository: ChecklistRepository, p
                     vehicleRepository.recordVehicleUsage(trailer)
                     submitStatus.value = ChecklistSubmitStatus.Submitted(response.toSummary())
                 }
-                .onFailure { cause -> submitStatus.value = ChecklistSubmitStatus.Failed(cause.toFailureReason()) }
+                .onFailure { cause -> submitStatus.value = cause.toSubmitFailureStatus() }
         }
     }
 
@@ -167,6 +169,12 @@ class ChecklistViewModel(private val checklistRepository: ChecklistRepository, p
 }
 
 private fun List<ChecklistQuestion>.toQuestionItems() = map { ChecklistQuestionItem(identifier = it.identifier, text = it.text) }.toImmutableList()
+
+private fun Throwable.toSubmitFailureStatus(): ChecklistSubmitStatus = if (this is ApiException && isConflict()) {
+    ChecklistSubmitStatus.AlreadySubmittedThisWeek
+} else {
+    ChecklistSubmitStatus.Failed(toFailureReason())
+}
 
 private fun ChecklistResponse.toSummary() = ChecklistSummary(
     truckPlate = truck.licensePlate,

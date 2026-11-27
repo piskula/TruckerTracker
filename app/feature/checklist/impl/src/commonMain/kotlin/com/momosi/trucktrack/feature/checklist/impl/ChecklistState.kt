@@ -53,6 +53,7 @@ sealed interface ChecklistSubmitStatus {
     data object ValidationError : ChecklistSubmitStatus
     data object InProgress : ChecklistSubmitStatus
     data class Failed(val reason: FailureReason) : ChecklistSubmitStatus
+    data object AlreadySubmittedThisWeek : ChecklistSubmitStatus
     data class Submitted(val summary: ChecklistSummary) : ChecklistSubmitStatus
 }
 
