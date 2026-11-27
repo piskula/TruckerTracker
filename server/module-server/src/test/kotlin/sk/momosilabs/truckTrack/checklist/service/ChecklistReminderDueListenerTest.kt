@@ -31,6 +31,7 @@ class ChecklistReminderDueListenerTest {
         assertThat(sent.map { it.second.title.key to it.second.body.key }).containsExactly(
             "push.checklist-reminder.week-start.title" to "push.checklist-reminder.week-start.body",
             "push.checklist-reminder.two-days-left.title" to "push.checklist-reminder.two-days-left.body",
+            "push.checklist-reminder.daily.title" to "push.checklist-reminder.daily.body",
         )
     }
 

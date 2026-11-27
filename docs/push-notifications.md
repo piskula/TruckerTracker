@@ -392,7 +392,8 @@ same Firebase project, so one key serves both servers.
 
 The variable takes effect on the next restart or deploy.
 
-`CHECKLIST_REMINDER_ENABLED` switches the weekly checklist reminder job (see `checklist.md`). It
+`CHECKLIST_REMINDER_ENABLED` switches the checklist reminder job (temporarily daily for testing;
+see `checklist.md`). It
 defaults to `true`, so both servers remind drivers without any setup. To stop reminders on one
 server, set it to `false`:
 

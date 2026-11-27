@@ -4,9 +4,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.context.ApplicationEventPublisher
 import sk.momosilabs.truckTrack.checklist.entity.ChecklistReminderStage
+import sk.momosilabs.truckTrack.checklist.model.DailyChecklistPeriod
 import sk.momosilabs.truckTrack.checklist.model.ChecklistQuestionModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistReminderModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseModel
+import sk.momosilabs.truckTrack.checklist.model.WeeklyChecklistPeriod
 import sk.momosilabs.truckTrack.checklist.service.ChecklistPersistence
 import sk.momosilabs.truckTrack.checklist.service.ChecklistReminderDueEvent
 import java.time.Clock
@@ -25,7 +27,8 @@ class SendChecklistReminderTest {
     fun `every due driver gets one logged reminder for the current week and stage, published for sending after commit`() {
         val persistence = FakeChecklistPersistence(dueDriverIds = listOf(FIRST_DRIVER_ID, SECOND_DRIVER_ID))
 
-        val reminded = SendChecklistReminder(persistence, eventPublisher, WEDNESDAY_MORNING).send(ChecklistReminderStage.TWO_DAYS_LEFT)
+        val reminded = SendChecklistReminder(persistence, eventPublisher, WEDNESDAY_MORNING, WeeklyChecklistPeriod)
+            .send(ChecklistReminderStage.TWO_DAYS_LEFT)
 
         assertThat(reminded).isEqualTo(2)
         assertThat(persistence.queries).containsExactly(LocalDate.of(2026, 11, 23) to ChecklistReminderStage.TWO_DAYS_LEFT)
@@ -43,11 +46,39 @@ class SendChecklistReminderTest {
     fun `no due driver logs and publishes nothing`() {
         val persistence = FakeChecklistPersistence(dueDriverIds = emptyList())
 
-        val reminded = SendChecklistReminder(persistence, eventPublisher, WEDNESDAY_MORNING).send(ChecklistReminderStage.WEEK_START)
+        val reminded = SendChecklistReminder(persistence, eventPublisher, WEDNESDAY_MORNING, WeeklyChecklistPeriod)
+            .send(ChecklistReminderStage.WEEK_START)
 
         assertThat(reminded).isZero()
         assertThat(persistence.createdReminders).isEmpty()
         assertThat(publishedEvents).isEmpty()
+    }
+
+    @Test
+    fun `daily reminders skip completed drivers, deduplicate today and remind again tomorrow`() {
+        val today = LocalDate.of(2026, 11, 25)
+        val persistence = FakeChecklistPersistence(
+            dueDriverIds = listOf(FIRST_DRIVER_ID, SECOND_DRIVER_ID),
+            completedPeriods = setOf(SECOND_DRIVER_ID to today, FIRST_DRIVER_ID to today.minusDays(1)),
+        )
+        val todayUseCase = SendChecklistReminder(persistence, eventPublisher, WEDNESDAY_MORNING, DailyChecklistPeriod)
+        val tomorrowUseCase = SendChecklistReminder(
+            persistence, eventPublisher, Clock.offset(WEDNESDAY_MORNING, java.time.Duration.ofDays(1)), DailyChecklistPeriod,
+        )
+
+        assertThat(todayUseCase.send(ChecklistReminderStage.DAILY)).isEqualTo(1)
+        assertThat(todayUseCase.send(ChecklistReminderStage.DAILY)).isZero()
+        assertThat(tomorrowUseCase.send(ChecklistReminderStage.DAILY)).isEqualTo(2)
+        assertThat(persistence.createdReminders.map { it.accountId to it.periodStartDate }).containsExactly(
+            FIRST_DRIVER_ID to today,
+            FIRST_DRIVER_ID to today.plusDays(1),
+            SECOND_DRIVER_ID to today.plusDays(1),
+        )
+        assertThat(publishedEvents).containsExactly(
+            ChecklistReminderDueEvent(accountId = FIRST_DRIVER_ID, stage = ChecklistReminderStage.DAILY),
+            ChecklistReminderDueEvent(accountId = FIRST_DRIVER_ID, stage = ChecklistReminderStage.DAILY),
+            ChecklistReminderDueEvent(accountId = SECOND_DRIVER_ID, stage = ChecklistReminderStage.DAILY),
+        )
     }
 
     private fun reminder(accountId: UUID) = ChecklistReminderModel(
@@ -57,12 +88,20 @@ class SendChecklistReminderTest {
         sentAt = OffsetDateTime.now(WEDNESDAY_MORNING),
     )
 
-    private class FakeChecklistPersistence(private val dueDriverIds: List<UUID>) : ChecklistPersistence {
+    private class FakeChecklistPersistence(
+        private val dueDriverIds: List<UUID>,
+        private val completedPeriods: Set<Pair<UUID, LocalDate>> = emptySet(),
+    ) : ChecklistPersistence {
         val queries = mutableListOf<Pair<LocalDate, ChecklistReminderStage>>()
         val createdReminders = mutableListOf<ChecklistReminderModel>()
 
-        override fun findDriverIdsDueForReminder(periodStartDate: LocalDate, stage: ChecklistReminderStage): List<UUID> =
-            dueDriverIds.also { queries += periodStartDate to stage }
+        override fun findDriverIdsDueForReminder(periodStartDate: LocalDate, stage: ChecklistReminderStage): List<UUID> {
+            queries += periodStartDate to stage
+            return dueDriverIds.filter { driverId ->
+                (driverId to periodStartDate) !in completedPeriods &&
+                    createdReminders.none { it.accountId == driverId && it.periodStartDate == periodStartDate && it.stage == stage }
+            }
+        }
 
         override fun createReminder(model: ChecklistReminderModel): ChecklistReminderModel =
             model.also { createdReminders += it }

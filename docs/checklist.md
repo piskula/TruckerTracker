@@ -4,9 +4,31 @@
 
 Drivers answer a fixed set of questions for one truck and one trailer once per week. The server is the durable record of those answers, accepts at most one response per user per week, and reminds drivers who haven't filled it in yet.
 
+## Temporary daily testing mode
+
+The backend currently uses a **daily** checklist while the client stays unchanged. `ChecklistConfig`
+binds `DailyChecklistPeriod` and `DailyChecklistReminderScheduler` in code, with no runtime
+daily/weekly selector. Submission, status and reminder eligibility all use the current calendar
+day in `Europe/Bratislava`; a completed checklist stops today's reminder, but not tomorrow's.
+A second submission on the same day returns `409` with "Už ste to dnes vyplnili.".
+
+The scheduler runs **every day at 08:00 Europe/Bratislava**, including weekends, using the `DAILY`
+stage and daily Slovak notification text. The existing `CHECKLIST_REMINDER_ENABLED` off switch
+still applies. Reminder rows are unique per driver, day and stage, so repeated runs on the same
+day do not send twice. A missed run is not caught up.
+
+The existing `period_start_date` columns store the local day in this mode; no migration or API
+change is needed. Existing weekly rows are not rewritten. Restoring weekly behaviour requires
+changing both bean bindings in `ChecklistConfig` to `WeeklyChecklistPeriod` and
+`ChecklistReminderScheduler`, then redeploying. Historical testing responses retain their daily
+dates; only a Monday-dated response matches the restored weekly period.
+
+Client labels and cached status behaviour remain weekly as described below. The following sections
+document the retained weekly implementation, not the temporarily active daily cadence.
+
 ## Weekly period and reminders
 
-- **Period**: the calendar week Monday–Sunday in `Europe/Bratislava`. On submit the server stamps `checklist_response.period_start_date` with that week's Monday (`ChecklistPeriod.startDateOf`); the client never sends it. Rows submitted before this column existed keep `NULL` and are not backfilled.
+- **Period**: the calendar week Monday–Sunday in `Europe/Bratislava`. On submit the server stamps `checklist_response.period_start_date` with that week's Monday (`WeeklyChecklistPeriod.startDateOf`); the client never sends it. Rows submitted before this column existed keep `NULL` and are not backfilled.
 - **One per week**: a second submit by the same user in the same week is rejected with `409` and the message "Už ste to tento týždeň vyplnili.". The use case locks the account row before checking, and the unique constraint `uk_checklist_response_answered_by_period (answered_by_id, period_start_date)` backs it up.
 - **Who is reminded**: accounts with a `DRIVER` row and no `MECHANIC` row in `account_role` that have no response for the current week, so a user who is both driver and mechanic is not reminded. An account stores every realm role of its verified JWT (one row per role); the rows are replaced whenever the account is synced (`CurrentUserService.currentUser()` — every login's push-device registration, every issue action and every checklist submit). Accounts that existed before the table was added get their roles on their next such request; until then they are not reminded.
 - **When**: `ChecklistReminderScheduler` runs Monday 08:00 (`WEEK_START`, a nudge) and Wednesday 08:00 (`TWO_DAYS_LEFT`) `Europe/Bratislava`, unless `app.checklist-reminder.enabled` (`CHECKLIST_REMINDER_ENABLED`, default `true`) is `false`. A run missed while the server is down is not caught up.
@@ -17,7 +39,7 @@ Drivers answer a fixed set of questions for one truck and one trailer once per w
 
 - **checklist_question**: bigint identity `id`; a unique short string identifier, which is the contract between questions and responses; `text` as a jsonb map of language to text; a `position` int for stable ordering; `created_at_utc`.
 - **checklist_response**: bigint identity `id`; foreign keys `truck` and `trailer` to `vehicle(id)`, both required and their vehicle types verified on submit; `answered_by` to `account(id)`; `answered_at_utc`; nullable `period_start_date` (unique together with `answered_by_id`); `answers` as one jsonb document.
-- **checklist_reminder**: bigint identity `id`; `account_id` to `account(id)`; `period_start_date`; `stage` (`WEEK_START`, `TWO_DAYS_LEFT`); `sent_at_utc`; unique `(account_id, period_start_date, stage)`.
+- **checklist_reminder**: bigint identity `id`; `account_id` to `account(id)`; `period_start_date`; `stage` (`WEEK_START`, `TWO_DAYS_LEFT`, `DAILY`); `sent_at_utc`; unique `(account_id, period_start_date, stage)`.
 - **account_role**: bigint identity `id`; `account_id` to `account(id)`; `role` (`DRIVER`, `MECHANIC`); unique `(account_id, role)`, indexed by `role`.
 - **Indexes**: composite btrees on `(truck_id, answered_at_utc)`, `(trailer_id, answered_at_utc)` and `(answered_by_id, answered_at_utc)` for later search, plus a GIN `jsonb_path_ops` index on `answers` for content search.
 

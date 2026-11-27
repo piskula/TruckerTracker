@@ -16,12 +16,13 @@ class GetChecklistStatus(
     private val checklistPersistence: ChecklistPersistence,
     private val currentUserService: CurrentUserService,
     private val clock: Clock,
+    private val checklistPeriod: ChecklistPeriod,
 ) : GetChecklistStatusUseCase {
 
     @IsUser
     @Transactional(readOnly = true)
     override fun get(): ChecklistStatusModel {
-        val periodStartDate = ChecklistPeriod.startDateOf(OffsetDateTime.now(clock))
+        val periodStartDate = checklistPeriod.startDateOf(OffsetDateTime.now(clock))
         val response = checklistPersistence.findResponse(currentUserService.currentUserId(), periodStartDate)
         val state = when {
             response != null -> ChecklistState.COMPLETED

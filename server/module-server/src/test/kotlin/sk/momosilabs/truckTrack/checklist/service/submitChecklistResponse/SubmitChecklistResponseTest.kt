@@ -8,11 +8,14 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import sk.momosilabs.truckTrack.account.model.AccountModel
 import sk.momosilabs.truckTrack.checklist.entity.ChecklistReminderStage
+import sk.momosilabs.truckTrack.checklist.model.ChecklistPeriod
+import sk.momosilabs.truckTrack.checklist.model.DailyChecklistPeriod
 import sk.momosilabs.truckTrack.checklist.model.ChecklistQuestionModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistReminderModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistText
 import sk.momosilabs.truckTrack.checklist.model.VehicleSnapshot
+import sk.momosilabs.truckTrack.checklist.model.WeeklyChecklistPeriod
 import sk.momosilabs.truckTrack.checklist.service.ChecklistPersistence
 import sk.momosilabs.truckTrack.config.GlobalConflictException
 import sk.momosilabs.truckTrack.config.GlobalNotFoundException
@@ -192,6 +195,23 @@ class SubmitChecklistResponseTest {
     }
 
     @Test
+    fun `daily checklist rejects another submission today but allows one after Bratislava midnight`() {
+        val persistence = FakeChecklistPersistence(SEED_QUESTIONS)
+        useCase(persistence, clockAt("2026-11-27T07:00:00Z"), DailyChecklistPeriod).submit(command(answers = COMPLETE_ANSWERS))
+
+        assertThatThrownBy {
+            useCase(persistence, clockAt("2026-11-27T22:59:00Z"), DailyChecklistPeriod).submit(command(answers = COMPLETE_ANSWERS))
+        }.isInstanceOf(GlobalConflictException::class.java)
+            .hasMessage("Už ste to dnes vyplnili.")
+        assertThat(persistence.createdResponses).hasSize(1)
+
+        useCase(persistence, clockAt("2026-11-27T23:00:00Z"), DailyChecklistPeriod).submit(command(answers = COMPLETE_ANSWERS))
+
+        assertThat(persistence.createdResponses.map { it.periodStartDate })
+            .containsExactly(LocalDate.of(2026, 11, 27), LocalDate.of(2026, 11, 28))
+    }
+
+    @Test
     fun `answers with a null value are rejected and nothing is stored`() {
         val persistence = FakeChecklistPersistence(SEED_QUESTIONS)
 
@@ -202,10 +222,16 @@ class SubmitChecklistResponseTest {
         assertThat(persistence.createdResponses).isEmpty()
     }
 
-    private fun useCase(persistence: ChecklistPersistence, clock: Clock = FIXED_CLOCK): SubmitChecklistResponse {
+    private fun useCase(
+        persistence: ChecklistPersistence,
+        clock: Clock = FIXED_CLOCK,
+        checklistPeriod: ChecklistPeriod = WeeklyChecklistPeriod,
+    ): SubmitChecklistResponse {
         val currentUserService = mock(CurrentUserService::class.java)
         `when`(currentUserService.currentUser()).thenReturn(CURRENT_USER)
-        return SubmitChecklistResponse(persistence, FakeVehiclePersistence(listOf(truck, trailer)), currentUserService, objectMapper, clock)
+        return SubmitChecklistResponse(
+            persistence, FakeVehiclePersistence(listOf(truck, trailer)), currentUserService, objectMapper, clock, checklistPeriod,
+        )
     }
 
     private fun clockAt(instant: String): Clock = Clock.fixed(Instant.parse(instant), ZoneOffset.UTC)

@@ -23,5 +23,6 @@ class ChecklistReminderDueListener(
         when (this) {
             ChecklistReminderStage.WEEK_START -> PushMessage.checklistReminderWeekStart()
             ChecklistReminderStage.TWO_DAYS_LEFT -> PushMessage.checklistReminderTwoDaysLeft()
+            ChecklistReminderStage.DAILY -> PushMessage.checklistReminderDaily()
         }
 }

@@ -5,12 +5,15 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import sk.momosilabs.truckTrack.checklist.entity.ChecklistReminderStage
+import sk.momosilabs.truckTrack.checklist.model.ChecklistPeriod
+import sk.momosilabs.truckTrack.checklist.model.DailyChecklistPeriod
 import sk.momosilabs.truckTrack.checklist.model.ChecklistQuestionModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistReminderModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseAnswers
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistState
 import sk.momosilabs.truckTrack.checklist.model.VehicleSnapshot
+import sk.momosilabs.truckTrack.checklist.model.WeeklyChecklistPeriod
 import sk.momosilabs.truckTrack.checklist.service.ChecklistPersistence
 import sk.momosilabs.truckTrack.security.CurrentUserService
 import java.time.Clock
@@ -69,17 +72,35 @@ class GetChecklistStatusTest {
         assertThat(mondayMidnight.state).isEqualTo(ChecklistState.PENDING)
     }
 
+    @Test
+    fun `daily completion expires at Bratislava midnight even within the same week`() {
+        val response = responseFor(LocalDate.of(2026, 11, 27))
+        val persistence = FakeChecklistPersistence(listOf(response))
+        val beforeMidnight = useCase(
+            persistence, isDriver = true, isMechanic = false, clock = clockAt("2026-11-27T22:59:00Z"), checklistPeriod = DailyChecklistPeriod,
+        ).get()
+        val afterMidnight = useCase(
+            persistence, isDriver = true, isMechanic = false, clock = clockAt("2026-11-27T23:00:00Z"), checklistPeriod = DailyChecklistPeriod,
+        ).get()
+
+        assertThat(beforeMidnight.state).isEqualTo(ChecklistState.COMPLETED)
+        assertThat(beforeMidnight.response).isEqualTo(response)
+        assertThat(afterMidnight.state).isEqualTo(ChecklistState.PENDING)
+        assertThat(afterMidnight.response).isNull()
+    }
+
     private fun useCase(
         persistence: ChecklistPersistence,
         isDriver: Boolean,
         isMechanic: Boolean,
         clock: Clock = FIXED_CLOCK,
+        checklistPeriod: ChecklistPeriod = WeeklyChecklistPeriod,
     ): GetChecklistStatus {
         val currentUserService = mock(CurrentUserService::class.java)
         `when`(currentUserService.currentUserId()).thenReturn(USER_ID)
         `when`(currentUserService.isDriver()).thenReturn(isDriver)
         `when`(currentUserService.isMechanic()).thenReturn(isMechanic)
-        return GetChecklistStatus(persistence, currentUserService, clock)
+        return GetChecklistStatus(persistence, currentUserService, clock, checklistPeriod)
     }
 
     private fun clockAt(instant: String): Clock = Clock.fixed(Instant.parse(instant), ZoneOffset.UTC)

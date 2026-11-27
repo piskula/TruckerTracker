@@ -27,6 +27,7 @@ class SubmitChecklistResponse(
     private val currentUserService: CurrentUserService,
     private val objectMapper: ObjectMapper,
     private val clock: Clock,
+    private val checklistPeriod: ChecklistPeriod,
 ) : SubmitChecklistResponseUseCase {
 
     @IsUser
@@ -34,10 +35,10 @@ class SubmitChecklistResponse(
     override fun submit(command: SubmitChecklistResponseCommand): ChecklistResponseModel {
         val answeredById = currentUserService.currentUser().id
         val answeredAt = OffsetDateTime.now(clock)
-        val periodStartDate = ChecklistPeriod.startDateOf(answeredAt)
+        val periodStartDate = checklistPeriod.startDateOf(answeredAt)
         checklistPersistence.lockAccount(answeredById)
         if (checklistPersistence.existsResponse(answeredById, periodStartDate)) {
-            throw GlobalConflictException(ALREADY_SUBMITTED_THIS_WEEK_MESSAGE)
+            throw GlobalConflictException(checklistPeriod.alreadySubmittedMessage)
         }
 
         val questions = checklistPersistence.findAllQuestions()
@@ -123,7 +124,6 @@ class SubmitChecklistResponse(
     }
 
     private companion object {
-        const val ALREADY_SUBMITTED_THIS_WEEK_MESSAGE = "Už ste to tento týždeň vyplnili."
         const val MAX_IDENTIFIERS_LISTED = 10
         const val MAX_IDENTIFIER_DISPLAY_LENGTH = 64
         val IDENTIFIER_WHITESPACE = Regex("\\s+")

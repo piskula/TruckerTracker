@@ -1,15 +1,11 @@
 package sk.momosilabs.truckTrack.checklist.scheduler
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
 import sk.momosilabs.truckTrack.checklist.entity.ChecklistReminderStage
 import sk.momosilabs.truckTrack.checklist.model.ChecklistPeriod
 import sk.momosilabs.truckTrack.checklist.service.sendChecklistReminder.SendChecklistReminderUseCase
 
-@Component
-@ConditionalOnProperty(prefix = "app.checklist-reminder", name = ["enabled"], havingValue = "true")
 class ChecklistReminderScheduler(
     private val sendChecklistReminder: SendChecklistReminderUseCase,
 ) {
