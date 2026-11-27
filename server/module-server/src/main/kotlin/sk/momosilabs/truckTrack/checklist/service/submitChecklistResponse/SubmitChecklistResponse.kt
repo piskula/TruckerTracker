@@ -2,12 +2,14 @@ package sk.momosilabs.truckTrack.checklist.service.submitChecklistResponse
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import sk.momosilabs.truckTrack.checklist.model.ChecklistPeriod
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseAnswers
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseItem
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseModel
 import sk.momosilabs.truckTrack.checklist.model.QuestionTextsParser
 import sk.momosilabs.truckTrack.checklist.model.VehicleSnapshot
 import sk.momosilabs.truckTrack.checklist.service.ChecklistPersistence
+import sk.momosilabs.truckTrack.config.GlobalConflictException
 import sk.momosilabs.truckTrack.config.GlobalNotFoundException
 import sk.momosilabs.truckTrack.config.GlobalUnprocessableException
 import sk.momosilabs.truckTrack.security.CurrentUserService
@@ -15,8 +17,8 @@ import sk.momosilabs.truckTrack.security.annotation.IsUser
 import sk.momosilabs.truckTrack.vehicle.entity.VehicleType
 import sk.momosilabs.truckTrack.vehicle.service.VehiclePersistence
 import tools.jackson.databind.ObjectMapper
+import java.time.Clock
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
 
 @Service
 class SubmitChecklistResponse(
@@ -24,11 +26,20 @@ class SubmitChecklistResponse(
     private val vehiclePersistence: VehiclePersistence,
     private val currentUserService: CurrentUserService,
     private val objectMapper: ObjectMapper,
+    private val clock: Clock,
 ) : SubmitChecklistResponseUseCase {
 
     @IsUser
     @Transactional
     override fun submit(command: SubmitChecklistResponseCommand): ChecklistResponseModel {
+        val answeredById = currentUserService.currentUser().id
+        val answeredAt = OffsetDateTime.now(clock)
+        val periodStartDate = ChecklistPeriod.startDateOf(answeredAt)
+        checklistPersistence.lockAccount(answeredById)
+        if (checklistPersistence.existsResponse(answeredById, periodStartDate)) {
+            throw GlobalConflictException(ALREADY_SUBMITTED_THIS_WEEK_MESSAGE)
+        }
+
         val questions = checklistPersistence.findAllQuestions()
         val currentIdentifiers = questions.map { it.identifier }.toSet()
         validateAnswers(command.answers, currentIdentifiers)
@@ -57,8 +68,9 @@ class SubmitChecklistResponse(
             ChecklistResponseModel(
                 truckId = truck.id,
                 trailerId = trailer.id,
-                answeredById = currentUserService.currentUserId(),
-                answeredAt = OffsetDateTime.now(ZoneOffset.UTC),
+                answeredById = answeredById,
+                answeredAt = answeredAt,
+                periodStartDate = periodStartDate,
                 answers = ChecklistResponseAnswers(
                     truck = VehicleSnapshot(id = truck.id, licensePlate = truck.licensePlate),
                     trailer = VehicleSnapshot(id = trailer.id, licensePlate = trailer.licensePlate),
@@ -111,6 +123,7 @@ class SubmitChecklistResponse(
     }
 
     private companion object {
+        const val ALREADY_SUBMITTED_THIS_WEEK_MESSAGE = "Už ste to tento týždeň vyplnili."
         const val MAX_IDENTIFIERS_LISTED = 10
         const val MAX_IDENTIFIER_DISPLAY_LENGTH = 64
         val IDENTIFIER_WHITESPACE = Regex("\\s+")

@@ -5,19 +5,41 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.verify
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
+import sk.momosilabs.truckTrack.account.entity.AccountRole
 import sk.momosilabs.truckTrack.account.persistence.AccountPersistenceHelper
 import sk.momosilabs.truckTrack.config.GlobalBadRequestException
 
 class CurrentUserServiceTest {
 
-    private val service = CurrentUserService(mock(AccountPersistenceHelper::class.java))
+    private val accountPersistenceHelper = mock(AccountPersistenceHelper::class.java)
+    private val service = CurrentUserService(accountPersistenceHelper)
 
     @AfterEach
     fun clearSecurityContext() {
         SecurityContextHolder.clearContext()
+    }
+
+    @Test
+    fun `the account is synced with every application role from the verified token`() {
+        mapOf(
+            listOf("ROLE_DRIVER") to setOf(AccountRole.DRIVER),
+            listOf("ROLE_MECHANIC") to setOf(AccountRole.MECHANIC),
+            listOf("ROLE_MECHANIC", "ROLE_DRIVER") to setOf(AccountRole.DRIVER, AccountRole.MECHANIC),
+            listOf("offline_access") to emptySet(),
+        ).forEach { (authorities, roles) ->
+            authenticate(sessionId = null, authorities = authorities)
+
+            val account = service.currentUser()
+
+            verify(accountPersistenceHelper).sync(account, roles)
+            reset(accountPersistenceHelper)
+        }
     }
 
     @Test
@@ -38,11 +60,15 @@ class CurrentUserServiceTest {
         }
     }
 
-    private fun authenticate(sessionId: Any?) {
+    private fun authenticate(sessionId: Any?, authorities: List<String> = emptyList()) {
         val builder = Jwt.withTokenValue("access-token")
             .header("alg", "RS256")
             .subject("3f9e1c2a-7b64-4d0f-9a51-6e2c8b4d7f10")
+            .claim("preferred_username", "driver")
+            .claim("given_name", "Dan")
+            .claim("family_name", "Driver")
         sessionId?.let { builder.claim("sid", it) }
-        SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(builder.build())
+        SecurityContextHolder.getContext().authentication =
+            JwtAuthenticationToken(builder.build(), authorities.map { SimpleGrantedAuthority(it) })
     }
 }

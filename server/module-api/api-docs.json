@@ -694,6 +694,9 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "The current user already submitted a checklist this week"
           }
         }
       }

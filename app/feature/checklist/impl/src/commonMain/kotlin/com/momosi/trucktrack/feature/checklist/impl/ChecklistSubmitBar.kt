@@ -29,6 +29,7 @@ import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.core.uilibrary.vehicle.VehiclesContent
 import com.momosi.trucktrack.feature.checklist.impl.resources.Res
+import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_error_submit_already_submitted
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_error_submit_no_connection
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_error_submit_other
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_problem_count
@@ -36,6 +37,7 @@ import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_progress
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_submit
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -64,11 +66,11 @@ internal fun ChecklistSubmitBar(
             role = if (isComplete) ButtonRole.Positive else ButtonRole.Primary,
             modifier = Modifier.fillMaxWidth().testTag("checklist_submit_button"),
         )
-        val failure = (state.submitStatus as? ChecklistSubmitStatus.Failed)?.reason
-        if (failure != null) {
+        val failureMessage = state.submitStatus.failureMessageRes()
+        if (failureMessage != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stringResource(failure.submitMessageRes()),
+                text = stringResource(failureMessage),
                 style = AppTheme.typography.bodySmall,
                 color = AppTheme.colors.error,
                 textAlign = TextAlign.Center,
@@ -123,6 +125,12 @@ private fun ChecklistProgress(
     }
 }
 
+private fun ChecklistSubmitStatus.failureMessageRes(): StringResource? = when (this) {
+    is ChecklistSubmitStatus.Failed -> reason.submitMessageRes()
+    ChecklistSubmitStatus.AlreadySubmittedThisWeek -> Res.string.checklist_error_submit_already_submitted
+    else -> null
+}
+
 private fun FailureReason.submitMessageRes() = when (this) {
     FailureReason.NoConnection -> Res.string.checklist_error_submit_no_connection
     FailureReason.Other -> Res.string.checklist_error_submit_other
@@ -144,6 +152,21 @@ private fun ChecklistSubmitBarPartialPreview() {
             state = ChecklistState(
                 content = ChecklistContent.Loaded(previewQuestions, previewVehicles, previewVehicles),
                 answers = persistentMapOf("OIL_1" to CheckResult.Ok, "WHEELS_1" to CheckResult.Problem),
+            ),
+            onSubmit = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ChecklistSubmitBarAlreadySubmittedPreview() {
+    TruckTrackTheme {
+        ChecklistSubmitBar(
+            state = ChecklistState(
+                content = ChecklistContent.Loaded(previewQuestions, previewVehicles, previewVehicles),
+                answers = persistentMapOf(*previewQuestions.map { it.identifier to CheckResult.Ok }.toTypedArray()),
+                submitStatus = ChecklistSubmitStatus.AlreadySubmittedThisWeek,
             ),
             onSubmit = {},
         )

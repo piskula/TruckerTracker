@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.ColumnTransformer
 import sk.momosilabs.truckTrack.account.entity.AccountEntity
 import sk.momosilabs.truckTrack.vehicle.entity.VehicleEntity
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Entity(name = "checklist_response")
@@ -33,6 +34,8 @@ class ChecklistResponseEntity(
 
     @field:NotNull
     val answeredAtUtc: LocalDateTime,
+
+    val periodStartDate: LocalDate?,
 
     @field:NotNull
     @Column(columnDefinition = "jsonb")

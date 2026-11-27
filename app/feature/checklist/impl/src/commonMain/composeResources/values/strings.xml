@@ -17,6 +17,7 @@
     <string name="checklist_error_load">We couldn't load the checklist.</string>
     <string name="checklist_error_submit_no_connection">No internet connection. Your answers are kept, so try again once you're back online.</string>
     <string name="checklist_error_submit_other">We couldn't submit the checklist. Your answers are kept, so please try again.</string>
+    <string name="checklist_error_submit_already_submitted">You've already submitted this week's vehicle check. The next one opens on Monday.</string>
     <string name="checklist_discard_title">Discard checklist?</string>
     <string name="checklist_discard_message">Your answers haven't been submitted and will be lost.</string>
     <string name="checklist_discard_confirm">Discard</string>

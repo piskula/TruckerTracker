@@ -29,6 +29,8 @@ This is a hard rule — no use case method may be left without a security annota
 
 **Exemption:** a use case behind a `SecurityConfig` `permitAll` entry that authenticates itself — cryptographically validating a caller-supplied token before doing any work — may omit the annotation, since there is no authenticated principal to authorize against. Precedent: `getVersion` (public endpoint, nothing to protect) and `processBackchannelLogout` (validates the Keycloak logout token's signature and claims itself via `LogoutTokenVerifier`). Such a use case must fail closed on any verification failure.
 
+**Scheduled-job exemption:** a use case invoked only from a `@Scheduled` method (never from a controller) runs without an authenticated principal and omits the annotation. Precedent: `sendChecklistReminder`, called by `checklist/scheduler/ChecklistReminderScheduler`. The scheduler is the entry point, like a controller: it injects use cases only and holds no logic. Gate a scheduler behind a configuration flag with `@ConditionalOnProperty` so a single server can switch it off without a release. Inject `java.time.Clock` (bean in `config/ClockConfig.kt`, UTC) for "now" in such jobs and in any use case whose behaviour depends on the date.
+
 ## Entity & Persistence Patterns
 
 **Entity class:**
@@ -45,7 +47,7 @@ This is a hard rule — no use case method may be left without a security annota
 - Blank line between every constructor parameter block for readability.
 - No shared base entity, no `@MappedSuperclass`, no `@Embeddable`.
 - `LocalDateTime` for timestamps in entities; field names suffixed with `Utc` (e.g. `startedAtUtc`).
-- `AccountEntity` (package `account`) stores only `id` (Keycloak UUID), `username`, `fullName` — no `role` column. Role is read from the JWT at runtime.
+- `AccountEntity` (package `account`) stores `id` (Keycloak UUID), `username`, `firstName`, `lastName`. The account's application roles live in `account_role` (`AccountRoleEntity`: `account` + `AccountRole`, unique together, one row per role the user has — no precedence between roles). `CurrentUserService.currentUser()` → `AccountPersistenceHelper.sync()` replaces them with the realm roles of the verified JWT on every call. They exist only so background jobs without a principal (the checklist reminder) can find drivers. Authorization always reads roles from the JWT at runtime, never from this table, and `AccountModel` does not carry them — `AccountModel` is snapshotted into issue-history JSON.
 
 **Model class:**
 - `data class` in `model/` package. `id = 0L` or `UUID(0,0)` signals a new (unsaved) record.

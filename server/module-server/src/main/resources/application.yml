@@ -38,6 +38,8 @@ app:
     issuer: ${KEYCLOAK_URL:https://sso.momosi.org}/realms/${KEYCLOAK_REALM:trucktrack}
     jwks-uri: ${app.keycloak.issuer}/protocol/openid-connect/certs
     audience: ${KEYCLOAK_AUDIENCE:trucktrack-app}
+  checklist-reminder:
+    enabled: ${CHECKLIST_REMINDER_ENABLED:true}
 
 firebase:
   credentials-base64: ${FIREBASE_CREDENTIALS_BASE64:}

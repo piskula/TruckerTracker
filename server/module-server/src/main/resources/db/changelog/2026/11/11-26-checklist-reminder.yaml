@@ -1,0 +1,97 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1795651200000-01
+      author: MartinStyk
+      changes:
+        - createTable:
+            tableName: account_role
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: account_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_account_role_account
+                    references: account(id)
+              - column:
+                  name: role
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            constraintName: uk_account_role_account_role
+            tableName: account_role
+            columnNames: account_id, role
+
+        - createIndex:
+            indexName: ix_account_role_role
+            tableName: account_role
+            columns:
+              - column:
+                  name: role
+
+  - changeSet:
+      id: 1795651200000-02
+      author: MartinStyk
+      changes:
+        - addColumn:
+            tableName: checklist_response
+            columns:
+              - column:
+                  name: period_start_date
+                  type: date
+
+        - addUniqueConstraint:
+            constraintName: uk_checklist_response_answered_by_period
+            tableName: checklist_response
+            columnNames: answered_by_id, period_start_date
+
+  - changeSet:
+      id: 1795651200000-03
+      author: MartinStyk
+      changes:
+        - createTable:
+            tableName: checklist_reminder
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: account_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_checklist_reminder_account
+                    references: account(id)
+              - column:
+                  name: period_start_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stage
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_at_utc
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            constraintName: uk_checklist_reminder_account_period_stage
+            tableName: checklist_reminder
+            columnNames: account_id, period_start_date, stage

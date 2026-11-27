@@ -19,6 +19,7 @@ import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistText
 import sk.momosilabs.truckTrack.checklist.model.VehicleSnapshot
 import sk.momosilabs.truckTrack.checklist.persistence.repository.ChecklistQuestionRepository
+import sk.momosilabs.truckTrack.checklist.persistence.repository.ChecklistReminderRepository
 import sk.momosilabs.truckTrack.checklist.persistence.repository.ChecklistResponseRepository
 import sk.momosilabs.truckTrack.util.toUtcLocalDateTime
 import sk.momosilabs.truckTrack.util.toUtcOffsetDateTime
@@ -26,6 +27,7 @@ import sk.momosilabs.truckTrack.vehicle.entity.VehicleEntity
 import sk.momosilabs.truckTrack.vehicle.entity.VehicleType
 import sk.momosilabs.truckTrack.vehicle.persistence.repository.VehicleRepository
 import tools.jackson.databind.ObjectMapper
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -36,9 +38,10 @@ class ChecklistPersistenceProviderTest {
     private val objectMapper = ObjectMapper()
     private val questionRepository = mock(ChecklistQuestionRepository::class.java)
     private val responseRepository = mock(ChecklistResponseRepository::class.java)
+    private val reminderRepository = mock(ChecklistReminderRepository::class.java)
     private val vehicleRepository = mock(VehicleRepository::class.java)
     private val accountRepository = mock(AccountRepository::class.java)
-    private val provider = ChecklistPersistenceProvider(questionRepository, responseRepository, vehicleRepository, accountRepository, objectMapper)
+    private val provider = ChecklistPersistenceProvider(questionRepository, responseRepository, reminderRepository, vehicleRepository, accountRepository, objectMapper)
 
     private val truckEntity = VehicleEntity(id = 1, licensePlate = "BA-111-AA", make = "Volvo", model = "FH16", type = VehicleType.TRUCK)
     private val trailerEntity = VehicleEntity(id = 2, licensePlate = "BA-222-BB", make = "Krone", model = "Profi", type = VehicleType.TRAILER)
@@ -59,6 +62,7 @@ class ChecklistPersistenceProviderTest {
                     trailer = entity.trailer,
                     answeredBy = entity.answeredBy,
                     answeredAtUtc = entity.answeredAtUtc,
+                    periodStartDate = entity.periodStartDate,
                     answers = entity.answers,
                 )
             })
@@ -72,6 +76,7 @@ class ChecklistPersistenceProviderTest {
         assertThat(saved.trailer).isSameAs(trailerEntity)
         assertThat(saved.answeredBy).isSameAs(accountEntity)
         assertThat(saved.answeredAtUtc).isEqualTo(answeredAt.toUtcLocalDateTime())
+        assertThat(saved.periodStartDate).isEqualTo(PERIOD_START_DATE)
         val json = objectMapper.readTree(saved.answers)
         assertThat(json.path("language").isMissingNode).isTrue()
         assertThat(json.path("truck").path("id").asLong()).isEqualTo(1L)
@@ -100,6 +105,7 @@ class ChecklistPersistenceProviderTest {
         assertThat(created.trailerId).isEqualTo(2L)
         assertThat(created.answeredById).isEqualTo(answeredById)
         assertThat(created.answeredAt).isEqualTo(answeredAt.toUtcLocalDateTime().toUtcOffsetDateTime())
+        assertThat(created.periodStartDate).isEqualTo(PERIOD_START_DATE)
         assertThat(created.answers).isEqualTo(answers())
     }
 
@@ -133,6 +139,7 @@ class ChecklistPersistenceProviderTest {
         trailerId = 2,
         answeredById = answeredById,
         answeredAt = answeredAt,
+        periodStartDate = PERIOD_START_DATE,
         answers = answers(),
     )
 
@@ -161,5 +168,6 @@ class ChecklistPersistenceProviderTest {
 
     private companion object {
         const val SAVED_ID = 42L
+        val PERIOD_START_DATE: LocalDate = LocalDate.of(2026, 11, 23)
     }
 }
