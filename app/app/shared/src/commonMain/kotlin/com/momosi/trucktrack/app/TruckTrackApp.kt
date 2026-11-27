@@ -14,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.momosi.trucktrack.core.applinks.AppLinkAction
@@ -36,7 +37,7 @@ import com.momosi.trucktrack.feature.issues.impl.navigation.issuesEntries
 import com.momosi.trucktrack.feature.notificationpermission.impl.navigation.notificationPermissionEntries
 import com.momosi.trucktrack.feature.profile.impl.navigation.profileEntries
 import com.momosi.trucktrack.feature.signin.impl.navigation.signInEntries
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -51,7 +52,7 @@ fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel 
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LifecycleResumeEffect(viewModel) {
-        viewModel.refreshNotificationPermission()
+        viewModel.onResume()
         onPauseOrDispose {}
     }
 
@@ -62,12 +63,13 @@ fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel 
     }
 
     LaunchedEffect(viewModel, navigator, lifecycleOwner) {
-        collectAppLinks(lifecycleOwner.lifecycle, viewModel.appLinkActions, navigator)
+        collectNavigationRequests(lifecycleOwner.lifecycle, viewModel, navigator) { navigationState.currentKey }
     }
 
     LaunchedEffect(navigationState.currentKey) {
         Logger.i("Nav", "-> ${navigationState.currentKey}")
         CrashReporting.setCustomKey("screen", navigationState.currentKey.toString())
+        viewModel.onScreenChange(navigationState.currentKey)
     }
 
     LaunchedEffect(Unit) {
@@ -106,24 +108,30 @@ fun TruckTrackApp(modifier: Modifier = Modifier, viewModel: TruckTrackViewModel 
     }
 }
 
-private suspend fun collectAppLinks(
+private suspend fun collectNavigationRequests(
     lifecycle: Lifecycle,
-    actions: Flow<AppLinkAction>,
+    viewModel: TruckTrackViewModel,
     navigator: Navigator,
+    currentKey: () -> NavKey,
 ) {
     lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-        actions.collect { action ->
-            when (action) {
-                AppLinkAction.Checklist -> navigator.navigate(
-                    root = IssuesNavKey,
-                    destination = ChecklistNavKey,
-                )
-
-                is AppLinkAction.Issue -> navigator.navigate(
-                    root = IssuesNavKey,
-                    destination = IssueDetailNavKey(action.issueId),
-                )
+        launch { viewModel.appLinkActions.collect(navigator::openAppLink) }
+        viewModel.openChecklistRequests.collect {
+            if (currentKey() == IssuesNavKey) {
+                navigator.navigate(root = IssuesNavKey, destination = ChecklistNavKey)
             }
         }
     }
+}
+
+private fun Navigator.openAppLink(action: AppLinkAction) = when (action) {
+    AppLinkAction.Checklist -> navigate(
+        root = IssuesNavKey,
+        destination = ChecklistNavKey,
+    )
+
+    is AppLinkAction.Issue -> navigate(
+        root = IssuesNavKey,
+        destination = IssueDetailNavKey(action.issueId),
+    )
 }

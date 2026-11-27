@@ -8,4 +8,4 @@ import kotlinx.collections.immutable.ImmutableList
 data class IssuesUserInfo(val name: String, val roles: ImmutableList<UserRole>)
 
 @Immutable
-data class IssuesState(val userInfo: IssuesUserInfo? = null, val selectedFilter: IssueFilter = IssueFilter.MyIssues)
+data class IssuesState(val userInfo: IssuesUserInfo? = null, val selectedFilter: IssueFilter = IssueFilter.MyIssues, val isChecklistButtonVisible: Boolean = false)

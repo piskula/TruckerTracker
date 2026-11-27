@@ -25,6 +25,8 @@
     <string name="checklist_discard_confirm">Zahodiť</string>
     <string name="checklist_discard_keep">Pokračovať</string>
     <string name="checklist_submitted_title">Kontrola odoslaná</string>
+    <string name="checklist_completed_title">Kontrolu vozidla na tento týždeň ste už vyplnili</string>
+    <string name="checklist_completed_next">Ďalšiu môžete vyplniť od pondelka.</string>
     <string name="checklist_submitted_no_problems">Bez problémov</string>
     <plurals name="checklist_submitted_problems">
         <item quantity="one">Zaznamenaný %1$d problém</item>

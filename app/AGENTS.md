@@ -308,8 +308,10 @@ The Kotlin Multiplatform migration is complete — every module uses KMP source 
 
 `core:network` has shared session-invalidation regression tests in `src/commonTest`, runnable with
 `:core:network:testAndroidHostTest`; `core:push` has push registration tests, runnable with
-`:core:push:testAndroidHostTest`; `feature:checklist:impl` has `ChecklistViewModel` tests, runnable
-with `:feature:checklist:impl:testAndroidHostTest`. When adding further tests:
+`:core:push:testAndroidHostTest`; `core:checklist` has checklist status tests, runnable with
+`:core:checklist:testAndroidHostTest`; `app:shared` has root access and checklist redirect tests,
+runnable with `:app:shared:testAndroidHostTest`; `feature:checklist:impl` has `ChecklistViewModel`
+tests, runnable with `:feature:checklist:impl:testAndroidHostTest`. When adding further tests:
 
 * **MockK** for mocking, **Turbine** for `Flow` testing, **kotlinx-coroutines-test** (`runTest`) for
   coroutines.

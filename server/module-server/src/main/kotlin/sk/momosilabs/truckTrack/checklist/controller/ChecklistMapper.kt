@@ -5,10 +5,13 @@ import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistQuestionDto
 import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistResponseCreateDto
 import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistResponseDto
 import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistResponseItemDto
+import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistStateDto
+import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistStatusDto
 import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistTextDto
 import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistVehicleSnapshotDto
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseItem
 import sk.momosilabs.truckTrack.checklist.model.ChecklistResponseModel
+import sk.momosilabs.truckTrack.checklist.model.ChecklistStatusModel
 import sk.momosilabs.truckTrack.checklist.model.ChecklistText
 import sk.momosilabs.truckTrack.checklist.model.ResolvedChecklistQuestionModel
 import sk.momosilabs.truckTrack.checklist.model.VehicleSnapshot
@@ -38,6 +41,11 @@ fun ChecklistResponseModel.toDto() = ChecklistResponseDto(
     answeredBy = answeredById,
     answeredAt = answeredAt,
     items = answers.items.map { it.toDto() },
+)
+
+fun ChecklistStatusModel.toDto() = ChecklistStatusDto(
+    state = ChecklistStateDto.valueOf(state.name),
+    response = response?.toDto(),
 )
 
 private fun ChecklistResponseItem.toDto() = ChecklistResponseItemDto(

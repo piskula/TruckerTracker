@@ -42,6 +42,10 @@ class ChecklistPersistenceProvider(
     override fun existsResponse(answeredById: UUID, periodStartDate: LocalDate): Boolean =
         checklistResponseRepository.existsByAnsweredByIdAndPeriodStartDate(answeredById, periodStartDate)
 
+    @Transactional(readOnly = true)
+    override fun findResponse(answeredById: UUID, periodStartDate: LocalDate): ChecklistResponseModel? =
+        checklistResponseRepository.findByAnsweredByIdAndPeriodStartDate(answeredById, periodStartDate)?.toModel(objectMapper)
+
     @Transactional
     override fun createResponse(model: ChecklistResponseModel): ChecklistResponseModel {
         val entityToSave = model.asNewEntity(

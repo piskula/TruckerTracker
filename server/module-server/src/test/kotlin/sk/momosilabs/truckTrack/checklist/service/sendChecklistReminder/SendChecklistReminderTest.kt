@@ -73,6 +73,8 @@ class SendChecklistReminderTest {
 
         override fun existsResponse(answeredById: UUID, periodStartDate: LocalDate): Boolean = throw UnsupportedOperationException()
 
+        override fun findResponse(answeredById: UUID, periodStartDate: LocalDate): ChecklistResponseModel? = throw UnsupportedOperationException()
+
         override fun createResponse(model: ChecklistResponseModel): ChecklistResponseModel = throw UnsupportedOperationException()
     }
 

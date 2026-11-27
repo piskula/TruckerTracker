@@ -224,7 +224,7 @@ private fun IssuesScreenContent(
                     .navigationBarsPadding()
                     .padding(end = 20.dp, bottom = 20.dp),
             ) {
-                if (userInfo?.roles?.contains(UserRole.Driver) == true) {
+                if (state.isChecklistButtonVisible) {
                     SmallExtendedFloatingActionButton(
                         text = stringResource(Res.string.issues_checklist_button),
                         icon = TruckTrackIcons.Checklist,
@@ -455,6 +455,7 @@ private fun IssuesDriverPreview() {
                     roles = persistentListOf(UserRole.Driver),
                 ),
                 selectedFilter = IssueFilter.MyIssues,
+                isChecklistButtonVisible = true,
             ),
             pagingItems = pagingItems,
             dateFormatter = DateFormatter(),

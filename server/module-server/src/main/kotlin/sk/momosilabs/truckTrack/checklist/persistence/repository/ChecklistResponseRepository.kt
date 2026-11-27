@@ -8,4 +8,6 @@ import java.util.UUID
 interface ChecklistResponseRepository : JpaRepository<ChecklistResponseEntity, Long> {
 
     fun existsByAnsweredByIdAndPeriodStartDate(answeredById: UUID, periodStartDate: LocalDate): Boolean
+
+    fun findByAnsweredByIdAndPeriodStartDate(answeredById: UUID, periodStartDate: LocalDate): ChecklistResponseEntity?
 }

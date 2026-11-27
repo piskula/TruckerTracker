@@ -2,9 +2,11 @@ package sk.momosilabs.truckTrack.api.checklist
 
 import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistResponseCreateDto
 import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistResponseDto
+import sk.momosilabs.truckTrack.api.checklist.dto.ChecklistStatusDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 
@@ -19,4 +21,8 @@ interface ChecklistResponseApi {
     @ApiResponse(responseCode = "409", description = "The current user already submitted a checklist this week")
     @PostMapping("$ENDPOINT/create")
     fun createChecklistResponse(@RequestBody request: ChecklistResponseCreateDto): ChecklistResponseDto
+
+    @Operation(summary = "Get the current user's checklist status for this week")
+    @GetMapping("$ENDPOINT/status")
+    fun getChecklistStatus(): ChecklistStatusDto
 }

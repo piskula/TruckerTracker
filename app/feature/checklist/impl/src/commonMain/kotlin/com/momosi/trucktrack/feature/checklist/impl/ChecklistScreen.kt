@@ -43,11 +43,14 @@ import com.momosi.trucktrack.core.vehicle.model.Vehicle
 import com.momosi.trucktrack.core.vehicle.model.VehicleType
 import com.momosi.trucktrack.feature.checklist.impl.resources.Res
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_checks
+import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_completed_next
+import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_completed_title
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_discard_confirm
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_discard_keep
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_discard_message
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_discard_title
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_error_load
+import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_submitted_title
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_title
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
@@ -92,8 +95,6 @@ private fun MissingTarget.listIndex(): Int = when (this) {
     is MissingTarget.Check -> LeadingItem.entries.size + questionIndex
 }
 
-private enum class ChecklistPhase { Loading, Error, Form, Submitted }
-
 @Composable
 private fun ChecklistScreenContent(
     state: ChecklistState,
@@ -104,12 +105,7 @@ private fun ChecklistScreenContent(
     modifier: Modifier = Modifier,
 ) {
     val content = state.content
-    val phase = when {
-        state.submitStatus is ChecklistSubmitStatus.Submitted -> ChecklistPhase.Submitted
-        content is ChecklistContent.Loading -> ChecklistPhase.Loading
-        content is ChecklistContent.Error -> ChecklistPhase.Error
-        else -> ChecklistPhase.Form
-    }
+    val phase = state.phase
 
     Column(modifier = modifier.fillMaxSize().background(AppTheme.colors.surfaceContainer)) {
         Toolbar(
@@ -137,7 +133,18 @@ private fun ChecklistScreenContent(
 
                 ChecklistPhase.Submitted -> (state.submitStatus as? ChecklistSubmitStatus.Submitted)?.let { submitted ->
                     ChecklistSubmittedContent(
+                        title = stringResource(Res.string.checklist_submitted_title),
                         summary = submitted.summary,
+                        dateFormatter = dateFormatter,
+                        onDone = onClose,
+                    )
+                }
+
+                ChecklistPhase.AlreadyCompleted -> (content as? ChecklistContent.AlreadyCompleted)?.let { completed ->
+                    ChecklistSubmittedContent(
+                        title = stringResource(Res.string.checklist_completed_title),
+                        note = stringResource(Res.string.checklist_completed_next),
+                        summary = completed.summary,
                         dateFormatter = dateFormatter,
                         onDone = onClose,
                     )

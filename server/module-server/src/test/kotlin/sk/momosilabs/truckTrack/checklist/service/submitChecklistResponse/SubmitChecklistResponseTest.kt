@@ -236,6 +236,9 @@ class SubmitChecklistResponseTest {
         override fun existsResponse(answeredById: UUID, periodStartDate: LocalDate): Boolean =
             createdResponses.any { it.answeredById == answeredById && it.periodStartDate == periodStartDate }
 
+        override fun findResponse(answeredById: UUID, periodStartDate: LocalDate): ChecklistResponseModel? =
+            throw UnsupportedOperationException()
+
         override fun createResponse(model: ChecklistResponseModel): ChecklistResponseModel =
             model.also { createdResponses += it }
 

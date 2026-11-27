@@ -29,6 +29,8 @@ import com.momosi.trucktrack.core.uilibrary.icons.TruckTrackIcons
 import com.momosi.trucktrack.core.uilibrary.theme.AppTheme
 import com.momosi.trucktrack.core.uilibrary.theme.TruckTrackTheme
 import com.momosi.trucktrack.feature.checklist.impl.resources.Res
+import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_completed_next
+import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_completed_title
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_submitted_done
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_submitted_no_problems
 import com.momosi.trucktrack.feature.checklist.impl.resources.checklist_submitted_problems
@@ -40,10 +42,12 @@ import kotlin.time.Clock
 
 @Composable
 internal fun ChecklistSubmittedContent(
+    title: String,
     summary: ChecklistSummary,
     dateFormatter: DateFormatter,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
+    note: String? = null,
 ) {
     val hasProblems = summary.problemCount > 0
 
@@ -59,7 +63,7 @@ internal fun ChecklistSubmittedContent(
             SuccessMark()
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = stringResource(Res.string.checklist_submitted_title),
+                text = title,
                 style = AppTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = AppTheme.colors.onSurface,
                 textAlign = TextAlign.Center,
@@ -78,6 +82,15 @@ internal fun ChecklistSubmittedContent(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = stringResource(Res.string.checklist_submitted_problems_hint),
+                    style = AppTheme.typography.bodyMedium,
+                    color = AppTheme.colors.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            if (note != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = note,
                     style = AppTheme.typography.bodyMedium,
                     color = AppTheme.colors.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -169,6 +182,7 @@ private fun ResultBadge(problemCount: Int, modifier: Modifier = Modifier) {
 private fun ChecklistSubmittedAllOkPreview() {
     TruckTrackTheme {
         ChecklistSubmittedContent(
+            title = stringResource(Res.string.checklist_submitted_title),
             summary = ChecklistSummary("MA151E0", "MA777TR", Clock.System.now(), problemCount = 0, totalCount = 8),
             dateFormatter = DateFormatter(),
             onDone = {},
@@ -181,7 +195,22 @@ private fun ChecklistSubmittedAllOkPreview() {
 private fun ChecklistSubmittedProblemsPreview() {
     TruckTrackTheme {
         ChecklistSubmittedContent(
+            title = stringResource(Res.string.checklist_submitted_title),
             summary = ChecklistSummary("MA151E0", "MA777TR", Clock.System.now(), problemCount = 2, totalCount = 8),
+            dateFormatter = DateFormatter(),
+            onDone = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ChecklistAlreadyCompletedPreview() {
+    TruckTrackTheme {
+        ChecklistSubmittedContent(
+            title = stringResource(Res.string.checklist_completed_title),
+            note = stringResource(Res.string.checklist_completed_next),
+            summary = ChecklistSummary("MA151E0", "MA777TR", Clock.System.now(), problemCount = 1, totalCount = 8),
             dateFormatter = DateFormatter(),
             onDone = {},
         )
