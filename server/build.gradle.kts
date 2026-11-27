@@ -8,7 +8,7 @@ plugins {
 
 allprojects {
     group = "sk.momosilabs.truckTrack"
-    version = "1.0-rc2"
+    version = providers.gradleProperty("serverVersion").orElse("dev").get()
 }
 
 subprojects {

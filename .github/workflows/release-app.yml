@@ -3,14 +3,14 @@ name: Release App
 on:
     push:
         tags:
-            - 'v*.*.*'
+            - 'mobile-*.*.*'
 
 jobs:
     prepare:
         runs-on: ubuntu-latest
         outputs:
-            version-name: ${{ steps.version.outputs.name }}
-            version-code: ${{ steps.version.outputs.code }}
+            version-name: ${{ steps.version.outputs.version-name }}
+            version-code: ${{ steps.version.outputs.version-code }}
 
         steps:
             -   name: Checkout Repository
@@ -18,49 +18,12 @@ jobs:
                 with:
                     fetch-depth: 0
 
-            -   name: Parse version from tag
+            -   name: Check release preparation
+                run: bash .github/scripts/test-prepare-release.sh
+
+            -   name: Prepare mobile release
                 id: version
-                run: |
-                    TAG="${GITHUB_REF_NAME}"
-                    if [[ ! "$TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-                        echo "Tag '$TAG' does not match required vMAJOR.MINOR.PATCH format" >&2
-                        exit 1
-                    fi
-
-                    MAJOR="${BASH_REMATCH[1]}"
-                    MINOR="${BASH_REMATCH[2]}"
-                    PATCH="${BASH_REMATCH[3]}"
-
-                    if [ "$MINOR" -ge 100 ] || [ "$PATCH" -ge 100 ]; then
-                        echo "MINOR and PATCH must be less than 100 to avoid versionCode collisions" >&2
-                        exit 1
-                    fi
-
-                    VERSION_NAME="${MAJOR}.${MINOR}.${PATCH}"
-                    VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
-
-                    echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
-                    echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
-
-            -   name: Generate changelog since previous release
-                run: |
-                    PREVIOUS_TAG=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | grep -B1 -x "${GITHUB_REF_NAME}" | head -1)
-                    if [ "$PREVIOUS_TAG" = "${GITHUB_REF_NAME}" ]; then
-                        PREVIOUS_TAG=""
-                    fi
-
-                    {
-                        if [ -n "$PREVIOUS_TAG" ]; then
-                            echo "Changes since $PREVIOUS_TAG:"
-                            git log --pretty=format:"- %s" "${PREVIOUS_TAG}..${GITHUB_REF_NAME}"
-                        else
-                            echo "Initial release."
-                            git log --pretty=format:"- %s" "${GITHUB_REF_NAME}"
-                        fi
-                        echo ""
-                        echo ""
-                        echo "Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    } > release-notes.txt
+                run: bash .github/scripts/prepare-release.sh mobile
 
             -   name: Upload release notes
                 uses: actions/upload-artifact@v7

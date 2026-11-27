@@ -197,12 +197,13 @@ without leaving the terminal.
   the `internal-testers` group in Firebase App Distribution. Skipped when the iOS signing secrets aren't configured.
 - Skipped entirely for doc-only changes (`paths-ignore`: `**/*.md`, `.claude/**`, `docs/**`).
 
-### On pushing a version tag (`release-app.yml`)
+### On pushing a `mobile-X.Y.Z` tag (`release-app.yml`)
 
 Every release covers **both** environments (staging and prod) from the same commit:
 
-- **`prepare`** — validates the tag, derives `versionName`/`versionCode`, and writes the changelog
-  since the previous tag.
+- **`prepare`** — verifies that the tag points to a commit on `main`, derives
+  `versionName`/`versionCode`, and writes mobile/shared changes since the previous mobile release
+  (including legacy `vX.Y.Z` tags).
 - **`build-android`** and **`build-ios`** (in parallel) — signed staging + prod release APKs and AABs
   in one Gradle run; signed ad-hoc staging + prod `.ipa`s archived with the `Release` configuration
   (iOS is skipped with a warning when its signing secrets aren't configured).
@@ -212,6 +213,8 @@ Every release covers **both** environments (staging and prod) from the same comm
 - **`distribute-android`** / **`distribute-ios`** — push each APK / `.ipa` to its own Firebase app
   (staging / prod), both to the `release` group in Firebase App Distribution.
 - **`upload-testflight`** — uploads the App Store signed prod `.ipa` to TestFlight.
+- **`upload-google-play`** — uploads the prod AAB and mapping file to Google Play's internal track
+  when its service-account secret is configured.
 - See [Releasing](#releasing) for the tag format and required secrets.
 
 ## Project structure
@@ -336,15 +339,18 @@ No automated tests exist yet. When adding them, follow the conventions in `AGENT
 ## Releasing
 
 A signed release (`.github/workflows/release-app.yml`, at the repo root) is cut by pushing a
-version tag — there's no separate version bump commit, the tag *is* the version:
+`mobile-X.Y.Z` tag on a commit already on `main` — the tag *is* the version:
 
 ```bash
-git tag v1.2.3
-git push origin v1.2.3
+git fetch origin main --tags
+git tag mobile-1.2.3 origin/main
+git push origin mobile-1.2.3
 ```
 
-- Tag must match `vMAJOR.MINOR.PATCH`, with `MINOR` and `PATCH` each under 100 (so
-  `versionCode = MAJOR * 10000 + MINOR * 100 + PATCH` can't collide across versions).
+- Tags match `mobile-MAJOR.MINOR.PATCH` without leading zeros; `MINOR` and `PATCH` are below 100,
+  and `versionCode = MAJOR * 10000 + MINOR * 100 + PATCH` must be 1–2100000000. Versions must
+  increase from existing mobile and legacy `vX.Y.Z` tags; changing the prefix does not reset
+  app-store numbering. Old `v*` and `server-*` tags do not trigger this workflow.
 - **Android** — produces signed `truck-track-<env>-<version>.apk` and `truck-track-<env>-<version>.aab`
   for `staging` and `prod`, built with `versionName`/`versionCode` embedded from the tag, published as a GitHub Release
   named after the tag. Requires four repo secrets: `ANDROID_KEYSTORE_BASE64`,
@@ -360,8 +366,12 @@ git push origin v1.2.3
   `APP_STORE_CONNECT_API_KEY_BASE64`, `APP_STORE_CONNECT_API_KEY_ID` and `APP_STORE_CONNECT_ISSUER_ID`;
   skipped with a warning when any are missing. Builds land in TestFlight for internal testers;
   submitting for App Store review is done manually in App Store Connect.
-- Firebase distribution uses `FIREBASE_{STAGING,PROD}_{ANDROID,IOS}_APP_ID`, all to the `release`
-  group. Play Store uploads aren't automated yet.
+- Firebase distribution uses `FIREBASE_TOKEN` and
+  `FIREBASE_{STAGING,PROD}_{ANDROID,IOS}_APP_ID`, all to the `release` group.
+- **Google Play** — `PLAY_SERVICE_ACCOUNT_JSON` enables uploading the prod AAB to the internal
+  track. Public Play Store and App Store rollout remains manual. Mobile signing/distribution
+  secrets remain repository-scoped; the backend's `staging` / `production` environments do not
+  change them.
 
 ## Docs
 
