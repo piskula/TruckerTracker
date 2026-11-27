@@ -392,6 +392,19 @@ same Firebase project, so one key serves both servers.
 
 The variable takes effect on the next restart or deploy.
 
+`CHECKLIST_REMINDER_ENABLED` switches the weekly checklist reminder job (see `checklist.md`). It
+defaults to `true`, so both servers remind drivers without any setup. To stop reminders on one
+server, set it to `false`:
+
+- Production: add `CHECKLIST_REMINDER_ENABLED=false` to `/opt/trucktrack/app/app.env`, see the
+  truckTrack-devOps runbook (doc 07, section 7.2).
+- Staging: add a drop-in the same way as the Firebase key:
+  ```bash
+  sudo mkdir -p /etc/systemd/system/trucker-service.service.d
+  printf '[Service]\nEnvironment=CHECKLIST_REMINDER_ENABLED=false\n' | sudo tee /etc/systemd/system/trucker-service.service.d/checklist-reminder.conf
+  sudo systemctl daemon-reload && sudo systemctl restart trucker-service
+  ```
+
 ### Keycloak
 
 Configure back-channel logout as described in `server/devOps/README.md` (*Keycloak — Enable
