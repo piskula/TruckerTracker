@@ -24,6 +24,8 @@ data class PushMessage(
 
         fun checklistReminderTwoDaysLeft() = checklistReminder(keyPrefix = "push.checklist-reminder.two-days-left")
 
+        fun checklistReminderDaily() = checklistReminder(keyPrefix = "push.checklist-reminder.daily")
+
         private fun checklistReminder(keyPrefix: String) = PushMessage(
             type = PushMessageType.CHECKLIST_REMINDER,
             title = PushText(key = "$keyPrefix.title"),

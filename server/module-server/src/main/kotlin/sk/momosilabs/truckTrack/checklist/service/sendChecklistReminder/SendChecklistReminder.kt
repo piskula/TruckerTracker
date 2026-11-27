@@ -16,12 +16,13 @@ class SendChecklistReminder(
     private val checklistPersistence: ChecklistPersistence,
     private val eventPublisher: ApplicationEventPublisher,
     private val clock: Clock,
+    private val checklistPeriod: ChecklistPeriod,
 ) : SendChecklistReminderUseCase {
 
     @Transactional
     override fun send(stage: ChecklistReminderStage): Int {
         val now = OffsetDateTime.now(clock)
-        val periodStartDate = ChecklistPeriod.startDateOf(now)
+        val periodStartDate = checklistPeriod.startDateOf(now)
         val driverIds = checklistPersistence.findDriverIdsDueForReminder(periodStartDate, stage)
         driverIds.forEach { driverId ->
             checklistPersistence.createReminder(
