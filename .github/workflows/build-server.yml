@@ -268,13 +268,14 @@ jobs:
                 shell: bash
                 env:
                     SERVER_VERSION: ${{ needs.prepare.outputs.version }}
-                    PROD_HOST: ${{ secrets.PROD_HOST }}
-                    PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
-                    PROD_SSH_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+                    DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+                    DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+                    DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+                    DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
                 run: |
                     set -euo pipefail
 
-                    for name in PROD_HOST PROD_SSH_KEY PROD_SSH_KNOWN_HOSTS; do
+                    for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_SSH_KNOWN_HOSTS; do
                         if [[ -z "${!name}" ]]; then
                             echo "::error::Missing required production secret: $name"
                             exit 1
@@ -291,8 +292,8 @@ jobs:
                     umask 077
                     ssh_dir="$(mktemp -d)"
                     trap 'rm -f "$ssh_dir/key" "$ssh_dir/known_hosts" "$ssh_dir/ssh.log"; rmdir "$ssh_dir"' EXIT
-                    printf '%s\n' "$PROD_SSH_KEY" > "$ssh_dir/key"
-                    printf '%s\n' "$PROD_SSH_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
+                    printf '%s\n' "$DEPLOY_SSH_KEY" > "$ssh_dir/key"
+                    printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
                     ssh_options=(
                         -i "$ssh_dir/key"
                         -o BatchMode=yes
@@ -304,7 +305,7 @@ jobs:
                         -o ServerAliveCountMax=3
                     )
 
-                    if ! ssh "${ssh_options[@]}" "deploy@$PROD_HOST" \
+                    if ! ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" \
                         'test -x /opt/trucktrack/scripts/deploy-app.sh &&
                          test -w /opt/trucktrack/app &&
                          command -v curl >/dev/null &&
@@ -318,13 +319,13 @@ jobs:
 
                     remote_jar="/opt/trucktrack/app/.incoming-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.jar"
                     checksum="$(sha256sum "${jars[0]}" | cut -d ' ' -f 1)"
-                    if ! scp "${ssh_options[@]}" "${jars[0]}" "deploy@[$PROD_HOST]:$remote_jar" \
+                    if ! scp "${ssh_options[@]}" "${jars[0]}" "$DEPLOY_USER@[$DEPLOY_HOST]:$remote_jar" \
                         > "$ssh_dir/ssh.log" 2>&1; then
                         echo "::error::Production artifact upload failed."
                         exit 1
                     fi
 
-                    if ! ssh "${ssh_options[@]}" "deploy@$PROD_HOST" \
+                    if ! ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" \
                         "bash -s -- '$remote_jar' '$checksum' '$SERVER_VERSION'" > "$ssh_dir/ssh.log" 2>&1 <<'DEPLOY'
                     set -euo pipefail
                     new_jar="$1"

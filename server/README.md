@@ -99,12 +99,16 @@ Add these under each environment's **Environment secrets**:
 | `staging` | `DEPLOY_USER` | Existing staging SSH deployment account |
 | `staging` | `DEPLOY_SSH_KEY` | Private key for that account, usable non-interactively |
 | `staging` | `DEPLOY_HOST_KEY` | SHA256 SSH host-key fingerprint, including the `SHA256:` prefix |
-| `production` | `PROD_HOST` | Production SSH hostname or IP |
-| `production` | `PROD_SSH_KEY` | Dedicated private key for the production `deploy` account, usable non-interactively |
-| `production` | `PROD_SSH_KNOWN_HOSTS` | Complete OpenSSH `known_hosts` entry matching `PROD_HOST` |
+| `production` | `DEPLOY_HOST` | Production SSH hostname or IP |
+| `production` | `DEPLOY_USER` | Production SSH deployment account (`deploy` for the documented VM setup) |
+| `production` | `DEPLOY_SSH_KEY` | Dedicated private key for that production account, usable non-interactively |
+| `production` | `DEPLOY_SSH_KNOWN_HOSTS` | Complete OpenSSH `known_hosts` entry matching `DEPLOY_HOST` |
+
+`DEPLOY_HOST`, `DEPLOY_USER`, and `DEPLOY_SSH_KEY` use the same names in both environments,
+with separate values selected by the deployment job's environment.
 
 `DEPLOY_HOST_KEY` is a fingerprint used by both staging SSH actions, not a public-key line
-or a `known_hosts` entry. `PROD_SSH_KNOWN_HOSTS` is a full `known_hosts` entry, not a
+or a `known_hosts` entry. `DEPLOY_SSH_KNOWN_HOSTS` is a full `known_hosts` entry, not a
 fingerprint. Verify both through a trusted channel. Never reuse staging credentials for
 production, commit secret values, or print them in workflow logs.
 
@@ -128,7 +132,7 @@ non-interactively. Staging permissions and runtime configuration are unchanged.
 
 Before the first production run:
 
-1. Configure the `production` environment and its three secrets as described above.
+1. Configure the `production` environment and its four secrets as described above.
 2. On the production VM, authorize the corresponding public key for `deploy`. Verify that
    `/opt/trucktrack/scripts/deploy-app.sh` is executable, `/opt/trucktrack/app` is writable by
    `deploy`, and `curl`, `jq`, `sha256sum`, and Java 25 are installed. Install the systemd unit,
