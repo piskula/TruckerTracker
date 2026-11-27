@@ -26,18 +26,18 @@ class CurrentUserServiceTest {
     }
 
     @Test
-    fun `the account is synced with the role from the verified token, driver taking precedence`() {
+    fun `the account is synced with every application role from the verified token`() {
         mapOf(
-            listOf("ROLE_DRIVER") to AccountRole.DRIVER,
-            listOf("ROLE_MECHANIC") to AccountRole.MECHANIC,
-            listOf("ROLE_MECHANIC", "ROLE_DRIVER") to AccountRole.DRIVER,
-            listOf("offline_access") to null,
-        ).forEach { (authorities, role) ->
+            listOf("ROLE_DRIVER") to setOf(AccountRole.DRIVER),
+            listOf("ROLE_MECHANIC") to setOf(AccountRole.MECHANIC),
+            listOf("ROLE_MECHANIC", "ROLE_DRIVER") to setOf(AccountRole.DRIVER, AccountRole.MECHANIC),
+            listOf("offline_access") to emptySet(),
+        ).forEach { (authorities, roles) ->
             authenticate(sessionId = null, authorities = authorities)
 
             val account = service.currentUser()
 
-            verify(accountPersistenceHelper).sync(account, role)
+            verify(accountPersistenceHelper).sync(account, roles)
             reset(accountPersistenceHelper)
         }
     }

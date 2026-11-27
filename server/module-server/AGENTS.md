@@ -47,7 +47,7 @@ This is a hard rule — no use case method may be left without a security annota
 - Blank line between every constructor parameter block for readability.
 - No shared base entity, no `@MappedSuperclass`, no `@Embeddable`.
 - `LocalDateTime` for timestamps in entities; field names suffixed with `Utc` (e.g. `startedAtUtc`).
-- `AccountEntity` (package `account`) stores `id` (Keycloak UUID), `username`, `firstName`, `lastName` and a nullable `role` (`AccountRole`). `role` is a snapshot written by `CurrentUserService.currentUser()` → `AccountPersistenceHelper.sync()` from the verified JWT's realm roles (`DRIVER` wins over `MECHANIC`); it exists only so background jobs without a principal (the checklist reminder) can target drivers. Authorization always reads the role from the JWT at runtime, never from this column, and `AccountModel` does not carry it — `AccountModel` is snapshotted into issue-history JSON.
+- `AccountEntity` (package `account`) stores `id` (Keycloak UUID), `username`, `firstName`, `lastName`. The account's application roles live in `account_role` (`AccountRoleEntity`: `account` + `AccountRole`, unique together, one row per role the user has — no precedence between roles). `CurrentUserService.currentUser()` → `AccountPersistenceHelper.sync()` replaces them with the realm roles of the verified JWT on every call. They exist only so background jobs without a principal (the checklist reminder) can find drivers. Authorization always reads roles from the JWT at runtime, never from this table, and `AccountModel` does not carry them — `AccountModel` is snapshotted into issue-history JSON.
 
 **Model class:**
 - `data class` in `model/` package. `id = 0L` or `UUID(0,0)` signals a new (unsaved) record.

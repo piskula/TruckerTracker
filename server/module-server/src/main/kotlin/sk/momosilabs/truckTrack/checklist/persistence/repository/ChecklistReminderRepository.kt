@@ -13,7 +13,14 @@ interface ChecklistReminderRepository : JpaRepository<ChecklistReminderEntity, L
     @Query(
         """
         select a.id from account a
-        where a.role = :role
+        where exists (
+            select 1 from account_role ar
+            where ar.account = a and ar.role = :requiredRole
+          )
+          and not exists (
+            select 1 from account_role ar
+            where ar.account = a and ar.role = :excludedRole
+          )
           and not exists (
             select 1 from checklist_response r
             where r.answeredBy = a and r.periodStartDate = :periodStartDate
@@ -25,5 +32,10 @@ interface ChecklistReminderRepository : JpaRepository<ChecklistReminderEntity, L
         order by a.id
         """
     )
-    fun findAccountIdsDueForReminder(role: AccountRole, periodStartDate: LocalDate, stage: ChecklistReminderStage): List<UUID>
+    fun findAccountIdsDueForReminder(
+        requiredRole: AccountRole,
+        excludedRole: AccountRole,
+        periodStartDate: LocalDate,
+        stage: ChecklistReminderStage,
+    ): List<UUID>
 }

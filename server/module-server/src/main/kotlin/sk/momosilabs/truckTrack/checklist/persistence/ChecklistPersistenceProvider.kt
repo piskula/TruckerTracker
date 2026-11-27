@@ -55,7 +55,12 @@ class ChecklistPersistenceProvider(
 
     @Transactional(readOnly = true)
     override fun findDriverIdsDueForReminder(periodStartDate: LocalDate, stage: ChecklistReminderStage): List<UUID> =
-        checklistReminderRepository.findAccountIdsDueForReminder(AccountRole.DRIVER, periodStartDate, stage)
+        checklistReminderRepository.findAccountIdsDueForReminder(
+            requiredRole = AccountRole.DRIVER,
+            excludedRole = AccountRole.MECHANIC,
+            periodStartDate = periodStartDate,
+            stage = stage,
+        )
 
     @Transactional
     override fun createReminder(model: ChecklistReminderModel): ChecklistReminderModel {

@@ -20,7 +20,7 @@ class CurrentUserService(
         (jwt().claims["sid"] as? String)?.takeIf { it.isNotBlank() }
             ?: throw GlobalBadRequestException("Access token must contain a non-blank sid claim")
 
-    fun isMechanic(): Boolean = MECHANIC_AUTHORITY in authorities()
+    fun isMechanic(): Boolean = authorityOf(AccountRole.MECHANIC) in authorities()
 
     fun currentUser(): AccountModel {
         val token = jwt()
@@ -30,18 +30,16 @@ class CurrentUserService(
             firstName = token.getClaimAsString("given_name"),
             lastName = token.getClaimAsString("family_name"),
         )
-        accountPersistenceHelper.sync(account, currentRole())
+        accountPersistenceHelper.sync(account, currentRoles())
         return account
     }
 
-    private fun currentRole(): AccountRole? {
+    private fun currentRoles(): Set<AccountRole> {
         val authorities = authorities()
-        return when {
-            DRIVER_AUTHORITY in authorities -> AccountRole.DRIVER
-            MECHANIC_AUTHORITY in authorities -> AccountRole.MECHANIC
-            else -> null
-        }
+        return AccountRole.entries.filterTo(HashSet()) { authorityOf(it) in authorities }
     }
+
+    private fun authorityOf(role: AccountRole) = "$ROLE_AUTHORITY_PREFIX${role.name}"
 
     private fun authorities(): Set<String> =
         authentication().authorities.mapNotNullTo(HashSet()) { it.authority }
@@ -52,7 +50,6 @@ class CurrentUserService(
         SecurityContextHolder.getContext().authentication as JwtAuthenticationToken
 
     private companion object {
-        const val DRIVER_AUTHORITY = "ROLE_DRIVER"
-        const val MECHANIC_AUTHORITY = "ROLE_MECHANIC"
+        const val ROLE_AUTHORITY_PREFIX = "ROLE_"
     }
 }
