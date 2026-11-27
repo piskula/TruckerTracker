@@ -4,6 +4,7 @@ import com.momosi.trucktrack.core.checklist.model.ChecklistAnswer
 import com.momosi.trucktrack.core.checklist.model.ChecklistQuestion
 import com.momosi.trucktrack.core.checklist.model.ChecklistResponse
 import com.momosi.trucktrack.core.checklist.model.ChecklistResponseItem
+import com.momosi.trucktrack.core.checklist.model.ChecklistStatus
 import com.momosi.trucktrack.core.checklist.model.ChecklistSubmission
 import com.momosi.trucktrack.core.checklist.model.ChecklistText
 import com.momosi.trucktrack.core.checklist.model.ChecklistVehicle
@@ -12,6 +13,8 @@ import com.momosi.trucktrack.shared.checklist.ChecklistQuestionDto
 import com.momosi.trucktrack.shared.checklist.ChecklistResponseCreateDto
 import com.momosi.trucktrack.shared.checklist.ChecklistResponseDto
 import com.momosi.trucktrack.shared.checklist.ChecklistResponseItemDto
+import com.momosi.trucktrack.shared.checklist.ChecklistStateDto
+import com.momosi.trucktrack.shared.checklist.ChecklistStatusDto
 import com.momosi.trucktrack.shared.checklist.ChecklistTextDto
 import com.momosi.trucktrack.shared.checklist.ChecklistVehicleSnapshotDto
 import kotlin.uuid.ExperimentalUuidApi
@@ -57,3 +60,13 @@ private fun ChecklistTextDto.toChecklistText(): ChecklistText = ChecklistText(
     language = language,
     text = text,
 )
+
+internal fun ChecklistStatusDto.toChecklistStatus(): ChecklistStatus = when (state) {
+    ChecklistStateDto.NOT_REQUIRED -> ChecklistStatus.NotRequired
+
+    ChecklistStateDto.PENDING -> ChecklistStatus.Pending
+
+    ChecklistStateDto.COMPLETED -> ChecklistStatus.Completed(
+        requireNotNull(response) { "A completed checklist status must carry its response" }.toChecklistResponse(),
+    )
+}

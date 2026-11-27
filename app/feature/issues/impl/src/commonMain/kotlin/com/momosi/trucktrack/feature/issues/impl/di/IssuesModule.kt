@@ -11,7 +11,7 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val issuesModule = module {
-    viewModel { IssuesViewModel(get(), get()) }
+    viewModel { IssuesViewModel(get(), get(), get()) }
     viewModel { params -> IssueDetailViewModel(params.get(), get(), get(), get(), get(), get(), get()) }
     viewModel { params -> StartWorkingViewModel(params.get(), get(), get()) }
     viewModel { CreateIssueViewModel(get(), get(), get(), get()) }

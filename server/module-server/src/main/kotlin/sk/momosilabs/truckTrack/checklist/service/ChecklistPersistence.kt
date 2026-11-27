@@ -15,6 +15,8 @@ interface ChecklistPersistence {
 
     fun existsResponse(answeredById: UUID, periodStartDate: LocalDate): Boolean
 
+    fun findResponse(answeredById: UUID, periodStartDate: LocalDate): ChecklistResponseModel?
+
     fun createResponse(model: ChecklistResponseModel): ChecklistResponseModel
 
     fun findDriverIdsDueForReminder(periodStartDate: LocalDate, stage: ChecklistReminderStage): List<UUID>

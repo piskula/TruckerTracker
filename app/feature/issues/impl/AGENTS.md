@@ -8,9 +8,9 @@ UI and logic for the issues feature. Screens: list, search, detail, create, edit
 
 | File | Description |
 |------|-------------|
-| `IssuesScreen.kt` | Top-level screen (for drivers only, a `SmallExtendedFloatingActionButton` "Checklist" stacked above the `+` FAB opens `ChecklistNavKey`; labelled while the list is at the top, icon-only once scrolled) + `IssueList`, `LoadingContent` (shimmering skeleton list), `ErrorContent` (`ErrorState` fed with the paging refresh error mapped to a `FailureReason`), `EmptyContent` composables |
-| `IssuesViewModel.kt` | Loads issues, handles filter selection and refresh |
-| `IssuesState.kt` | `IssuesState` (sealed: `Loading`, `Error`, `Empty`, `Issues`) + `IssuesContent`, `IssueFilter` |
+| `IssuesScreen.kt` | Top-level screen (while `IssuesState.isChecklistButtonVisible`, a `SmallExtendedFloatingActionButton` "Checklist" stacked above the `+` FAB opens `ChecklistNavKey`; labelled while the list is at the top, icon-only once scrolled) + `IssueList`, `LoadingContent` (shimmering skeleton list), `ErrorContent` (`ErrorState` fed with the paging refresh error mapped to a `FailureReason`), `EmptyContent` composables |
+| `IssuesViewModel.kt` | Loads issues, handles filter selection and refresh. Derives the Checklist button from `ChecklistRepository.status` (`core:checklist`): shown when `Pending`, and for drivers when the status is `Unavailable`; hidden while `Unknown`, `NotRequired` or `Completed` |
+| `IssuesState.kt` | `IssuesState` (`userInfo`, `selectedFilter`, `isChecklistButtonVisible`) + `IssuesUserInfo`, `IssueFilter` |
 | `IssuesAction.kt` | `SelectFilter`, `Retry`, `Refresh` |
 | `IssueCard.kt` | Card composable — role-aware (driver sees assignee, mechanic sees reporter) |
 | `IssueCardSkeleton.kt` | Shimmer skeleton mirroring `IssueCard`'s layout, shown by `LoadingContent` during initial/refresh load |
@@ -111,6 +111,7 @@ Standalone composable to display a single attachment full-screen.
 - `:core:issue` — `IssueRepository`, `IssueAttachmentRepository`, all domain models
 - `:core:user` — `AuthManager`, `UserRepository`, `UserRole`
 - `:core:vehicle` — `VehicleRepository`, `Vehicle`, `VehicleType`
+- `:core:checklist` — `ChecklistRepository.status`, which drives the Checklist button
 - `:core:navigation` — `Navigator`
 - `:core:ui-library` — all UI components
 - `:core:common` — `Logger`, `DispatcherProvider`

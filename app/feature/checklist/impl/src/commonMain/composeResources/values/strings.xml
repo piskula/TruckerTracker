@@ -23,6 +23,8 @@
     <string name="checklist_discard_confirm">Discard</string>
     <string name="checklist_discard_keep">Keep editing</string>
     <string name="checklist_submitted_title">Checklist submitted</string>
+    <string name="checklist_completed_title">Checklist already completed for this week</string>
+    <string name="checklist_completed_next">You can fill in the next one from Monday.</string>
     <string name="checklist_submitted_no_problems">No problems found</string>
     <plurals name="checklist_submitted_problems">
         <item quantity="one">%1$d problem recorded</item>

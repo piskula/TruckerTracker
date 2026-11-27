@@ -20,6 +20,7 @@ kotlin {
             implementation(projects.core.user)
             implementation(projects.core.issue)
             implementation(projects.core.vehicle)
+            implementation(projects.core.checklist)
             implementation(libs.kotlinx.collections.immutable)
             implementation(libs.coil.compose)
             implementation(libs.filekit.dialogs.compose)

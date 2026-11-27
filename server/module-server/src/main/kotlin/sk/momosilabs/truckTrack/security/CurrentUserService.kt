@@ -22,6 +22,8 @@ class CurrentUserService(
 
     fun isMechanic(): Boolean = authorityOf(AccountRole.MECHANIC) in authorities()
 
+    fun isDriver(): Boolean = authorityOf(AccountRole.DRIVER) in authorities()
+
     fun currentUser(): AccountModel {
         val token = jwt()
         val account = AccountModel(

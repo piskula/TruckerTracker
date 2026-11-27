@@ -701,6 +701,27 @@
         }
       }
     },
+    "/api/v1/checklist-response/status": {
+      "get": {
+        "tags": [
+          "Checklist Responses"
+        ],
+        "summary": "Get the current user's checklist status for this week",
+        "operationId": "getChecklistStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/issue/byId/{id}": {
       "get": {
         "tags": [
@@ -1566,6 +1587,25 @@
             "items": {
               "$ref": "#/components/schemas/ChecklistAnswerDto"
             }
+          }
+        }
+      },
+      "ChecklistStatusDto": {
+        "required": [
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "NOT_REQUIRED",
+              "PENDING",
+              "COMPLETED"
+            ]
+          },
+          "response": {
+            "$ref": "#/components/schemas/ChecklistResponseDto"
           }
         }
       },

@@ -6,6 +6,7 @@ import com.momosi.trucktrack.core.checklist.ChecklistRepository
 import com.momosi.trucktrack.core.checklist.model.ChecklistAnswer
 import com.momosi.trucktrack.core.checklist.model.ChecklistQuestion
 import com.momosi.trucktrack.core.checklist.model.ChecklistResponse
+import com.momosi.trucktrack.core.checklist.model.ChecklistStatus
 import com.momosi.trucktrack.core.checklist.model.ChecklistSubmission
 import com.momosi.trucktrack.core.common.coroutines.combine
 import com.momosi.trucktrack.core.common.logger.Logger
@@ -24,6 +25,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -31,7 +33,10 @@ import kotlinx.coroutines.launch
 
 class ChecklistViewModel(private val checklistRepository: ChecklistRepository, private val vehicleRepository: VehicleRepository) : ViewModel() {
 
-    private val content = MutableStateFlow<ChecklistContent>(ChecklistContent.Loading)
+    private val formContent = MutableStateFlow<ChecklistContent>(ChecklistContent.Loading)
+    private val content = formContent.combine(checklistRepository.status) { form, status ->
+        if (status is ChecklistStatus.Completed) ChecklistContent.AlreadyCompleted(status.response.toSummary()) else form
+    }
     private val selectedTruck = MutableStateFlow<Vehicle?>(null)
     private val selectedTrailer = MutableStateFlow<Vehicle?>(null)
     private val expandedPicker = MutableStateFlow<VehicleType?>(null)
@@ -85,19 +90,20 @@ class ChecklistViewModel(private val checklistRepository: ChecklistRepository, p
     }
 
     private fun load() {
-        content.value = ChecklistContent.Loading
+        formContent.value = ChecklistContent.Loading
+        viewModelScope.launch { checklistRepository.refreshStatus() }
         viewModelScope.launch {
             val questionsRequest = async { checklistRepository.getQuestions() }
             val vehiclesRequest = async { vehicleRepository.getVehicles() }
             val questions = questionsRequest.await().getOrElse {
-                content.value = ChecklistContent.Error(it.toFailureReason())
+                formContent.value = ChecklistContent.Error(it.toFailureReason())
                 return@launch
             }
             val vehicles = vehiclesRequest.await().getOrElse {
-                content.value = ChecklistContent.Error(it.toFailureReason())
+                formContent.value = ChecklistContent.Error(it.toFailureReason())
                 return@launch
             }
-            content.value = ChecklistContent.Loaded(
+            formContent.value = ChecklistContent.Loaded(
                 questions = questions.toQuestionItems(),
                 trucks = vehicles.toVehiclesContent(VehicleType.Truck),
                 trailers = vehicles.toVehiclesContent(VehicleType.Trailer),
@@ -118,7 +124,7 @@ class ChecklistViewModel(private val checklistRepository: ChecklistRepository, p
     private fun submit() {
         val status = submitStatus.value
         if (status == ChecklistSubmitStatus.InProgress || status is ChecklistSubmitStatus.Submitted) return
-        val questions = (content.value as? ChecklistContent.Loaded)?.questions ?: return
+        val questions = (formContent.value as? ChecklistContent.Loaded)?.questions ?: return
         val truck = selectedTruck.value
         val trailer = selectedTrailer.value
         val currentAnswers = answers.value

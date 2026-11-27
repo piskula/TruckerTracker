@@ -6,12 +6,15 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.momosi.trucktrack.core.checklist.ChecklistRepository
+import com.momosi.trucktrack.core.checklist.model.ChecklistStatus
 import com.momosi.trucktrack.core.common.logger.Logger
 import com.momosi.trucktrack.core.issue.DEFAULT_ISSUE_SORT
 import com.momosi.trucktrack.core.issue.IssueRepository
 import com.momosi.trucktrack.core.issue.model.Issue
 import com.momosi.trucktrack.core.issue.model.IssueStatus
 import com.momosi.trucktrack.user.UserRepository
+import com.momosi.trucktrack.user.model.UserRole
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +28,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class IssuesViewModel(private val userRepository: UserRepository, private val issueRepository: IssueRepository) : ViewModel() {
+class IssuesViewModel(private val userRepository: UserRepository, private val issueRepository: IssueRepository, checklistRepository: ChecklistRepository) : ViewModel() {
 
     private val initialFilter: IssueFilter = run {
         val userRoles = userRepository.user.value?.roles ?: emptySet()
@@ -62,7 +65,8 @@ class IssuesViewModel(private val userRepository: UserRepository, private val is
     val state: StateFlow<IssuesState> = combine(
         userRepository.user,
         selectedFilter,
-    ) { user, filter ->
+        checklistRepository.status,
+    ) { user, filter, checklistStatus ->
         IssuesState(
             userInfo = user?.let {
                 IssuesUserInfo(
@@ -71,6 +75,7 @@ class IssuesViewModel(private val userRepository: UserRepository, private val is
                 )
             },
             selectedFilter = filter,
+            isChecklistButtonVisible = checklistStatus.isChecklistButtonVisible(user?.roles.orEmpty()),
         )
     }.stateIn(
         scope = viewModelScope,
@@ -88,6 +93,12 @@ class IssuesViewModel(private val userRepository: UserRepository, private val is
             is IssuesAction.CreateIssue -> Unit
         }
     }
+}
+
+private fun ChecklistStatus.isChecklistButtonVisible(roles: Set<UserRole>): Boolean = when (this) {
+    ChecklistStatus.Pending -> true
+    ChecklistStatus.Unavailable -> UserRole.Driver in roles
+    ChecklistStatus.Unknown, ChecklistStatus.NotRequired, is ChecklistStatus.Completed -> false
 }
 
 private fun IssueFilter.statuses(): List<IssueStatus> = when (this) {

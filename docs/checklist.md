@@ -59,9 +59,13 @@ The `answers` jsonb looks like this (illustrative):
 ## Endpoints
 
 - **GET /api/v1/checklist-question**: optional `Accept-Language` header (for example `en-US,en;q=0.9,sk;q=0.8`); there is no language query parameter. Text resolution honors language preference weights and regional fallback, then falls back to `sk`, then to the first available entry. Missing or blank headers default to `sk`; malformed language preferences yield 422. Questions are ordered by `position`, then `id`. A question with no texts at all yields 422.
-- **POST /api/v1/checklist-response/create**: the only response endpoint; the surface is submit-only by design. Body: `truckId`, `trailerId`, and `answers` as a list of `{identifier, answer}` entries. There is no client-supplied language.
+- **POST /api/v1/checklist-response/create**: body: `truckId`, `trailerId`, and `answers` as a list of `{identifier, answer}` entries. There is no client-supplied language.
+- **GET /api/v1/checklist-response/status**: the current user's checklist for the current week (`ChecklistPeriod`, so the week boundary follows `Europe/Bratislava` and the client never computes it). Returns `state` and `response`:
+  - `COMPLETED` when the user already has a response this week, which is returned in `response` (same shape as the create response). This wins over the role rule, so a mechanic who filled it in also sees it.
+  - `PENDING` when the user has no response this week and must fill it in. The rule matches the reminders: the verified JWT has `DRIVER` and not `MECHANIC`.
+  - `NOT_REQUIRED` otherwise. `response` is `null` for both of these.
 
-Both endpoints require an authenticated user with the DRIVER or MECHANIC role.
+All endpoints require an authenticated user with the DRIVER or MECHANIC role.
 
 Validation behaves as follows:
 
@@ -84,13 +88,23 @@ The mobile app's shared API and image clients send the selected app language in 
 
 Drivers open the checklist from the Checklist button stacked above the + button on the Issues screen (`feature:checklist`). The screen shows a vehicles card with separate truck and trailer pickers, preselected with the driver's remembered vehicles, followed by one card per question with an OK / Problem choice. A sticky bar shows progress and the Submit button. Submitting with a missing vehicle or unanswered check highlights what is missing and scrolls to it. A failed submit shows an error under the Submit button and keeps the answers; when the server rejects it because the driver already filled the checklist this week, the message says so and points to Monday instead of suggesting a retry. On success the app remembers the truck and trailer and shows a confirmation with both plates, the time, and the number of problems recorded. Leaving with unsubmitted answers asks for confirmation first. Problem answers are only recorded; they do not create issues.
 
+### Weekly status, button and automatic redirect
+
+`core:checklist`'s `ChecklistRepository.status` holds the current week's `ChecklistStatus` (`Unknown`, `Unavailable`, `NotRequired`, `Pending`, `Completed(response)`), loaded from the status endpoint. A successful submit sets it to `Completed`, and a `409` on submit refreshes it. A failed check sets `Unavailable` (the last known value is not kept, so last week's completion is never assumed). A status response that was in flight while the user signed out or submitted is dropped.
+
+- **When it is loaded**: `TruckTrackViewModel` checks it once when access becomes `Ready` (app start, login, passing the notification gate); the checklist screen checks it again whenever it opens. There is no refresh when the app returns to the foreground, so if the week changes while the app stays in memory, the button catches up on the next start or login — the Monday reminder push opens the checklist screen, which checks for itself. Nothing waits for it: the UI is never blocked.
+- **Button**: the Issues screen shows the Checklist button only while the status is `Pending`. If the last check failed (`Unavailable`), it falls back to showing it to drivers, since the server still rejects a second submit with `409`. It is hidden while loading, when `NotRequired`, and when `Completed`.
+- **Automatic redirect**: only the check made when access becomes `Ready` can open the checklist, and only if it is `Pending` and the user stayed on the issues list while it ran. If that check fails, nothing opens and the button remains for drivers. Signing out clears the status.
+- **Never twice, never over a deep link**: if a push opened the checklist or an issue, or the user tapped the button, before the check answered, the automatic open is skipped — even if the user already went back to the issues list. It also only navigates while the issues list is the current screen. If the automatic open happens first and the `/checklist` link arrives afterwards, `Navigator.navigate(root, destination)` ignores it because the checklist is already on top. Both are delivered only while the root is resumed and access is `Ready`.
+- **Already completed**: opening the checklist (button, push, or deep link) also refreshes the status. Whenever the status is `Completed` — on opening, or learned later such as after a `409` — the screen shows a read-only summary of this week's submission (plates, time, problem count) with "Checklist already completed for this week", instead of the form. If the status check fails, the form opens as before.
+
 ## Known gaps and follow-ups
 
 - **Question CRUD**: not implemented. Questions are currently immutable, seeded by migration only. The history safety described above is already designed in for when editing arrives.
 - **Vehicle ownership gap**: vehicles are fleet-global, so any authenticated driver or mechanic can submit a checklist against any truck and trailer pair. Binding submissions to assigned vehicles is a pending product decision.
 - **No driver↔truck assignment or per-driver timezones**: every driver is reminded on the same Bratislava schedule, regardless of vehicle.
 - **"Thanks for being on time" feedback**: a possible later addition to the submit response; no design yet.
-- **No read endpoints for responses yet**: by design for now. The database indexes exist for the future search surface.
+- **No read endpoints for responses beyond the current user's own week**: the status endpoint returns only that. The database indexes exist for a future search surface.
 - **Migration**: the Liquibase changesets should be applied once against a fresh database to verify them before deploy.
 
 ## Implementation pointers

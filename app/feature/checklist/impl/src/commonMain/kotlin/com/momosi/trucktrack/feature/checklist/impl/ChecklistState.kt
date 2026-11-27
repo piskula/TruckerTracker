@@ -30,7 +30,19 @@ data class ChecklistState(
     val showMissing: Boolean get() = submitStatus == ChecklistSubmitStatus.ValidationError
     val truckMissing: Boolean get() = showMissing && selectedTruck == null
     val trailerMissing: Boolean get() = showMissing && selectedTrailer == null
+    val phase: ChecklistPhase get() = when {
+        submitStatus is ChecklistSubmitStatus.Submitted -> ChecklistPhase.Submitted
+
+        else -> when (content) {
+            ChecklistContent.Loading -> ChecklistPhase.Loading
+            is ChecklistContent.Error -> ChecklistPhase.Error
+            is ChecklistContent.AlreadyCompleted -> ChecklistPhase.AlreadyCompleted
+            is ChecklistContent.Loaded -> ChecklistPhase.Form
+        }
+    }
 }
+
+enum class ChecklistPhase { Loading, Error, Form, Submitted, AlreadyCompleted }
 
 @Immutable
 sealed interface ChecklistContent {
@@ -40,6 +52,8 @@ sealed interface ChecklistContent {
 
     @Immutable
     data class Loaded(val questions: ImmutableList<ChecklistQuestionItem>, val trucks: VehiclesContent.Loaded, val trailers: VehiclesContent.Loaded) : ChecklistContent
+
+    data class AlreadyCompleted(val summary: ChecklistSummary) : ChecklistContent
 }
 
 @Immutable

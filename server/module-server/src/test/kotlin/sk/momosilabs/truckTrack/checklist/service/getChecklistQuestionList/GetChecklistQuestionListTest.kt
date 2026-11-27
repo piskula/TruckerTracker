@@ -112,6 +112,8 @@ class GetChecklistQuestionListTest {
         override fun findAllQuestions(): List<ChecklistQuestionModel> = questions
         override fun lockAccount(accountId: UUID) = throw UnsupportedOperationException()
         override fun existsResponse(answeredById: UUID, periodStartDate: LocalDate): Boolean = throw UnsupportedOperationException()
+
+        override fun findResponse(answeredById: UUID, periodStartDate: LocalDate): ChecklistResponseModel? = throw UnsupportedOperationException()
         override fun createResponse(model: ChecklistResponseModel): ChecklistResponseModel = throw UnsupportedOperationException()
         override fun findDriverIdsDueForReminder(periodStartDate: LocalDate, stage: ChecklistReminderStage): List<UUID> =
             throw UnsupportedOperationException()
